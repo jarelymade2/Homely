@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\proyecto\\StayGo\\StayGo.csproj": {}
+    "C:\\Users\\User\\Documents\\StayGo-Home\\StayGo-1\\StayGo.csproj": {}
   },
   "projects": {
-    "C:\\proyecto\\StayGo\\StayGo.csproj": {
+    "C:\\Users\\User\\Documents\\StayGo-Home\\StayGo-1\\StayGo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\proyecto\\StayGo\\StayGo.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Documents\\StayGo-Home\\StayGo-1\\StayGo.csproj",
         "projectName": "StayGo",
-        "projectPath": "C:\\proyecto\\StayGo\\StayGo.csproj",
-        "packagesPath": "C:\\Users\\jarel\\.nuget\\packages\\",
-        "outputPath": "C:\\proyecto\\StayGo\\obj\\",
+        "projectPath": "C:\\Users\\User\\Documents\\StayGo-Home\\StayGo-1\\StayGo.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\Documents\\StayGo-Home\\StayGo-1\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\jarel\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -43,6 +43,16 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.8, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

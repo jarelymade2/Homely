@@ -1,8 +1,42 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "StayGo - Encuentra en qué lugar quedarte";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="main-background">
+    <div class="search-overlay">
+        <h2>Encuentra en qué lugares quedarte</h2>
+        <form asp-controller="Home" asp-action="SearchResults" method="get">
+            <div class="form-group">
+                <label for="location">UBICACIÓN</label>
+                <input type="text" id="location" name="location" placeholder="Ubicación" />
+            </div>
+            <div class="form-group">
+                <label for="checkin">SALIDA</label>
+                <input type="date" id="checkin" name="checkin" />
+            </div>
+            <div class="form-group">
+                <label for="checkout">LLEGADA</label>
+                <input type="date" id="checkout" name="checkout" />
+            </div>
+            <div class="form-group-inline">
+                <div class="counter-group">
+                    <label>NIÑOS</label>
+                    <div class="counter-control">
+                        <button type="button" class="btn-counter-minus">-</button>
+                        <input type="text" name="children" value="0" readonly />
+                        <button type="button" class="btn-counter-plus">+</button>
+                    </div>
+                </div>
+                <div class="counter-group">
+                    <label>ADULTOS</label>
+                    <div class="counter-control">
+                        <button type="button" class="btn-counter-minus">-</button>
+                        <input type="text" name="adults" value="0" readonly />
+                        <button type="button" class="btn-counter-plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn-search">Buscar</button>
+        </form>
+    </div>
 </div>
