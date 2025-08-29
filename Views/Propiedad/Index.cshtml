@@ -1,0 +1,9 @@
+@model IEnumerable<StayGo.Models.Propiedad>
+@{ ViewData["Title"] = "Propiedades"; }
+<h2>Propiedades</h2>
+<ul>
+@foreach(var p in Model)
+{
+  <li><strong>@p.Nombre</strong> — @p.Ubicación — S/ @p.PrecioPorNoche</li>
+}
+</ul>
