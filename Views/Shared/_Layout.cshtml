@@ -1,42 +1,28 @@
-﻿@{
-    ViewData["Title"] = "StayGo - Encuentra en qué lugar quedarte";
-}
+﻿@* /Views/Shared/_Layout.cshtml *@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StayGo</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav>
+            <a asp-controller="Home" asp-action="Index">Inicio</a> |
+            <a asp-controller="Propiedad" asp-action="Index">Propiedades</a>
+        </nav>
+    </header>
 
-<div class="main-background">
-    <div class="search-overlay">
-        <h2>Encuentra en qué lugares quedarte</h2>
-        <form asp-controller="Home" asp-action="SearchResults" method="get">
-            <div class="form-group">
-                <label for="location">UBICACIÓN</label>
-                <input type="text" id="location" name="location" placeholder="Ubicación" />
-            </div>
-            <div class="form-group">
-                <label for="checkin">SALIDA</label>
-                <input type="date" id="checkin" name="checkin" />
-            </div>
-            <div class="form-group">
-                <label for="checkout">LLEGADA</label>
-                <input type="date" id="checkout" name="checkout" />
-            </div>
-            <div class="form-group-inline">
-                <div class="counter-group">
-                    <label>NIÑOS</label>
-                    <div class="counter-control">
-                        <button type="button" class="btn-counter-minus">-</button>
-                        <input type="text" name="children" value="0" readonly />
-                        <button type="button" class="btn-counter-plus">+</button>
-                    </div>
-                </div>
-                <div class="counter-group">
-                    <label>ADULTOS</label>
-                    <div class="counter-control">
-                        <button type="button" class="btn-counter-minus">-</button>
-                        <input type="text" name="adults" value="0" readonly />
-                        <button type="button" class="btn-counter-plus">+</button>
-                    </div>
-                </div>
-            </div>
-            <button type="submit" class="btn-search">Buscar</button>
-        </form>
-    </div>
-</div>
+    <main class="container">
+        @RenderBody()  @* ⬅️ OBLIGATORIO *@
+    </main>
+
+    <footer>
+        <small>&copy; @DateTime.Now.Year - StayGo</small>
+    </footer>
+
+    @RenderSection("Scripts", required: false) @* deja false si no defines la sección en todas las vistas *@
+</body>
+</html>
