@@ -1,0 +1,10 @@
+@model IEnumerable<StayGo.Models.Reserva> 
+@{ ViewData["Title"] = "Reservas"; } 
+<h2>Reservas</h2> 
+<ul> 
+@foreach(var r in Model) 
+{ 
+<li>@r.CheckIn.ToShortDateString() → @r.CheckOut.ToShortDateString() en 
+@r.Propiedad?.Nombre</li> 
+} 
+</ul>
