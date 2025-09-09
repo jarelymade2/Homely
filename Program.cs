@@ -1,27 +1,29 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
+using StayGo.Models.ValueObjects;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<StayGoContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Sqlite"))
-);
+builder.Services.AddDbContext<StayGoContext>(opt =>
+    opt.UseSqlite(builder.Configuration.GetConnectionString("sqlite")));
+
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>(opt =>
+    {
+        opt.Password.RequiredLength = 6;
+        opt.Password.RequireNonAlphanumeric = false;
+        opt.Password.RequireUppercase = false;
+    })
+    .AddEntityFrameworkStores<StayGoContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<StayGoContext>();
-    db.Database.Migrate(); // <- preferible a EnsureCreated()
-}
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -29,12 +31,13 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-// app.UseAuthorization(); // agrégalo si usas Identity/autorización
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ← ejecuta el seed
+await Seed.RunAsync(app.Services);
 
 app.Run();

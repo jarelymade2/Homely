@@ -106,6 +106,22 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
         mb.Entity<Propiedad>().Property(p => p.Titulo).HasMaxLength(200).IsRequired();
         mb.Entity<Amenidad>().Property(a => a.Nombre).HasMaxLength(120).IsRequired();
 
+        // Usuario ↔ AspNetUsers (FK por IdentityUserId)
+        mb.Entity<Usuario>()
+          .HasOne<IdentityUser>()          // sin navegación inversa
+          .WithMany()
+          .HasForeignKey(u => u.IdentityUserId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Usuario>()
+          .Property(u => u.Email).HasMaxLength(256).IsRequired();
+
+        mb.Entity<Usuario>()
+          .HasIndex(u => u.Email).IsUnique();
+
+        mb.Entity<Usuario>()
+          .HasIndex(u => u.IdentityUserId).IsUnique();
+
         // Reglas de negocio más complejas (hotel vs no hotel) se validan en capa de aplicación.
     }
 }
