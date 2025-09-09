@@ -1,15 +1,20 @@
-namespace StayGo.Models
+using StayGo.Models.Enums;
+
+namespace StayGo.Models;
+public class Reserva
 {
-    public class Reserva
-    {
-        public int Id { get; set; }
+    public Guid Id { get; set; }
+    public Guid PropiedadId { get; set; }
+    public Propiedad Propiedad { get; set; } = null!;
+    public Guid? HabitacionId { get; set; } // obligatorio si es hotel
+    public Habitacion? Habitacion { get; set; }
+    public Guid UsuarioId { get; set; }
+    public Usuario Usuario { get; set; } = null!;
+    public DateOnly CheckIn { get; set; }
+    public DateOnly CheckOut { get; set; }
+    public int Huespedes { get; set; }
+    public decimal PrecioTotal { get; set; }
+    public EstadoReserva Estado { get; set; } = EstadoReserva.Pendiente;
 
-        // FK -> Propiedad
-        public int PropiedadId { get; set; }
-        public Propiedad? Propiedad { get; set; }  // <- usada en Include()
-
-        public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
-        public string? ClienteNombre { get; set; }
-    }
+    public ICollection<Pago> Pagos { get; set; } = new List<Pago>();
 }
