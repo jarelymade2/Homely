@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;     
 using StayGo.Data;
-using StayGo.Models; // donde estén Reserva y Propiedad
-
 namespace StayGo.Controllers
 {
     public class ReservasController : Controller

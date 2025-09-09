@@ -3,23 +3,18 @@ using StayGo.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC
 builder.Services.AddControllersWithViews();
 
-// ✅ DbContext con SQLite
 builder.Services.AddDbContext<StayGoContext>(options =>
-{
-    var cs = builder.Configuration.GetConnectionString("Sqlite");
-    options.UseSqlite(cs);
-});
+    options.UseSqlite(builder.Configuration.GetConnectionString("Sqlite"))
+);
 
 var app = builder.Build();
 
-// (Opcional) Crear la BD si no existe
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StayGoContext>();
-    db.Database.EnsureCreated(); // usa migraciones si prefieres: db.Database.Migrate();
+    db.Database.Migrate(); // <- preferible a EnsureCreated()
 }
 
 if (app.Environment.IsDevelopment())
@@ -34,7 +29,9 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+// app.UseAuthorization(); // agrégalo si usas Identity/autorización
 
 app.MapControllerRoute(
     name: "default",
