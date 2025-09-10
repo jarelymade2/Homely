@@ -65,10 +65,10 @@ public class PropiedadController : Controller
         // ORDEN
         query = orden switch
         {
-            "precio_asc"  => query.OrderBy(p => p.PrecioPorNoche ?? decimal.MaxValue),
+            "precio_asc" => query.OrderBy(p => p.PrecioPorNoche ?? decimal.MaxValue),
             "precio_desc" => query.OrderByDescending(p => p.PrecioPorNoche ?? decimal.Zero),
-            "titulo"      => query.OrderBy(p => p.Titulo),
-            _             => query.OrderByDescending(p => p.Id) // recientes
+            "titulo" => query.OrderBy(p => p.Titulo),
+            _ => query.OrderByDescending(p => p.Id) // recientes
         };
 
         // PAGINACIÓN
@@ -135,4 +135,25 @@ public class PropiedadController : Controller
 
         return View(prop);
     }
+    // GET: /Propiedad/Crear
+[HttpGet]
+public IActionResult Crear()
+{
+    return View(new Propiedad { Tipo = TipoPropiedad.Casa, Capacidad = 1 });
+}
+
+// POST: /Propiedad/Crear
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Crear(Propiedad model)
+{
+    if (!ModelState.IsValid)
+        return View(model); // 👈 Aquí verás los errores de FluentValidation
+
+    _db.Add(model);
+    await _db.SaveChangesAsync();
+    TempData["ok"] = "Propiedad creada";
+    return RedirectToAction(nameof(Index));
+}
+
 }
