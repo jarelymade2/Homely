@@ -2,11 +2,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models.ValueObjects;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddDbContext<StayGoContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("sqlite")));
