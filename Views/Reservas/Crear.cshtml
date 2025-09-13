@@ -1,0 +1,55 @@
+@model StayGo.Models.Reserva
+@{
+    var prop = (StayGo.Models.Propiedad)ViewBag.Propiedad;
+    ViewData["Title"] = "Crear Reserva";
+    var today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+}
+
+<h2>Crear Reserva – @prop.Titulo</h2>
+
+<form asp-action="Crear" method="post" asp-antiforgery="true">
+    <input type="hidden" asp-for="PropiedadId" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="CheckIn" class="form-label"></label>
+        <input asp-for="CheckIn" class="form-control" type="date" min="@today"
+               onchange="document.getElementById('chkout').setAttribute('min', this.value)" />
+        <span asp-validation-for="CheckIn" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CheckOut" class="form-label"></label>
+        <input asp-for="CheckOut" id="chkout" class="form-control" type="date" min="@today" />
+        <span asp-validation-for="CheckOut" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Huespedes" class="form-label"></label>
+        <input asp-for="Huespedes" type="number" class="form-control" min="1" />
+        <span asp-validation-for="Huespedes" class="text-danger"></span>
+    </div>
+
+    @if (prop.Tipo == StayGo.Models.TipoPropiedad.Hotel)
+    {
+        <div class="mb-3">
+            <label class="form-label">Habitación</label>
+            <select asp-for="HabitacionId" class="form-select" required>
+                <option value="">-- Selecciona --</option>
+                @foreach (var h in prop.Habitaciones)
+                {
+                    <option value="@h.Id">@h.Nombre – Capacidad: @h.Capacidad – Precio: @h.PrecioPorNoche</option>
+                }
+            </select>
+            <span asp-validation-for="HabitacionId" class="text-danger"></span>
+        </div>
+    }
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Reservar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
