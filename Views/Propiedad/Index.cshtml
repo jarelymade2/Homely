@@ -112,15 +112,15 @@
                             </p>
 
                             <div class="mt-auto d-flex gap-2">
-                                <a asp-controller="Reservas"
-                                   asp-action="Crear"
-                                   asp-route-propiedadId="@p.Id"
-                                   class="btn btn-primary btn-sm">Reservar</a>
+    <a asp-controller="Reservas"
+       asp-action="Crear"
+       asp-route-propiedadId="@p.Id"
+       class="btn btn-primary btn-sm">Reservar</a>
 
-                                @* Cuando tengas Details:
-                                <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">Ver</a>
-                                *@
-                            </div>
+    <a href='@Url.Action("Details","Propiedad", new { id = p.Id })'
+       class="btn btn-outline-secondary btn-sm">Ver</a>
+</div>
+
                         </div>
                     </div>
                 </div>
