@@ -1,0 +1,24 @@
+@model IEnumerable<StayGo.Models.ContactoMensaje>
+@{
+    ViewData["Title"] = "Mensajes de contacto";
+}
+<div class="container py-4">
+    <h2>Mensajes recientes</h2>
+    <table class="table table-striped table-hover">
+        <thead><tr>
+            <th>Fecha</th><th>Nombre</th><th>Email</th><th>Usuario</th><th>Mensaje</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var m in Model)
+        {
+            <tr>
+                <td>@m.FechaUtc.ToLocalTime()</td>
+                <td>@m.Nombre</td>
+                <td>@m.Email</td>
+                <td>@(m.Usuario != null ? (m.Usuario.Nombre ?? m.Usuario.Email) : "-")</td>
+                <td>@m.Mensaje</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
