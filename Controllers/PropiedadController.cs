@@ -13,49 +13,55 @@ public class PropiedadController : Controller
     public PropiedadController(StayGoContext db) => _db = db;
 
     // GET: /Propiedad
-    public async Task<IActionResult> Index(string? q, TipoPropiedad? tipo, string? ciudad,
-                                           decimal? min, decimal? max,
-                                           string? orden = "recientes",
-                                           int page = 1, int pageSize = 9)
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        string? q,
+        TipoPropiedad? tipo,
+        string? ciudad,
+        decimal? min,
+        decimal? max,
+        string? orden = "recientes",
+        int page = 1,
+        int pageSize = 9)
     {
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 60) pageSize = 9;
 
         // Base query
         IQueryable<Propiedad> query = _db.Propiedades
-            .AsNoTracking()
-            .Include(p => p.Imagenes);
+            .Include(p => p.Imagenes)
+            .AsNoTracking();
 
-        // FILTRO búsqueda libre
+        // FILTRO: búsqueda libre (EF.Functions.Like para mejor traducción SQL)
         if (!string.IsNullOrWhiteSpace(q))
         {
-            var qNorm = q.Trim().ToLowerInvariant();
+            var qLike = $"%{q.Trim()}%";
             query = query.Where(p =>
-                p.Titulo.ToLower().Contains(qNorm) ||
-                (p.Descripcion != null && p.Descripcion.ToLower().Contains(qNorm)) ||
+                EF.Functions.Like(p.Titulo, qLike) ||
+                (p.Descripcion != null && EF.Functions.Like(p.Descripcion, qLike)) ||
                 (p.Direccion != null && (
-                    (p.Direccion.Ciudad ?? "").ToLower().Contains(qNorm) ||
-                    (p.Direccion.Pais ?? "").ToLower().Contains(qNorm) ||
-                    (p.Direccion.Linea1 ?? "").ToLower().Contains(qNorm) ||
-                    (p.Direccion.Linea2 ?? "").ToLower().Contains(qNorm) ||
-                    (p.Direccion.CodigoPostal ?? "").ToLower().Contains(qNorm)
+                    EF.Functions.Like(p.Direccion.Ciudad ?? "", qLike) ||
+                    EF.Functions.Like(p.Direccion.Pais ?? "", qLike) ||
+                    EF.Functions.Like(p.Direccion.Linea1 ?? "", qLike) ||
+                    EF.Functions.Like(p.Direccion.Linea2 ?? "", qLike) ||
+                    EF.Functions.Like(p.Direccion.CodigoPostal ?? "", qLike)
                 ))
             );
         }
 
-        // FILTRO tipo
+        // FILTRO: tipo
         if (tipo.HasValue)
-            query = query.Where(p => p.Tipo == tipo);
+            query = query.Where(p => p.Tipo == tipo.Value);
 
-        // FILTRO ciudad
+        // FILTRO: ciudad
         if (!string.IsNullOrWhiteSpace(ciudad))
         {
-            var c = ciudad.Trim().ToLowerInvariant();
+            var cLike = $"%{ciudad.Trim()}%";
             query = query.Where(p => p.Direccion != null &&
-                                     (p.Direccion.Ciudad ?? "").ToLower().Contains(c));
+                                     EF.Functions.Like(p.Direccion.Ciudad ?? "", cLike));
         }
 
-        // FILTRO precios
+        // FILTRO: precios
         if (min.HasValue)
             query = query.Where(p => p.PrecioPorNoche.HasValue && p.PrecioPorNoche.Value >= min.Value);
 
@@ -65,10 +71,11 @@ public class PropiedadController : Controller
         // ORDEN
         query = orden switch
         {
-            "precio_asc" => query.OrderBy(p => p.PrecioPorNoche ?? decimal.MaxValue),
+            "precio_asc"  => query.OrderBy(p => p.PrecioPorNoche ?? decimal.MaxValue),
             "precio_desc" => query.OrderByDescending(p => p.PrecioPorNoche ?? decimal.Zero),
-            "titulo" => query.OrderBy(p => p.Titulo),
-            _ => query.OrderByDescending(p => p.Id) // recientes
+            "titulo"      => query.OrderBy(p => p.Titulo),
+            "titulo_desc" => query.OrderByDescending(p => p.Titulo),
+            _             => query.OrderByDescending(p => p.Id) // recientes (proxy)
         };
 
         // PAGINACIÓN
@@ -78,7 +85,7 @@ public class PropiedadController : Controller
             .Take(pageSize)
             .ToListAsync();
 
-        // Demo en memoria si la BD está vacía
+        // Demo en memoria si la BD está vacía (solo para visualizar)
         if (total == 0 && items.Count == 0)
         {
             items = new List<Propiedad>
@@ -108,7 +115,8 @@ public class PropiedadController : Controller
         }
 
         // Metadatos para la vista
-        ViewBag.Total = total;
+        var totalParaVista = (total == 0 && items.Count > 0) ? items.Count : total;
+        ViewBag.Total = totalParaVista;
         ViewBag.Page = page;
         ViewBag.PageSize = pageSize;
         ViewBag.Query = q;
@@ -122,6 +130,7 @@ public class PropiedadController : Controller
     }
 
     // GET: /Propiedad/Details/{id}
+    [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
         var prop = await _db.Propiedades
@@ -135,25 +144,25 @@ public class PropiedadController : Controller
 
         return View(prop);
     }
+
     // GET: /Propiedad/Crear
-[HttpGet]
-public IActionResult Crear()
-{
-    return View(new Propiedad { Tipo = TipoPropiedad.Casa, Capacidad = 1 });
-}
+    [HttpGet]
+    public IActionResult Crear()
+    {
+        return View(new Propiedad { Tipo = TipoPropiedad.Casa, Capacidad = 1 });
+    }
 
-// POST: /Propiedad/Crear
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Crear(Propiedad model)
-{
-    if (!ModelState.IsValid)
-        return View(model); // 👈 Aquí verás los errores de FluentValidation
+    // POST: /Propiedad/Crear
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Crear(Propiedad model)
+    {
+        if (!ModelState.IsValid)
+            return View(model); // FluentValidation mostrará errores en la vista
 
-    _db.Add(model);
-    await _db.SaveChangesAsync();
-    TempData["ok"] = "Propiedad creada";
-    return RedirectToAction(nameof(Index));
-}
-
+        _db.Add(model);
+        await _db.SaveChangesAsync();
+        TempData["ok"] = "Propiedad creada";
+        return RedirectToAction(nameof(Index));
+    }
 }
