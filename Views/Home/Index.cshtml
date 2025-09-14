@@ -1,42 +1,87 @@
 ﻿@{
-    ViewData["Title"] = "StayGo - Encuentra en qué lugar quedarte";
+    ViewData["Title"] = "Encuentra tu próxima estadía";
 }
 
-<div class="main-background">
-    <div class="search-overlay">
-        <h2>Encuentra en qué lugares quedarte</h2>
-        <form asp-controller="Home" asp-action="SearchResults" method="get">
-            <div class="form-group">
-                <label for="location">UBICACIÓN</label>
-                <input type="text" id="location" name="location" placeholder="Ubicación" />
-            </div>
-            <div class="form-group">
-                <label for="checkin">SALIDA</label>
-                <input type="date" id="checkin" name="checkin" />
-            </div>
-            <div class="form-group">
-                <label for="checkout">LLEGADA</label>
-                <input type="date" id="checkout" name="checkout" />
-            </div>
-            <div class="form-group-inline">
-                <div class="counter-group">
-                    <label>NIÑOS</label>
-                    <div class="counter-control">
-                        <button type="button" class="btn-counter-minus">-</button>
-                        <input type="text" name="children" value="0" readonly />
-                        <button type="button" class="btn-counter-plus">+</button>
+@section Hero{
+    <section class="hero">
+        <div class="overlay">
+            <div class="container">
+                <div class="row gy-4 align-items-end">
+                    <div class="col-12 col-lg-6 text-white">
+                        <h1 class="fw-bold display-5 mb-3">Encuentra tu próxima estadía</h1>
+                        <p class="lead mb-4">Explora alojamientos únicos cerca de ti o en cualquier parte del mundo.</p>
+                    </div>
+                    <div class="col-12">
+                        <form asp-controller="Home" asp-action="SearchResults" method="get" class="search-card">
+                            <div class="search-grid">
+                                <div>
+                                    <label class="form-label">Ubicación</label>
+                                    <input name="location" class="form-control" placeholder="¿A dónde vas?" />
+                                </div>
+                                <div>
+                                    <label class="form-label">Llegada</label>
+                                    <input type="date" name="checkin" class="form-control" />
+                                </div>
+                                <div>
+                                    <label class="form-label">Salida</label>
+                                    <input type="date" name="checkout" class="form-control" />
+                                </div>
+                                <div>
+                                    <label class="form-label">Adultos</label>
+                                    <input type="number" min="1" value="1" name="adults" class="form-control" />
+                                </div>
+                                <div>
+                                    <label class="form-label">Niños</label>
+                                    <input type="number" min="0" value="0" name="children" class="form-control" />
+                                </div>
+                                <div class="d-grid">
+                                    <label class="form-label invisible">Buscar</label>
+                                    <button class="btn btn-brand w-100" type="submit">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div class="counter-group">
-                    <label>ADULTOS</label>
-                    <div class="counter-control">
-                        <button type="button" class="btn-counter-minus">-</button>
-                        <input type="text" name="adults" value="0" readonly />
-                        <button type="button" class="btn-counter-plus">+</button>
-                    </div>
+
+                <!-- Sugerencias (opcionales) -->
+                <div class="mt-4 d-flex flex-wrap gap-2">
+                    <span class="badge-soft">Cerca de mí</span>
+                    <span class="badge-soft">Playas</span>
+                    <span class="badge-soft">Pet friendly</span>
+                    <span class="badge-soft">Ofertas de última hora</span>
                 </div>
             </div>
-            <button type="submit" class="btn-search">Buscar</button>
-        </form>
+        </div>
+    </section>
+}
+
+<section class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 m-0">Destacados</h2>
+        <a asp-controller="Propiedad" asp-action="Index" class="link-dark">Ver todo</a>
     </div>
-</div>
+
+    <div class="row g-4">
+        @* Ejemplo de card (reemplaza por tu foreach de propiedades) *@
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card card-stay">
+                <img src="~/img/demo1.jpg" class="card-img-top" alt="Alojamiento" />
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h3 class="h6 fw-semibold mb-1">Loft moderno en Miraflores</h3>
+                        <span class="small text-muted">★ 4.8</span>
+                    </div>
+                    <p class="text-muted small mb-2">Lima, Perú · 2 huéspedes</p>
+                    <div><span class="price">S/ 220</span> <span class="text-muted">/ noche</span></div>
+                </div>
+            </div>
+        </div>
+        @* ... *@
+    </div>
+</section>
+
+@section Scripts{
+    <script>
+        // Aquí puedes agregar cualquier JS específico de Home si lo necesitas
+    </script>
+}
