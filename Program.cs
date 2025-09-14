@@ -1,21 +1,28 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
-using StayGo.Models.ValueObjects;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddControllersWithViews();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// ✅ Ruta ABSOLUTA a Data\staygo.db (misma para migraciones y runtime)
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "staygo.db");
+Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+
 builder.Services.AddDbContext<StayGoContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("sqlite")));
+    opt.UseSqlite($"Data Source={dbPath}"));
+// Si prefieres leer de appsettings y normalizar por si es relativa:
+// var cs = builder.Configuration.GetConnectionString("Sqlite"); // ojo: "Sqlite" con S mayúscula
+// if (!Path.IsPathRooted(new SqliteConnectionStringBuilder(cs).DataSource)) {
+//     var abs = Path.Combine(builder.Environment.ContentRootPath, new SqliteConnectionStringBuilder(cs).DataSource);
+//     cs = $"Data Source={abs}";
+// }
+// builder.Services.AddDbContext<StayGoContext>(opt => opt.UseSqlite(cs));
 
 builder.Services
     .AddIdentity<IdentityUser, IdentityRole>(opt =>
@@ -43,7 +50,14 @@ app.UseAuthorization();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ← ejecuta el seed
-await Seed.RunAsync(app.Services);
+// ✅ Ejecuta seed en scope y registra qué archivo .db se usa
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var ctx = sp.GetRequiredService<StayGoContext>();
+    var ds = ctx.Database.GetDbConnection().DataSource;
+    Console.WriteLine($"[StayGo] Usando BD: {ds}");
+    await Seed.RunAsync(sp);
+}
 
 app.Run();

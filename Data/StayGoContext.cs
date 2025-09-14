@@ -21,6 +21,8 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
     public DbSet<Favorito> Favoritos => Set<Favorito>();
     public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
+    public DbSet<ContactoMensaje> Contactos => Set<ContactoMensaje>();
+
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
