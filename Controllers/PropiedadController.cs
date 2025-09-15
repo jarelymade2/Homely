@@ -32,7 +32,7 @@ public class PropiedadController : Controller
             .Include(p => p.Imagenes)
             .AsNoTracking();
 
-        // FILTRO: búsqueda libre (EF.Functions.Like para mejor traducción SQL)
+        // FILTRO: búsqueda libre
         if (!string.IsNullOrWhiteSpace(q))
         {
             var qLike = $"%{q.Trim()}%";
@@ -143,26 +143,5 @@ public class PropiedadController : Controller
         if (prop == null) return NotFound();
 
         return View(prop);
-    }
-
-    // GET: /Propiedad/Crear
-    [HttpGet]
-    public IActionResult Crear()
-    {
-        return View(new Propiedad { Tipo = TipoPropiedad.Casa, Capacidad = 1 });
-    }
-
-    // POST: /Propiedad/Crear
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Crear(Propiedad model)
-    {
-        if (!ModelState.IsValid)
-            return View(model); // FluentValidation mostrará errores en la vista
-
-        _db.Add(model);
-        await _db.SaveChangesAsync();
-        TempData["ok"] = "Propiedad creada";
-        return RedirectToAction(nameof(Index));
     }
 }
