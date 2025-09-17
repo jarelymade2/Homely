@@ -5,11 +5,10 @@ using StayGo.Models;
 
 namespace StayGo.Data;
 
-public class StayGoContext : IdentityDbContext<IdentityUser>
+public class StayGoContext : IdentityDbContext<ApplicationUser>
 {
     public StayGoContext(DbContextOptions<StayGoContext> options) : base(options) { }
 
-    public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Propiedad> Propiedades => Set<Propiedad>();
     public DbSet<Habitacion> Habitaciones => Set<Habitacion>();
     public DbSet<ImagenPropiedad> ImagenesPropiedad => Set<ImagenPropiedad>();
@@ -24,9 +23,8 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        base.OnModelCreating(mb); // necesario para Identity
+        base.OnModelCreating(mb);
 
-        // Owned type: Direccion dentro de Propiedad (NO crea tabla aparte)
         mb.Entity<Propiedad>().OwnsOne(p => p.Direccion, d =>
         {
             d.Property(x => x.Pais).HasMaxLength(80);
@@ -36,14 +34,15 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
             d.Property(x => x.CodigoPostal).HasMaxLength(20);
         });
 
-        // Índices útiles
         mb.Entity<Propiedad>().HasIndex(p => new { p.Tipo, p.Capacidad });
         mb.Entity<Propiedad>().HasIndex(p => p.PrecioPorNoche);
 
-        // Favorito (PK compuesta)
         mb.Entity<Favorito>().HasKey(f => new { f.UsuarioId, f.PropiedadId });
+        mb.Entity<Favorito>()
+            .HasOne(f => f.Usuario)
+            .WithMany(u => u.Favoritos)
+            .HasForeignKey(f => f.UsuarioId);
 
-        // PropiedadAmenidad (N–N con PK compuesta)
         mb.Entity<PropiedadAmenidad>().HasKey(pa => new { pa.PropiedadId, pa.AmenidadId });
         mb.Entity<PropiedadAmenidad>()
             .HasOne(pa => pa.Propiedad)
@@ -54,13 +53,11 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
             .WithMany(a => a.PropiedadAmenidades)
             .HasForeignKey(pa => pa.AmenidadId);
 
-        // ImagenPropiedad → Propiedad
         mb.Entity<ImagenPropiedad>()
             .HasOne(ip => ip.Propiedad)
             .WithMany(p => p.Imagenes)
             .HasForeignKey(ip => ip.PropiedadId);
 
-        // Disponibilidad → Propiedad / Habitacion (opcional)
         mb.Entity<Disponibilidad>()
             .HasOne(d => d.Propiedad)
             .WithMany(p => p.Disponibilidades)
@@ -71,7 +68,6 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
             .HasForeignKey(d => d.HabitacionId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Reserva → Propiedad / Habitacion / Usuario
         mb.Entity<Reserva>()
             .HasOne(r => r.Propiedad)
             .WithMany(p => p.Reservas)
@@ -86,13 +82,11 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
             .WithMany(u => u.Reservas)
             .HasForeignKey(r => r.UsuarioId);
 
-        // Pago → Reserva (1–N)
         mb.Entity<Pago>()
             .HasOne(p => p.Reserva)
             .WithMany(r => r.Pagos)
             .HasForeignKey(p => p.ReservaId);
 
-        // Reseña → Propiedad / Usuario
         mb.Entity<Resena>()
             .HasOne(x => x.Propiedad)
             .WithMany(p => p.Resenas)
@@ -101,27 +95,8 @@ public class StayGoContext : IdentityDbContext<IdentityUser>
             .HasOne(x => x.Usuario)
             .WithMany(u => u.Resenas)
             .HasForeignKey(x => x.UsuarioId);
-
-        // Reglas de esquema simples
+        
         mb.Entity<Propiedad>().Property(p => p.Titulo).HasMaxLength(200).IsRequired();
         mb.Entity<Amenidad>().Property(a => a.Nombre).HasMaxLength(120).IsRequired();
-
-        // Usuario ↔ AspNetUsers (FK por IdentityUserId)
-        mb.Entity<Usuario>()
-          .HasOne<IdentityUser>()          // sin navegación inversa
-          .WithMany()
-          .HasForeignKey(u => u.IdentityUserId)
-          .OnDelete(DeleteBehavior.Restrict);
-
-        mb.Entity<Usuario>()
-          .Property(u => u.Email).HasMaxLength(256).IsRequired();
-
-        mb.Entity<Usuario>()
-          .HasIndex(u => u.Email).IsUnique();
-
-        mb.Entity<Usuario>()
-          .HasIndex(u => u.IdentityUserId).IsUnique();
-
-        // Reglas de negocio más complejas (hotel vs no hotel) se validan en capa de aplicación.
     }
 }

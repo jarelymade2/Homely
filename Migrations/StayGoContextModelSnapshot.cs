@@ -15,7 +15,7 @@ namespace StayGo.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -64,70 +64,6 @@ namespace StayGo.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -225,6 +161,78 @@ namespace StayGo.Migrations
                     b.ToTable("Amenidades");
                 });
 
+            modelBuilder.Entity("StayGo.Models.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
             modelBuilder.Entity("StayGo.Models.Disponibilidad", b =>
                 {
                     b.Property<Guid>("Id")
@@ -254,7 +262,7 @@ namespace StayGo.Migrations
 
             modelBuilder.Entity("StayGo.Models.Favorito", b =>
                 {
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<string>("UsuarioId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PropiedadId")
@@ -474,7 +482,8 @@ namespace StayGo.Migrations
                     b.Property<int>("Puntuacion")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -513,7 +522,8 @@ namespace StayGo.Migrations
                     b.Property<Guid>("PropiedadId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -527,41 +537,6 @@ namespace StayGo.Migrations
                     b.ToTable("Reservas");
                 });
 
-            modelBuilder.Entity("StayGo.Models.Usuario", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("EsAdmin")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("IdentityUserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("IdentityUserId")
-                        .IsUnique();
-
-                    b.ToTable("Usuarios");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -573,7 +548,7 @@ namespace StayGo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("StayGo.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -582,7 +557,7 @@ namespace StayGo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("StayGo.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -597,7 +572,7 @@ namespace StayGo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("StayGo.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -606,7 +581,7 @@ namespace StayGo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("StayGo.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -639,7 +614,7 @@ namespace StayGo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StayGo.Models.Usuario", "Usuario")
+                    b.HasOne("StayGo.Models.ApplicationUser", "Usuario")
                         .WithMany("Favoritos")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -752,7 +727,7 @@ namespace StayGo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StayGo.Models.Usuario", "Usuario")
+                    b.HasOne("StayGo.Models.ApplicationUser", "Usuario")
                         .WithMany("Resenas")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -776,7 +751,7 @@ namespace StayGo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StayGo.Models.Usuario", "Usuario")
+                    b.HasOne("StayGo.Models.ApplicationUser", "Usuario")
                         .WithMany("Reservas")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -789,18 +764,18 @@ namespace StayGo.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("StayGo.Models.Usuario", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("IdentityUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("StayGo.Models.Amenidad", b =>
                 {
                     b.Navigation("PropiedadAmenidades");
+                });
+
+            modelBuilder.Entity("StayGo.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Favoritos");
+
+                    b.Navigation("Resenas");
+
+                    b.Navigation("Reservas");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>
@@ -830,15 +805,6 @@ namespace StayGo.Migrations
             modelBuilder.Entity("StayGo.Models.Reserva", b =>
                 {
                     b.Navigation("Pagos");
-                });
-
-            modelBuilder.Entity("StayGo.Models.Usuario", b =>
-                {
-                    b.Navigation("Favoritos");
-
-                    b.Navigation("Resenas");
-
-                    b.Navigation("Reservas");
                 });
 #pragma warning restore 612, 618
         }

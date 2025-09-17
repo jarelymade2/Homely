@@ -1,15 +1,18 @@
 using StayGo.Models.Enums;
 
 namespace StayGo.Models;
+
 public class Reserva
 {
     public Guid Id { get; set; }
     public Guid PropiedadId { get; set; }
     public Propiedad Propiedad { get; set; } = null!;
-    public Guid? HabitacionId { get; set; } // obligatorio si es hotel
+    public Guid? HabitacionId { get; set; }
     public Habitacion? Habitacion { get; set; }
-    public Guid UsuarioId { get; set; }
-    public Usuario Usuario { get; set; } = null!;
+    
+    public string UsuarioId { get; set; } = string.Empty;
+    public ApplicationUser Usuario { get; set; } = null!;
+    
     public DateOnly CheckIn { get; set; }
     public DateOnly CheckOut { get; set; }
     public int Huespedes { get; set; }

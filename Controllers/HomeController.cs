@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using StayGo.Models;
-
+using StayGo.ViewModels;
 namespace StayGo.Controllers;
 
 public class HomeController : Controller

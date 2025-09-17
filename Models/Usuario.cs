@@ -1,13 +1,14 @@
+// Models/Usuario.cs
+
 using System.ComponentModel.DataAnnotations;
 
 namespace StayGo.Models;
 public class Usuario
 {
     public Guid Id { get; set; }
-    [EmailAddress] public string Email { get; set; } = "";
-    public string? Nombre { get; set; }
-    public string? Telefono { get; set; }
-
+    [EmailAddress]
+    public string Email { get; set; } = "";
+    
     // Vinculación con ASP.NET Identity (tabla AspNetUsers)
     public string IdentityUserId { get; set; } = "";
     public bool EsAdmin { get; set; }

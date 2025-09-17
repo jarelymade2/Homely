@@ -1,35 +1,53 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
-using StayGo.Models.ValueObjects;
-using FluentValidation;
-using FluentValidation.AspNetCore;
-
+using StayGo.Models;
+using StayGo.Services;
+using Microsoft.AspNetCore.Identity.UI;
+using StayGo.Areas.Identity.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Agrega los servicios al contenedor.
 builder.Services.AddControllersWithViews();
-builder.Services.AddControllersWithViews();
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddRazorPages();
 
-builder.Services.AddDbContext<StayGoContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("sqlite")));
+// Agrega los servicios de Entity Framework Core para el contexto de la base de datos
+var connectionString = builder.Configuration.GetConnectionString("StayGoContext") ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
+builder.Services.AddDbContext<StayGoContext>(options =>
+    options.UseSqlite(connectionString));
 
-builder.Services
-    .AddIdentity<IdentityUser, IdentityRole>(opt =>
-    {
-        opt.Password.RequiredLength = 6;
-        opt.Password.RequireNonAlphanumeric = false;
-        opt.Password.RequireUppercase = false;
-    })
+// Agrega ASP.NET Core Identity con el modelo de usuario y el contexto de base de datos
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<StayGoContext>()
-    .AddDefaultTokenProviders();
+    .AddErrorDescriber<SpanishIdentityErrorDescriber>(); // Esto es para la traducción
+
+// Opciones de seguridad para las contraseñas
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+});
+
+// Agrega servicios de autorización
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+// Configura el pipeline de solicitudes HTTP.
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -38,12 +56,13 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// ← ejecuta el seed
-await Seed.RunAsync(app.Services);
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapRazorPages();
 
 app.Run();

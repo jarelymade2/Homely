@@ -1,141 +1,77 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
-using StayGo.Models;
-using StayGo.Models.Enums; 
-namespace StayGo.Controllers
+using StayGo.Models; // Asegúrate de que esta línea esté aquí
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+namespace StayGo.Controllers;
+
+public class ReservasController : Controller
 {
-    public class ReservasController : Controller
+    private readonly StayGoContext _context;
+    private readonly UserManager<ApplicationUser> _userManager; // Inyecta el UserManager
+
+    // Agrega el UserManager al constructor
+    public ReservasController(StayGoContext context, UserManager<ApplicationUser> userManager)
     {
-        private readonly StayGoContext _db;
-        public ReservasController(StayGoContext db) => _db = db;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        // GET: /Reservas
-        public async Task<IActionResult> Index()
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        // Obtener el usuario actualmente autenticado
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
         {
-            var reservas = await _db.Reservas
-                .Include(r => r.Propiedad)
-                .Include(r => r.Habitacion)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return View(reservas);
+            // Si el usuario no está autenticado, redirigir al login
+            return RedirectToAction("Login", "Auth");
         }
 
-        // GET: /Reservas/Crear/{propiedadId}
-        [HttpGet]
-        public async Task<IActionResult> Crear(Guid propiedadId)
+        // Obtener las reservas del usuario actual
+        var reservas = await _context.Reservas
+            .Include(r => r.Propiedad)
+            .Include(r => r.Habitacion)
+            .Where(r => r.UsuarioId == user.Id)
+            .ToListAsync();
+
+        return View(reservas);
+    }
+
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("PropiedadId,FechaEntrada,FechaSalida")] Reserva reserva)
+    {
+        if (ModelState.IsValid)
         {
-            var prop = await _db.Propiedades
-                .Include(p => p.Habitaciones)
-                .FirstOrDefaultAsync(p => p.Id == propiedadId);
-
-            if (prop is null) return NotFound();
-
-            var model = new Reserva
+            // Obtener el usuario actualmente autenticado
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
             {
-                PropiedadId = propiedadId,
-                CheckIn = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-                CheckOut = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
-                Huespedes = 2
-            };
-
-            ViewBag.Propiedad = prop;
-            return View(model);
-        }
-
-        // POST: /Reservas/Crear
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(Reserva model)
-        {
-            // Revalida reglas de fechas por si vienen manipuladas
-            if (model.CheckIn >= model.CheckOut)
-                ModelState.AddModelError(nameof(model.CheckIn), "El Check-in debe ser antes del Check-out.");
-
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Propiedad = await _db.Propiedades
-                    .Include(p => p.Habitaciones)
-                    .FirstOrDefaultAsync(p => p.Id == model.PropiedadId);
-                return View(model);
+                return RedirectToAction("Login", "Auth");
             }
-
-            // Carga la propiedad y sus habitaciones
-            var prop = await _db.Propiedades
-                .Include(p => p.Habitaciones)
-                .FirstOrDefaultAsync(p => p.Id == model.PropiedadId);
-
-            if (prop is null) return NotFound();
-
-            // Determinar noches
-            var noches = model.CheckOut.DayNumber - model.CheckIn.DayNumber;
-            if (noches <= 0)
-            {
-                ModelState.AddModelError("", "El rango de fechas no es válido.");
-                ViewBag.Propiedad = prop;
-                return View(model);
-            }
-
-            // Determinar precio por noche según tipo
-            decimal precioNoche;
-            if (prop.Tipo == TipoPropiedad.Hotel)
-            {
-                if (model.HabitacionId is null)
-                {
-                    ModelState.AddModelError(nameof(model.HabitacionId), "Debes seleccionar una habitación para hoteles.");
-                    ViewBag.Propiedad = prop;
-                    return View(model);
-                }
-
-                var hab = prop.Habitaciones.FirstOrDefault(h => h.Id == model.HabitacionId.Value);
-                if (hab is null)
-                {
-                    ModelState.AddModelError(nameof(model.HabitacionId), "La habitación seleccionada no existe.");
-                    ViewBag.Propiedad = prop;
-                    return View(model);
-                }
-
-                precioNoche = hab.PrecioPorNoche;
-            }
-            else
-            {
-                if (!prop.PrecioPorNoche.HasValue || prop.PrecioPorNoche.Value <= 0)
-                {
-                    ModelState.AddModelError("", "La propiedad no tiene un precio por noche válido.");
-                    ViewBag.Propiedad = prop;
-                    return View(model);
-                }
-                precioNoche = prop.PrecioPorNoche.Value;
-                model.HabitacionId = null; // consistencia para casas/deptos
-            }
-
-            // Chequeo básico de solapamiento (misma propiedad y misma habitación/null)
-            var hayConflicto = await _db.Reservas
-                .Where(r => r.PropiedadId == model.PropiedadId
-                    && r.HabitacionId == model.HabitacionId)
-                .AnyAsync(r => !(r.CheckOut <= model.CheckIn || r.CheckIn >= model.CheckOut));
-
-            if (hayConflicto)
-            {
-                ModelState.AddModelError("", "Las fechas seleccionadas ya están reservadas.");
-                ViewBag.Propiedad = prop;
-                return View(model);
-            }
-
-            // Usuario (por ahora: admin del seed)
-            var admin = await _db.Usuarios.FirstAsync(u => u.EsAdmin);
-            model.UsuarioId = admin.Id;
-
-            // Calcular total y setear estado
-            model.PrecioTotal = precioNoche * noches;
-            model.Estado = EstadoReserva.Confirmada;
-
-            _db.Reservas.Add(model);
-            await _db.SaveChangesAsync();
-
-            TempData["ok"] = $"Reserva creada por {noches} noche(s). Total: {model.PrecioTotal:C}";
+            
+            // Asignar el ID del usuario al modelo de reserva
+            reserva.UsuarioId = user.Id;
+            
+            // Aquí iría la lógica adicional de negocio, como la verificación de disponibilidad
+            // y el cálculo del precio.
+            
+            _context.Add(reserva);
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        
+        return View(reserva);
     }
 }
