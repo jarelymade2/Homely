@@ -1,0 +1,52 @@
+@model StayGo.Models.Habitacion
+@using StayGo.Models.Enums
+@{
+    ViewData["Title"] = "Crear habitación";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4 class="mb-3">Nueva habitación para: @ViewBag.Propiedad?.Titulo</h4>
+
+<form asp-area="Admin" asp-controller="Habitacion" asp-action="Crear" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="PropiedadId" />
+
+    <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input asp-for="Nombre" class="form-control" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Capacidad</label>
+            <input asp-for="Capacidad" type="number" class="form-control" />
+            <span asp-validation-for="Capacidad" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Precio por noche (S/)</label>
+            <input asp-for="PrecioPorNoche" class="form-control" />
+            <span asp-validation-for="PrecioPorNoche" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Piso</label>
+            <input asp-for="Piso" type="number" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Número</label>
+            <input asp-for="Numero" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tipo de cama</label>
+            <select asp-for="TipoCama" class="form-select"
+                    asp-items="Html.GetEnumSelectList<TipoCama>()"></select>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Detalles"
+           asp-route-id="@Model.PropiedadId" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
