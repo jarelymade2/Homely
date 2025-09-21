@@ -23,14 +23,14 @@
 
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
         <h1 class="m-0">Propiedades</h1>
-        <a asp-action="Crear" class="btn btn-success">+ Crear propiedad</a>
+        <!-- (public) sin botón de crear -->
     </div>
 
-    @* Toast/alert por TempData *@
+    @* Toast/alert por TempData (lo puedes quitar si ya no lo usas)
     @if (TempData["ok"] is string ok)
     {
         <div class="alert alert-success">@ok</div>
-    }
+    } *@
 
     @* Filtros *@
     <form method="get" class="row g-2 align-items-end mb-4">
@@ -112,14 +112,11 @@
                             </p>
 
                             <div class="mt-auto d-flex gap-2">
-                                <a asp-controller="Reservas"
-                                   asp-action="Crear"
-                                   asp-route-propiedadId="@p.Id"
-                                   class="btn btn-primary btn-sm">Reservar</a>
-
-                                @* Cuando tengas Details:
-                                <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">Ver</a>
-                                *@
+                                <!-- (public) sin reservar -->
+                                <a asp-controller="Propiedad"
+                                   asp-action="Details"
+                                   asp-route-id="@p.Id"
+                                   class="btn btn-outline-secondary btn-sm">Ver</a>
                             </div>
                         </div>
                     </div>
