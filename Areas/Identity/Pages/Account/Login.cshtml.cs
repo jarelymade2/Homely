@@ -1,11 +1,20 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
+using StayGo.Models;
 
 namespace StayGo.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public LoginModel(SignInManager<ApplicationUser> signInManager)
+        {
+            _signInManager = signInManager;
+        }
+
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
@@ -29,17 +38,24 @@ namespace StayGo.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
-        public IActionResult OnPost(string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            ReturnUrl = returnUrl;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
             if (!ModelState.IsValid)
             {
                 return Page();
             }
 
-            return RedirectToPage("/Index");
+            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return LocalRedirect(ReturnUrl);
+            }
+
+            ModelState.AddModelError(string.Empty, "Intento de inicio de sesión no válido.");
+            return Page();
         }
     }
-
 }
 

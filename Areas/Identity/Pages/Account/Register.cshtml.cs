@@ -58,7 +58,8 @@ namespace StayGo.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     // Redirección corregida para Identity
-                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
                 }
                 foreach (var error in result.Errors)
                 {

@@ -27,8 +27,6 @@ namespace StayGo.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Aquí iría la lógica para enviar el correo de recuperación
-
             return RedirectToPage("/Account/ForgotPasswordConfirmation");
         }
     }

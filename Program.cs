@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
-using StayGo.Services;
-using Microsoft.AspNetCore.Identity.UI;
-using StayGo.Areas.Identity.Data;
+using apptrade.Data;
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,10 +18,8 @@ var connectionString = builder.Configuration.GetConnectionString("StayGoContext"
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
-// Agrega ASP.NET Core Identity con el modelo de usuario y el contexto de base de datos
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<StayGoContext>()
-    .AddErrorDescriber<SpanishIdentityErrorDescriber>(); // Esto es para la traducción
+    .AddEntityFrameworkStores<StayGoContext>();
 
 // Opciones de seguridad para las contraseñas
 builder.Services.Configure<IdentityOptions>(options =>
