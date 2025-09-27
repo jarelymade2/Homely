@@ -1,0 +1,176 @@
+@model StayGo.Models.Propiedad
+@{
+    ViewData["Title"] = "Crear Propiedad";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-3">Crear nueva propiedad</h2>
+
+<form asp-area="Admin" asp-controller="Propiedad" asp-action="Crear" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Título</label>
+            <input asp-for="Titulo" class="form-control" />
+            <span asp-validation-for="Titulo" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tipo</label>
+            <select asp-for="Tipo" class="form-select"
+                    asp-items="Html.GetEnumSelectList<TipoPropiedad>()"></select>
+            <span asp-validation-for="Tipo" class="text-danger"></span>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Precio por noche (S/)</label>
+            <input asp-for="PrecioPorNoche" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Capacidad</label>
+            <input asp-for="Capacidad" type="number" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Latitud</label>
+            <input asp-for="Lat" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Longitud</label>
+            <input asp-for="Lng" class="form-control" />
+        </div>
+
+        <div class="col-12"><h5 class="mt-3">Dirección</h5></div>
+        <div class="col-md-4">
+            <label class="form-label">Ciudad</label>
+            <input asp-for="Direccion.Ciudad" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">País</label>
+            <input asp-for="Direccion.Pais" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Código Postal</label>
+            <input asp-for="Direccion.CodigoPostal" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Línea 1</label>
+            <input asp-for="Direccion.Linea1" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Línea 2</label>
+            <input asp-for="Direccion.Linea2" class="form-control" />
+        </div>
+    </div>
+
+    <hr class="my-4" />
+    <h5>Imágenes</h5>
+    <p class="text-muted">Agrega una o más URLs. Marca una como principal.</p>
+
+    <div id="imagenes-list" class="vstack gap-2">
+        <!-- item inicial (index 0) -->
+        <div class="row g-2 imagen-item" data-index="0">
+            <div class="col-md-8">
+                <input name="Imagenes[0].Url" class="form-control" placeholder="https://..." />
+            </div>
+            <div class="col-md-3 d-flex align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="principal" value="0" checked />
+                    <label class="form-check-label">Principal</label>
+                </div>
+            </div>
+            <div class="col-md-1 d-flex align-items-center">
+                <button type="button" class="btn btn-outline-danger w-100 btn-remove">X</button>
+            </div>
+            <!-- Campo EsPrincipal real (se sincroniza por JS) -->
+            <input type="hidden" name="Imagenes[0].EsPrincipal" value="true" />
+        </div>
+    </div>
+
+    <div class="mt-2">
+        <button type="button" id="btnAddImg" class="btn btn-outline-primary">+ Agregar imagen</button>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts{
+<script>
+(function(){
+  const list = document.getElementById('imagenes-list');
+  const btnAdd = document.getElementById('btnAddImg');
+
+  function syncPrincipals() {
+    // setea EsPrincipal según radio "principal"
+    const radios = document.querySelectorAll('input[type=radio][name=principal]');
+    const checkedVal = Array.from(radios).find(r => r.checked)?.value;
+    document.querySelectorAll('.imagen-item').forEach(item => {
+      const idx = item.getAttribute('data-index');
+      const hidden = item.querySelector(`input[type=hidden][name="Imagenes[${idx}].EsPrincipal"]`);
+      if (hidden) hidden.value = (idx === checkedVal) ? 'true' : 'false';
+    });
+  }
+
+  list.addEventListener('change', e => {
+    if (e.target.matches('input[type=radio][name=principal]')) syncPrincipals();
+  });
+
+  list.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-remove')) {
+      const item = e.target.closest('.imagen-item');
+      item?.remove();
+      // reindexa
+      const items = list.querySelectorAll('.imagen-item');
+      items.forEach((it, i) => {
+        it.setAttribute('data-index', i);
+        it.querySelectorAll('input').forEach(inp => {
+          if (inp.name?.includes('Imagenes[')) {
+            inp.name = inp.name.replace(/Imagenes\[\d+\]/, `Imagenes[${i}]`);
+          }
+          if (inp.type === 'radio' && inp.name === 'principal') {
+            inp.value = String(i);
+          }
+        });
+      });
+      // asegurar que uno quede como principal
+      const radios = list.querySelectorAll('input[type=radio][name=principal]');
+      if (!Array.from(radios).some(r => r.checked) && radios[0]) radios[0].checked = true;
+      syncPrincipals();
+    }
+  });
+
+  btnAdd.addEventListener('click', () => {
+    const idx = list.querySelectorAll('.imagen-item').length;
+    const row = document.createElement('div');
+    row.className = 'row g-2 imagen-item';
+    row.setAttribute('data-index', idx);
+    row.innerHTML = `
+      <div class="col-md-8">
+        <input name="Imagenes[${idx}].Url" class="form-control" placeholder="https://..." />
+      </div>
+      <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="principal" value="${idx}" />
+          <label class="form-check-label">Principal</label>
+        </div>
+      </div>
+      <div class="col-md-1 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-danger w-100 btn-remove">X</button>
+      </div>
+      <input type="hidden" name="Imagenes[${idx}].EsPrincipal" value="false" />
+    `;
+    list.appendChild(row);
+  });
+
+  syncPrincipals();
+})();
+</script>
+}
