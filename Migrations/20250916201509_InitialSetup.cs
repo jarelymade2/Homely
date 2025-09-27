@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StayGo.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialSetup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,6 +43,8 @@ namespace StayGo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -102,22 +104,6 @@ namespace StayGo.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Propiedades", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Usuarios",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    Nombre = table.Column<string>(type: "TEXT", nullable: true),
-                    Telefono = table.Column<string>(type: "TEXT", nullable: true),
-                    IdentityUserId = table.Column<string>(type: "TEXT", nullable: false),
-                    EsAdmin = table.Column<bool>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Usuarios", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -227,6 +213,31 @@ namespace StayGo.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Favoritos",
+                columns: table => new
+                {
+                    UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
+                    PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Favoritos", x => new { x.UsuarioId, x.PropiedadId });
+                    table.ForeignKey(
+                        name: "FK_Favoritos_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Favoritos_Propiedades_PropiedadId",
+                        column: x => x.PropiedadId,
+                        principalTable: "Propiedades",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Habitaciones",
                 columns: table => new
                 {
@@ -295,37 +306,12 @@ namespace StayGo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Favoritos",
-                columns: table => new
-                {
-                    UsuarioId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Favoritos", x => new { x.UsuarioId, x.PropiedadId });
-                    table.ForeignKey(
-                        name: "FK_Favoritos_Propiedades_PropiedadId",
-                        column: x => x.PropiedadId,
-                        principalTable: "Propiedades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Favoritos_Usuarios_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "Usuarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Resenas",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UsuarioId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
                     Puntuacion = table.Column<int>(type: "INTEGER", nullable: false),
                     Comentario = table.Column<string>(type: "TEXT", nullable: false),
                     Fecha = table.Column<DateTime>(type: "TEXT", nullable: false)
@@ -334,15 +320,15 @@ namespace StayGo.Migrations
                 {
                     table.PrimaryKey("PK_Resenas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Resenas_Propiedades_PropiedadId",
-                        column: x => x.PropiedadId,
-                        principalTable: "Propiedades",
+                        name: "FK_Resenas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Resenas_Usuarios_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "Usuarios",
+                        name: "FK_Resenas_Propiedades_PropiedadId",
+                        column: x => x.PropiedadId,
+                        principalTable: "Propiedades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -381,7 +367,7 @@ namespace StayGo.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
                     HabitacionId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    UsuarioId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
                     CheckIn = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     CheckOut = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     Huespedes = table.Column<int>(type: "INTEGER", nullable: false),
@@ -392,6 +378,12 @@ namespace StayGo.Migrations
                 {
                     table.PrimaryKey("PK_Reservas", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Reservas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Reservas_Habitaciones_HabitacionId",
                         column: x => x.HabitacionId,
                         principalTable: "Habitaciones",
@@ -401,12 +393,6 @@ namespace StayGo.Migrations
                         name: "FK_Reservas_Propiedades_PropiedadId",
                         column: x => x.PropiedadId,
                         principalTable: "Propiedades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reservas_Usuarios_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -587,19 +573,16 @@ namespace StayGo.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Reservas");
 
             migrationBuilder.DropTable(
                 name: "Amenidades");
 
             migrationBuilder.DropTable(
-                name: "Habitaciones");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Usuarios");
+                name: "Habitaciones");
 
             migrationBuilder.DropTable(
                 name: "Propiedades");
