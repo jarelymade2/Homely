@@ -1,0 +1,44 @@
+@model IEnumerable<StayGo.Models.ContactoMensaje>
+
+@{
+    ViewData["Title"] = "Mensajes de contacto";
+    string Trunc(string? s, int max) =>
+        string.IsNullOrWhiteSpace(s) ? "—" : (s!.Length <= max ? s : s.Substring(0, max) + "…");
+}
+
+<div class="container py-4">
+    <h2>Mensajes recientes</h2>
+
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Usuario</th>
+                <th>Mensaje</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var m in Model)
+        {
+            <tr>
+                <td>@m.FechaUtc.ToLocalTime().ToString("g")</td>
+                <td>@(string.IsNullOrWhiteSpace(m.Nombre) ? "—" : m.Nombre)</td>
+                <td>@(string.IsNullOrWhiteSpace(m.Email) ? "—" : m.Email)</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(m.IdentityUserId))
+                    {
+                        <span class="badge text-bg-success">Registrado</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary">Invitado</span>
+                    }
+                </td>
+                <td>@Trunc(m.Mensaje, 120)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
