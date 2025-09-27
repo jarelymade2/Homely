@@ -1,42 +1,53 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
-using FluentValidation;
-using FluentValidation.AspNetCore;
+using StayGo.Models;
+// using apptrade.Data;   // <- quítalo si no lo usas
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddRazorPages();
 
-// ✅ Ruta ABSOLUTA a Data\staygo.db (misma para migraciones y runtime)
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "staygo.db");
-Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+// Connection string (asegúrate que existe en appsettings.json)
+var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
+    ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
-builder.Services.AddDbContext<StayGoContext>(opt =>
-    opt.UseSqlite($"Data Source={dbPath}"));
-// Si prefieres leer de appsettings y normalizar por si es relativa:
-// var cs = builder.Configuration.GetConnectionString("Sqlite"); // ojo: "Sqlite" con S mayúscula
-// if (!Path.IsPathRooted(new SqliteConnectionStringBuilder(cs).DataSource)) {
-//     var abs = Path.Combine(builder.Environment.ContentRootPath, new SqliteConnectionStringBuilder(cs).DataSource);
-//     cs = $"Data Source={abs}";
-// }
-// builder.Services.AddDbContext<StayGoContext>(opt => opt.UseSqlite(cs));
+builder.Services.AddDbContext<StayGoContext>(options =>
+    options.UseSqlite(connectionString));
 
+// ✅ Identity con ROLES y ApplicationUser (coincide con tu DbContext)
 builder.Services
-    .AddIdentity<IdentityUser, IdentityRole>(opt =>
+    .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        opt.Password.RequiredLength = 6;
-        opt.Password.RequireNonAlphanumeric = false;
-        opt.Password.RequireUppercase = false;
+        options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequiredUniqueChars = 1;
     })
-    .AddEntityFrameworkStores<StayGoContext>()
-    .AddDefaultTokenProviders();
+    .AddRoles<IdentityRole>()                    // ← IMPORTANTE si usas [Authorize(Roles="Admin")]
+    .AddEntityFrameworkStores<StayGoContext>();
+
+// Si no usas la UI por defecto y prefieres MVC puro, alternativa:
+// builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//     .AddEntityFrameworkStores<StayGoContext>()
+//     .AddDefaultTokenProviders();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -45,19 +56,27 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+// ✅ RUTA PARA ÁREAS (Admin) – antes que la default
+app.MapAreaControllerRoute(
+    name: "admin",
+    areaName: "Admin",
+    pattern: "Admin/{controller=Admin}/{action=Index}/{id?}");
 
-// ✅ Ejecuta seed en scope y registra qué archivo .db se usa
-using (var scope = app.Services.CreateScope())
-{
-    var sp = scope.ServiceProvider;
-    var ctx = sp.GetRequiredService<StayGoContext>();
-    var ds = ctx.Database.GetDbConnection().DataSource;
-    Console.WriteLine($"[StayGo] Usando BD: {ds}");
-    await Seed.RunAsync(sp);
-}
+// (Opcional) patrón genérico de áreas
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+// Ruta MVC por defecto
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// UI de Identity (si usas AddDefaultIdentity)
+app.MapRazorPages();
 
 app.Run();

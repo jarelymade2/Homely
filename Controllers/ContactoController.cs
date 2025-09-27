@@ -10,10 +10,10 @@ namespace StayGo.Controllers;
 public class ContactoController : Controller
 {
     private readonly StayGoContext _db;
-    private readonly UserManager<IdentityUser> _um;
+    private readonly UserManager<ApplicationUser> _um;
     private readonly ILogger<ContactoController> _logger;
 
-    public ContactoController(StayGoContext db, UserManager<IdentityUser> um, ILogger<ContactoController> logger)
+    public ContactoController(StayGoContext db, UserManager<ApplicationUser> um, ILogger<ContactoController> logger)
     {
         _db = db;
         _um = um;
@@ -28,18 +28,13 @@ public class ContactoController : Controller
 
         if (User.Identity?.IsAuthenticated == true)
         {
-            var identityUser = await _um.GetUserAsync(User);
-            if (identityUser != null)
+            var me = await _um.GetUserAsync(User); // ApplicationUser
+            if (me != null)
             {
-                // Prefill desde Identity / Usuario de dominio si existe
-                model.IdentityUserId = identityUser.Id;
-                model.Email = identityUser.Email ?? "";
-
-                var usuario = await _db.Usuarios.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.IdentityUserId == identityUser.Id);
-
-                model.Nombre = usuario?.Nombre ?? identityUser.UserName ?? "";
-                model.UsuarioId = usuario?.Id;
+                model.IdentityUserId = me.Id;
+                model.Email = me.Email ?? "";
+                // Usa Nombre (de ApplicationUser) o UserName como fallback
+                model.Nombre = string.IsNullOrWhiteSpace(me.FirstName) ? (me.UserName ?? "") : me.FirstName;
             }
         }
 
@@ -53,23 +48,16 @@ public class ContactoController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            // Refuerza el vínculo por seguridad (no confíes en values posteados)
-            var identityUser = await _um.GetUserAsync(User);
-            if (identityUser != null)
+            var me = await _um.GetUserAsync(User);
+            if (me != null)
             {
-                model.IdentityUserId = identityUser.Id;
+                model.IdentityUserId = me.Id;
+
                 if (string.IsNullOrWhiteSpace(model.Email))
-                    model.Email = identityUser.Email ?? model.Email;
+                    model.Email = me.Email ?? model.Email;
 
-                var usuario = await _db.Usuarios
-                    .FirstOrDefaultAsync(u => u.IdentityUserId == identityUser.Id);
-
-                if (usuario != null)
-                {
-                    model.UsuarioId = usuario.Id;
-                    if (string.IsNullOrWhiteSpace(model.Nombre))
-                        model.Nombre = usuario.Nombre ?? model.Nombre;
-                }
+                if (string.IsNullOrWhiteSpace(model.Nombre))
+                    model.Nombre = string.IsNullOrWhiteSpace(me.FirstName) ? (me.UserName ?? model.Nombre) : me.FirstName;
             }
         }
 
@@ -79,19 +67,17 @@ public class ContactoController : Controller
         _db.Contactos.Add(model);
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Contacto registrado: {@ContactoMensaje}", model);
-
+        _logger.LogInformation("Contacto registrado: {@Contacto}", model);
         TempData["ok"] = "¡Gracias! Tu mensaje fue enviado.";
-        return RedirectToAction(nameof(Index)); // PRG
+        return RedirectToAction(nameof(Index));
     }
 
-    // Listado para demo/admin (solo Admin)
+    // GET /Contacto/Lista  (solo Admin)
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> Lista()
     {
         var msgs = await _db.Contactos
-            .Include(c => c.Usuario)
             .AsNoTracking()
             .OrderByDescending(x => x.FechaUtc)
             .Take(100)
