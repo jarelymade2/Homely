@@ -18,7 +18,7 @@ var connectionString = builder.Configuration.GetConnectionString("StayGoContext"
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<StayGoContext>();
 
 // Opciones de seguridad para las contraseñas
