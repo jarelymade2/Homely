@@ -1,51 +1,42 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
-using StayGo.Models;
-using apptrade.Data;
-
-
-
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Agrega los servicios al contenedor.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Agrega los servicios de Entity Framework Core para el contexto de la base de datos
-var connectionString = builder.Configuration.GetConnectionString("StayGoContext") ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
-builder.Services.AddDbContext<StayGoContext>(options =>
-    options.UseSqlite(connectionString));
+// ✅ Ruta ABSOLUTA a Data\staygo.db (misma para migraciones y runtime)
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "staygo.db");
+Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddEntityFrameworkStores<StayGoContext>();
+builder.Services.AddDbContext<StayGoContext>(opt =>
+    opt.UseSqlite($"Data Source={dbPath}"));
+// Si prefieres leer de appsettings y normalizar por si es relativa:
+// var cs = builder.Configuration.GetConnectionString("Sqlite"); // ojo: "Sqlite" con S mayúscula
+// if (!Path.IsPathRooted(new SqliteConnectionStringBuilder(cs).DataSource)) {
+//     var abs = Path.Combine(builder.Environment.ContentRootPath, new SqliteConnectionStringBuilder(cs).DataSource);
+//     cs = $"Data Source={abs}";
+// }
+// builder.Services.AddDbContext<StayGoContext>(opt => opt.UseSqlite(cs));
 
-// Opciones de seguridad para las contraseñas
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 6;
-    options.Password.RequiredUniqueChars = 1;
-});
-
-// Agrega servicios de autorización
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-});
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>(opt =>
+    {
+        opt.Password.RequiredLength = 6;
+        opt.Password.RequireNonAlphanumeric = false;
+        opt.Password.RequireUppercase = false;
+    })
+    .AddEntityFrameworkStores<StayGoContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
-// Configura el pipeline de solicitudes HTTP.
-if (app.Environment.IsDevelopment())
-{
-    app.UseMigrationsEndPoint();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -54,13 +45,19 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapRazorPages();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ✅ Ejecuta seed en scope y registra qué archivo .db se usa
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var ctx = sp.GetRequiredService<StayGoContext>();
+    var ds = ctx.Database.GetDbConnection().DataSource;
+    Console.WriteLine($"[StayGo] Usando BD: {ds}");
+    await Seed.RunAsync(sp);
+}
 
 app.Run();
