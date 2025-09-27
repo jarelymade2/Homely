@@ -40,5 +40,71 @@ public class HabitacionController : Controller
         return RedirectToAction("Detalles", "Propiedad", new { area = "Admin", id = propiedadId });
     }
 
-    // (Opcional) Editar/Eliminar...
+    // GET: Editar
+    [HttpGet]
+    public async Task<IActionResult> Editar(Guid propiedadId, Guid id)
+    {
+        var hab = await _db.Habitaciones.AsNoTracking().FirstOrDefaultAsync(h => h.Id == id && h.PropiedadId == propiedadId);
+        if (hab == null) return NotFound();
+
+        ViewBag.Propiedad = await _db.Propiedades.AsNoTracking().FirstOrDefaultAsync(p => p.Id == propiedadId);
+        return View(hab);
+    }
+
+    // POST: Editar
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Editar(Guid propiedadId, Guid id, Habitacion hab)
+    {
+        if (id != hab.Id || propiedadId != hab.PropiedadId) return BadRequest();
+
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Propiedad = await _db.Propiedades.AsNoTracking().FirstOrDefaultAsync(p => p.Id == propiedadId);
+            return View(hab);
+        }
+
+        _db.Habitaciones.Update(hab);
+        await _db.SaveChangesAsync();
+
+        TempData["ok"] = "Habitación actualizada.";
+        return RedirectToAction("Detalles", "Propiedad", new { area = "Admin", id = propiedadId });
+    }
+
+    // GET: Eliminar (confirmación)
+    [HttpGet]
+    public async Task<IActionResult> Eliminar(Guid propiedadId, Guid id)
+    {
+        var hab = await _db.Habitaciones
+            .AsNoTracking()
+            .FirstOrDefaultAsync(h => h.Id == id && h.PropiedadId == propiedadId);
+        if (hab == null) return NotFound();
+
+        ViewBag.Propiedad = await _db.Propiedades.AsNoTracking().FirstOrDefaultAsync(p => p.Id == propiedadId);
+        return View(hab);
+    }
+
+    // POST: Eliminar
+    [HttpPost, ActionName("Eliminar")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarConfirmado(Guid propiedadId, Guid id)
+    {
+        var hab = await _db.Habitaciones.FirstOrDefaultAsync(h => h.Id == id && h.PropiedadId == propiedadId);
+        if (hab == null) return NotFound();
+
+        // Restricciones: si hay reservas/disponibilidades, no se puede borrar (tienes DeleteBehavior.Restrict)
+        var tieneReservas = await _db.Reservas.AnyAsync(r => r.HabitacionId == id);
+        var tieneDisp = await _db.Disponibilidades.AnyAsync(d => d.HabitacionId == id);
+        if (tieneReservas || tieneDisp)
+        {
+            TempData["err"] = "No puedes eliminar esta habitación porque tiene reservas o disponibilidades asociadas.";
+            return RedirectToAction("Detalles", "Propiedad", new { area = "Admin", id = propiedadId });
+        }
+
+        _db.Habitaciones.Remove(hab);
+        await _db.SaveChangesAsync();
+
+        TempData["ok"] = "Habitación eliminada.";
+        return RedirectToAction("Detalles", "Propiedad", new { area = "Admin", id = propiedadId });
+    }
 }
