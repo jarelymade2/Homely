@@ -1,0 +1,168 @@
+@model StayGo.Models.Propiedad
+@{
+    ViewData["Title"] = "Imágenes de " + Model.Titulo;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+@section Styles{
+    <style>
+        .card-soft{ border-radius:16px; border:1px solid #edf1ee; background:#fff; box-shadow:0 8px 20px rgba(36,48,54,.05); }
+        .thumb-cover{ object-fit:cover; height:180px; border-top-left-radius:16px; border-top-right-radius:16px; }
+        .btn-sage{ background:#3f6b4f; color:#fff; border:1px solid #3f6b4f; }
+        .btn-sage:hover{ background:#2f5b45; border-color:#2f5b45; color:#fff; }
+        .btn-outline-sage{ border:1px solid #a3b18a; color:#2f5b45; }
+        .btn-outline-sage:hover{ background:#e9efe6; border-color:#7fa174; color:#2f5b45; }
+        .badge-sage{ background:#a3b18a; color:#0f1412; }
+    </style>
+}
+
+<div class="row g-3">
+<!-- TARJETA: Nueva imagen -->
+<div class="col-12 col-sm-6 col-md-4">
+  <div class="card card-soft h-100">
+    <div class="ratio ratio-16x9 bg-light rounded-top">
+      <img id="addPrev" alt="preview" class="w-100 h-100" style="object-fit:cover;border-top-left-radius:16px;border-top-right-radius:16px;">
+    </div>
+
+    <div class="card-body">
+      <!-- Alta individual -->
+      <form asp-area="Admin"
+            asp-controller="ImagenPropiedad"
+            asp-action="Crear"
+            asp-route-propiedadId="@Model.Id"
+            method="post"
+            id="formAdd"
+            class="vstack gap-2">
+        @Html.AntiForgeryToken()
+
+        <label class="form-label small m-0">Nueva imagen (URL)</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+          <input type="url" name="url" id="addUrl" class="form-control" placeholder="https://..." required />
+          <a class="btn btn-outline-secondary" id="openAddUrl" target="_blank" href="javascript:void(0)" title="Abrir">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <div class="form-check form-switch mt-1">
+          <input class="form-check-input" type="checkbox" name="esPrincipal" id="addIsMain" />
+          <label class="form-check-label" for="addIsMain">Marcar como principal</label>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn btn-sage btn-sm" type="submit">
+            <i class="bi bi-plus-lg me-1"></i> Agregar
+          </button>
+          <button type="button" class="btn btn-outline-sage btn-sm" id="btnBulk">Agregar varias</button>
+        </div>
+      </form>
+
+      <!-- Alta múltiple (misma acción Crear, iterando en el cliente) -->
+      <form id="formBulk" class="vstack gap-2 mt-2 d-none">
+        <label class="form-label small m-0">Pega múltiples URLs (una por línea)</label>
+        <textarea class="form-control form-control-sm" rows="5" id="bulkTextarea"
+                  placeholder="https://...\nhttps://...\nhttps://..."></textarea>
+
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="bulkFirstMain" />
+          <label class="form-check-label" for="bulkFirstMain">Marcar la primera como principal</label>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sage btn-sm" id="btnRunBulk">
+            <i class="bi bi-upload me-1"></i> Cargar
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btnCancelBulk">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@foreach (var img in Model.Imagenes.OrderByDescending(i => i.EsPrincipal))
+{
+    var prevId = $"prev_{img.Id:N}";
+    <div class="col-12 col-sm-6 col-md-4">
+        <div class="card card-soft h-100">
+            <img id="@prevId" src="@img.Url" class="card-img-top thumb-cover" alt="Imagen de la propiedad" />
+
+            <div class="card-body">
+                <!-- Form de actualización -->
+                <form asp-area="Admin"
+                      asp-controller="ImagenPropiedad"
+                      asp-action="Actualizar"
+                      asp-route-propiedadId="@Model.Id"
+                      method="post"
+                      class="vstack gap-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@img.Id" />
+
+                    <label class="form-label small m-0">URL</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                        <input name="url"
+                               class="form-control url-input"
+                               value="@img.Url"
+                               placeholder="https://..."
+                               data-preview="#@prevId" />
+                        <a class="btn btn-outline-secondary" target="_blank" href="@img.Url" title="Abrir en nueva pestaña">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </div>
+
+                    <div class="form-check form-switch mt-1">
+                        <input class="form-check-input" type="checkbox" id="p_@img.Id"
+                               name="esPrincipal" value="true" @(img.EsPrincipal ? "checked" : null) />
+                        <label class="form-check-label" for="p_@img.Id">Marcar como principal</label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <div>
+                            @if (img.EsPrincipal)
+                            {
+                                <span class="badge badge-sage">Principal</span>
+                            }
+                        </div>
+                        <button class="btn btn-sage btn-sm" type="submit">
+                            <i class="bi bi-check2 me-1"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Form de eliminación (separado, no anidado) -->
+                <form asp-area="Admin"
+                      asp-controller="ImagenPropiedad"
+                      asp-action="Eliminar"
+                      asp-route-propiedadId="@Model.Id"
+                      method="post"
+                      onsubmit="return confirm('¿Eliminar imagen?');"
+                      class="text-end mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@img.Id" />
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@section Scripts{
+<script>
+(() => {
+  // preview en vivo cuando se edita la URL
+  document.querySelectorAll('.url-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const url = (inp.value || '').trim();
+      const prevSel = inp.dataset.preview;
+      const prev = prevSel ? document.querySelector(prevSel) : null;
+      if (!prev) return;
+      if (/^https?:\/\//i.test(url)) {
+        prev.src = url;
+      }
+    }, {passive:true});
+  });
+})();
+</script>
+}

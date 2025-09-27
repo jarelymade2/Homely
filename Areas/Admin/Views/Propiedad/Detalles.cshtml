@@ -1,173 +1,236 @@
 @model StayGo.Models.Propiedad
+@using StayGo.Models.Enums
+
 @{
     ViewData["Title"] = "Detalles de la Propiedad";
-    Layout = "~/Views/Shared/_Layout.cshtml"; 
-    var principal = Model.Imagenes?.FirstOrDefault(i => i.EsPrincipal) 
-                    ?? Model.Imagenes?.FirstOrDefault();
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+
+    var principal = Model?.Imagenes?
+        .OrderByDescending(i => i.EsPrincipal)
+        .FirstOrDefault();
+
+    string Thumb(string? url, int w, int h) =>
+        string.IsNullOrWhiteSpace(url) ? $"https://placehold.co/{w}x{h}?text=Sin+img" : url;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+@section Styles{
+    <style>
+        .toolbar .btn{ border-radius:12px; }
+        .chip{
+            display:inline-flex; align-items:center; gap:.4rem;
+            padding:.25rem .6rem; border-radius:999px;
+            background:#eef5ef; border:1px solid #d9e7da; color:#3f6b4f; font-weight:600; font-size:.8rem;
+        }
+        .thumb-lg{
+            width:100%; height:420px; object-fit:cover; border-radius:14px; border:1px solid #edf1ee;
+        }
+        .thumb-sm{
+            width:140px; height:92px; object-fit:cover; border-radius:10px; border:1px solid #edf1ee;
+        }
+        .dl dt{ color:#667; font-size:.9rem;}
+        .dl dd{ margin-bottom:.5rem;}
+        .card-soft{ border-radius:16px; border:1px solid #edf1ee; background:#fff; box-shadow:0 8px 20px rgba(36,48,54,.05);}
+    </style>
+}
+
+<div class="page-head d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
-        <h2 class="h4 mb-0">@Model.Titulo</h2>
-        <div class="text-muted">ID: @Model.Id</div>
+        <h2 class="h4 m-0">@Model?.Titulo</h2>
+        <div class="text-muted small">ID: @Model?.Id</div>
     </div>
-    <div class="d-flex gap-2">
-        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
-            Editar
+
+    <div class="toolbar d-flex flex-wrap gap-2">
+        <a asp-area="Admin"
+           asp-controller="ImagenPropiedad"
+           asp-action="Index"
+           asp-route-propiedadId="@Model!.Id"
+           class="btn btn-outline-sage">
+            <i class="bi bi-images me-1"></i> Gestionar imágenes
         </a>
-        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-secondary">
-            Volver
+
+        <a asp-area="Admin"
+           asp-controller="Propiedad"
+           asp-action="Editar"
+           asp-route-id="@Model!.Id"
+           class="btn btn-outline-sage">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+
+        <form asp-area="Admin"
+              asp-controller="Propiedad"
+              asp-action="Eliminar"
+              method="post"
+              class="d-inline"
+              onsubmit="return confirm('¿Seguro que deseas eliminar esta propiedad? También se eliminarán habitaciones e imágenes asociadas.');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model!.Id" />
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-1"></i> Eliminar
+            </button>
+        </form>
+
+        <a asp-area="Admin"
+           asp-controller="Propiedad"
+           asp-action="Index"
+           class="btn btn-sage text-white">
+            <i class="bi bi-arrow-left me-1"></i> Volver
         </a>
     </div>
 </div>
 
 <div class="row g-3">
+    <!-- Galería -->
     <div class="col-lg-7">
-        @if (principal != null)
-        {
-            <div class="card">
-                <img src="@principal.Url" class="card-img-top" alt="Imagen principal" style="object-fit:cover; max-height:420px;">
-                <div class="card-body py-2">
-                    <span class="badge bg-primary">Principal</span>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-info">Esta propiedad aún no tiene imágenes.</div>
-        }
-
-        @if (Model.Imagenes != null && Model.Imagenes.Count > 1)
-        {
-            <div class="mt-3">
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var img in Model.Imagenes.Where(i => principal == null || i.Id != principal.Id))
+        <div class="card-soft p-2">
+            <img src="@Thumb(principal?.Url, 1200, 420)" alt="Imagen principal" class="thumb-lg" />
+            <div class="d-flex justify-content-between align-items-center px-2 pt-2">
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="chip"><i class="bi bi-house-door"></i> @Model!.Tipo</span>
+                    <span class="chip"><i class="bi bi-people"></i> Cap. @Model!.Capacidad</span>
+                    @if (Model.PrecioPorNoche.HasValue)
                     {
-                        <div class="card" style="width: 140px;">
-                            <img src="@img.Url" class="card-img-top" alt="Imagen" style="object-fit:cover; height:90px;">
-                            <div class="card-body p-2 text-center">
-                                @if (img.EsPrincipal)
-                                {
-                                    <span class="badge bg-primary">Principal</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-light text-muted">Secundaria</span>
-                                }
-                            </div>
-                        </div>
+                        <span class="chip"><i class="bi bi-cash-coin"></i> S/ @Model.PrecioPorNoche.Value.ToString("0.##") / noche</span>
+                    }
+                    else
+                    {
+                        <span class="chip"><i class="bi bi-building"></i> Hotel (precio por habitación)</span>
                     }
                 </div>
+                @if (principal?.EsPrincipal == true)
+                {
+                    <span class="badge text-bg-success">Principal</span>
+                }
             </div>
-        }
+
+            @if (Model.Imagenes != null && Model.Imagenes.Count > 1)
+            {
+                <div class="mt-3 px-2 pb-2">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var img in Model.Imagenes.Where(i => principal == null || i.Id != principal.Id))
+                        {
+                            <img src="@Thumb(img.Url, 140, 92)" alt="Imagen" class="thumb-sm" />
+                        }
+                    </div>
+                </div>
+            }
+            else if ((Model.Imagenes?.Count ?? 0) == 0)
+            {
+                <div class="p-3 text-muted small">Esta propiedad aún no tiene imágenes.</div>
+            }
+        </div>
     </div>
 
+    <!-- Información -->
     <div class="col-lg-5">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-3">Información</h5>
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Tipo</dt>
-                    <dd class="col-sm-7">@Model.Tipo</dd>
+        <div class="card-soft p-3">
+            <h5 class="mb-3">Información</h5>
+            <dl class="row dl mb-0">
+                <dt class="col-5">Tipo</dt>
+                <dd class="col-7">@Model!.Tipo</dd>
 
-                    <dt class="col-sm-5">Precio / noche</dt>
-                    <dd class="col-sm-7">
-                        @(Model.PrecioPorNoche.HasValue ? $"S/ {Model.PrecioPorNoche:0.##}" : "-")
-                    </dd>
+                <dt class="col-5">Precio / noche</dt>
+                <dd class="col-7">@(Model.PrecioPorNoche.HasValue ? $"S/ {Model.PrecioPorNoche:0.##}" : "—")</dd>
 
-                    <dt class="col-sm-5">Capacidad</dt>
-                    <dd class="col-sm-7">@Model.Capacidad</dd>
+                <dt class="col-5">Capacidad</dt>
+                <dd class="col-7">@Model.Capacidad</dd>
 
-                    <dt class="col-sm-5">Lat / Lng</dt>
-                    <dd class="col-sm-7">@Model.Lat.ToString("0.######") , @Model.Lng.ToString("0.######")</dd>
+                <dt class="col-5">Lat / Lng</dt>
+                <dd class="col-7">@Model.Lat.ToString("0.######") , @Model.Lng.ToString("0.######")</dd>
 
-                    <dt class="col-sm-5">Descripción</dt>
-                    <dd class="col-sm-7">
-                        @if (!string.IsNullOrWhiteSpace(Model.Descripcion)) { @Model.Descripcion }
-                        else { <span class="text-muted">—</span> }
-                    </dd>
-                </dl>
+                <dt class="col-5">Descripción</dt>
+                <dd class="col-7">
+                    @if (!string.IsNullOrWhiteSpace(Model.Descripcion)) { @Model.Descripcion }
+                    else { <span class="text-muted">—</span> }
+                </dd>
+            </dl>
 
-                <hr />
+            <hr class="my-3" />
 
-                <h6 class="mb-2">Dirección</h6>
-                @if (Model.Direccion != null)
-                {
-                    <div class="small">
-                        @Model.Direccion.Linea1<br />
-                        @if (!string.IsNullOrWhiteSpace(Model.Direccion.Linea2)) { @Model.Direccion.Linea2<br /> }
-                        @Model.Direccion.Ciudad, @Model.Direccion.Pais<br />
-                        @if (!string.IsNullOrWhiteSpace(Model.Direccion?.CodigoPostal))
-                            {
-                                @:Código Postal: @Model.Direccion.CodigoPostal
-                            }
-
-                    </div>
-                }
-                else
-                {
-                    <div class="text-muted small">Sin dirección registrada.</div>
-                }
-                @using StayGo.Models.Enums
-
-        @if (Model.Tipo == TipoPropiedad.Hotel)
-        {
-            <hr class="my-4" />
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">Habitaciones</h5>
-                <a asp-area="Admin"
-                asp-controller="Habitacion"
-                asp-action="Crear"
-                asp-route-propiedadId="@Model.Id"
-                class="btn btn-primary btn-sm">+ Crear habitación</a>
-            </div>
-
-            @if (Model.Habitaciones != null && Model.Habitaciones.Any())
+            <h6 class="mb-2">Dirección</h6>
+            @if (Model.Direccion != null)
             {
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Capacidad</th>
-                                <th>Precio/Noche</th>
-                                <th>Piso</th>
-                                <th>Número</th>
-                                <th>Tipo cama</th>
-                                <th class="text-end" style="width:140px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var h in Model.Habitaciones.OrderBy(x => x.Piso).ThenBy(x => x.Numero))
-                        {
-                            <tr>
-                                <td>@h.Nombre</td>
-                                <td>@h.Capacidad</td>
-                                <td>S/ @h.PrecioPorNoche</td>
-                                <td>@(h.Piso?.ToString() ?? "—")</td>
-                                <td>@(string.IsNullOrWhiteSpace(h.Numero) ? "—" : h.Numero)</td>
-                                <td>@(h.TipoCama?.ToString() ?? "—")</td>
-                                <td class="text-end">
-                                    <a asp-area="Admin" asp-controller="Habitacion" asp-action="Editar"
-                                    asp-route-propiedadId="@Model.Id" asp-route-id="@h.Id"
-                                    class="btn btn-sm btn-warning">Editar</a>
-                                    <a asp-area="Admin" asp-controller="Habitacion" asp-action="Eliminar"
-                                    asp-route-propiedadId="@Model.Id" asp-route-id="@h.Id"
-                                    class="btn btn-sm btn-danger">Eliminar</a>
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
+                <div class="small">
+                    @Model.Direccion.Linea1<br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Direccion.Linea2))
+                    {
+                        @Model.Direccion.Linea2<br />
+                    }
+                    @Model.Direccion.Ciudad@((string.IsNullOrWhiteSpace(Model.Direccion.Pais) ? "" : ", " + Model.Direccion.Pais))<br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Direccion.CodigoPostal))
+                    {
+                        <span>Código Postal: @Model.Direccion.CodigoPostal</span>
+                    }
                 </div>
             }
             else
             {
-                <div class="alert alert-info mb-0">Este hotel aún no tiene habitaciones registradas.</div>
+                <div class="text-muted small">Sin dirección registrada.</div>
             }
-        }
-
-            </div>
         </div>
     </div>
 </div>
+
+@if (Model.Tipo == TipoPropiedad.Hotel)
+{
+    <hr class="my-4" />
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Habitaciones</h5>
+        <a asp-area="Admin"
+           asp-controller="Habitacion"
+           asp-action="Crear"
+           asp-route-propiedadId="@Model.Id"
+           class="btn btn-sage text-white btn-sm">
+            <i class="bi bi-plus-lg"></i> Crear habitación
+        </a>
+    </div>
+
+    @if (Model.Habitaciones != null && Model.Habitaciones.Any())
+    {
+        <div class="table-responsive card-soft p-2">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th class="text-center">Capacidad</th>
+                        <th class="text-end">Precio/Noche</th>
+                        <th class="text-center">Piso</th>
+                        <th>Número</th>
+                        <th>Tipo cama</th>
+                        <th class="text-end" style="width:170px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var h in Model.Habitaciones.OrderBy(x => x.Piso).ThenBy(x => x.Numero))
+                {
+                    <tr>
+                        <td>@h.Nombre</td>
+                        <td class="text-center">@h.Capacidad</td>
+                        <td class="text-end">S/ @h.PrecioPorNoche</td>
+                        <td class="text-center">@(h.Piso?.ToString() ?? "—")</td>
+                        <td>@(string.IsNullOrWhiteSpace(h.Numero) ? "—" : h.Numero)</td>
+                        <td>@(h.TipoCama?.ToString() ?? "—")</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a asp-area="Admin" asp-controller="Habitacion" asp-action="Editar"
+                                   asp-route-propiedadId="@Model.Id" asp-route-id="@h.Id"
+                                   class="btn btn-sm btn-outline-sage">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <a asp-area="Admin" asp-controller="Habitacion" asp-action="Eliminar"
+                                   asp-route-propiedadId="@Model.Id" asp-route-id="@h.Id"
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mb-0">Este hotel aún no tiene habitaciones registradas.</div>
+    }
+}
