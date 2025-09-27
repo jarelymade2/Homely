@@ -1,0 +1,45 @@
+@page
+@model StayGo.Areas.Identity.Pages.Account.LoginModel
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+@section Hero {
+    <section class="hero">
+        <div class="overlay">
+            <div class="container d-flex align-items-center justify-content-center h-100">
+                <div class="form-container">
+                    <h2 class="text-white">Iniciar sesión</h2>
+                    <form id="account" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label text-white">Correo electrónico</label>
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" required />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label text-white">Contraseña</label>
+                            <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Tu contraseña" required />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>                        taskkill /IM StayGo.exe /F
+                        <div class="mb-3 form-check">
+                            <input asp-for="Input.RememberMe" class="form-check-input" type="checkbox" />
+                            <label asp-for="Input.RememberMe" class="form-check-label text-white">Recordarme</label>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-brand">Iniciar sesión</button>
+                        <div class="mt-3 text-center">
+                            <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="btn btn-link text-white">¿Olvidaste tu contraseña?</a>
+                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-link text-white">Regístrate</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
