@@ -11,7 +11,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // ✅ Ruta ABSOLUTA a Data\staygo.db (misma para migraciones y runtime)
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "staygo.db");
+var dbPath = Path.Combine(builder.Environment.ContentRootPath,"staygo.db");
 Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 
 builder.Services.AddDbContext<StayGoContext>(opt =>
