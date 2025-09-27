@@ -1,4 +1,4 @@
-namespace StayGo.ViewModels;
+namespace StayGo.Models;
 
 public class ErrorViewModel
 {

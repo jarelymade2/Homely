@@ -1,77 +1,31 @@
-:root{
-  --bg: #f8f9fb;
-  --ink: #121212;
-  --muted: #6b7280;
-  --brand: #111827;   /* negro suave tipo Airbnb */
-  --accent: #ef4444;  /* rojo acento */
-  --surface: #ffffff;
-  --radius: 14px;
+html {
+  font-size: 14px;
 }
 
-html, body { height: 100%; }
-body.bg-body { background: var(--bg); color: var(--ink); }
-
-.navbar .nav-link{ color: #4b5563; }
-.navbar .nav-link:hover{ color: var(--ink); }
-.navbar-brand{ letter-spacing:.2px; }
-
-.hero {
-    background-image: url('/images/staygo-fondo.png');
-    background-size: cover;
-    background-position: center;
-    height: 60vh;
-    position: relative;
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
 }
 
-.hero .overlay {
-    background-color: rgba(0, 0, 0, 0.4);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-.search-card{
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-  padding: 16px;
-  gap: 12px;
-}
-.search-grid{
-  display: grid;
-  grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
-  gap: 8px;
-}
-@media (max-width: 992px){
-  .search-grid{ grid-template-columns: 1fr 1fr; }
-}
-.search-card .form-label{ font-size:.8rem; color: var(--muted); margin-bottom:4px; }
-.search-card .form-control, .search-card .form-select{
-  border-radius: 10px;
+html {
+  position: relative;
+  min-height: 100%;
 }
 
-.btn-brand{
-  background: var(--brand);
-  color: #fff;
-  border-radius: 12px;
-  padding: .75rem 1.25rem;
-  border: none;
-}
-.btn-brand:hover{ filter: brightness(.92); }
-
-.card-stay{
-  border: none;
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: 0 10px 24px rgba(0,0,0,.06);
-}
-.card-stay img{ aspect-ratio: 4/3; object-fit: cover; }
-.card-stay .price{ font-weight: 700; }
-.badge-soft{
-  background: #00000012; color: #111;
-  border-radius: 999px; padding:.35rem .6rem;
+body {
+  margin-bottom: 60px;
 }
 
-.alert{ border-radius: 12px; }
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

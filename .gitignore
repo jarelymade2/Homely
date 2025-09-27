@@ -67,9 +67,3 @@ project.lock.json
 
 ## Otros
 *.vscode/
-
-# Base de datos SQLite
-Data/*.db
-*.db-shm
-*.db-wal
-
