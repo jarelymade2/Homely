@@ -2,21 +2,21 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
-// using apptrade.Data;   // <- quítalo si no lo usas
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de Servicios
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Connection string (asegúrate que existe en appsettings.json)
+// Connection string
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
-// ✅ Identity con ROLES y ApplicationUser (coincide con tu DbContext)
+// ✅ Configuración de ASP.NET Identity
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -28,13 +28,8 @@ builder.Services
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
     })
-    .AddRoles<IdentityRole>()                    // ← IMPORTANTE si usas [Authorize(Roles="Admin")]
+    .AddRoles<IdentityRole>() 
     .AddEntityFrameworkStores<StayGoContext>();
-
-// Si no usas la UI por defecto y prefieres MVC puro, alternativa:
-// builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-//     .AddEntityFrameworkStores<StayGoContext>()
-//     .AddDefaultTokenProviders();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -43,6 +38,28 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// ⬇️ SECCIÓN PARA INICIALIZAR LA BASE DE DATOS Y ROLES
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // 🚨 Define las credenciales del Administrador
+        const string adminEmail = "StayGo@usmp.pe"; 
+        const string adminPassword = "12345678";
+        
+        // Llama al método de inicialización del Seed
+        await Seed.Initialize(services, adminEmail, adminPassword);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al inicializar la base de datos y los roles.");
+    }
+}
+// ⬆️ FIN DE LA SECCIÓN DE INICIALIZACIÓN
+
+// Configuración del Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -57,6 +74,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+// MIDDLEWARE DE AUTENTICACIÓN Y AUTORIZACIÓN (El orden es clave)
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -66,17 +84,11 @@ app.MapAreaControllerRoute(
     areaName: "Admin",
     pattern: "Admin/{controller=Admin}/{action=Index}/{id?}");
 
-// (Opcional) patrón genérico de áreas
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-
 // Ruta MVC por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// UI de Identity (si usas AddDefaultIdentity)
 app.MapRazorPages();
 
 app.Run();
