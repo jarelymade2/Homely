@@ -86,33 +86,7 @@ public class PropiedadController : Controller
             .ToListAsync();
 
         // Demo en memoria si la BD está vacía (solo para visualizar)
-        if (total == 0 && items.Count == 0)
-        {
-            items = new List<Propiedad>
-            {
-                new Propiedad {
-                    Titulo = "Casa de Playa",
-                    Direccion = new Models.ValueObjects.Direccion {
-                        Ciudad = "Lima", Pais = "Perú", Linea1 = "Costa Verde"
-                    },
-                    PrecioPorNoche = 200m
-                },
-                new Propiedad {
-                    Titulo = "Departamento céntrico",
-                    Direccion = new Models.ValueObjects.Direccion {
-                        Ciudad = "Cusco", Pais = "Perú", Linea1 = "Av. El Sol 123"
-                    },
-                    PrecioPorNoche = 150m
-                },
-                new Propiedad {
-                    Titulo = "Cabaña en la montaña",
-                    Direccion = new Models.ValueObjects.Direccion {
-                        Ciudad = "Arequipa", Pais = "Perú", Linea1 = "Valle de Chilina"
-                    },
-                    PrecioPorNoche = 120m
-                }
-            };
-        }
+        
 
         // Metadatos para la vista
         var totalParaVista = (total == 0 && items.Count > 0) ? items.Count : total;
@@ -129,17 +103,21 @@ public class PropiedadController : Controller
         return View(items);
     }
 
-    // GET: /Propiedad/Details/{id}
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
+        Console.WriteLine($"Buscando propiedad con ID: {id}");
+        
+        // Convierte el Guid a string para la comparación
+        var idString = id.ToString();
+        
         var prop = await _db.Propiedades
             .Include(p => p.Imagenes)
-            .Include(p => p.Resenas)
-            .Include(p => p.Disponibilidades)
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id.ToString() == idString);
 
+        Console.WriteLine($"Propiedad encontrada: {prop != null}");
+        
         if (prop == null) return NotFound();
 
         return View(prop);
