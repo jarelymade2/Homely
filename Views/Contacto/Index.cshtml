@@ -4,47 +4,322 @@
     var isAuth = User?.Identity?.IsAuthenticated == true;
 }
 
-<div class="container py-4">
-    <h1 class="mb-3">Contáctanos</h1>
+<!-- HERO COMPACTO, CENTRADO Y LIMPIO -->
+<section class="contact-hero-compact">
+  <div class="container text-center">
+    <span class="badge rounded-pill text-bg-light shadow-xxs mb-3">Soporte</span>
+    <h1 class="hero-title">Contáctanos</h1>
+    <p class="hero-sub">Te respondemos normalmente en menos de 24 horas.</p>
+    <a href="#contacto-form" class="btn btn-light btn-lg px-4 lift hero-cta">
+      <i class="bi bi-chat-dots me-2"></i>Escríbenos
+    </a>
+  </div>
 
-    @if (TempData["ok"] is string ok)
-    {
-        <div class="alert alert-success">@ok</div>
+  <!-- wave delgada -->
+  <svg class="wave wave--slim" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,60 C240,85 480,40 720,60 C960,80 1200,65 1440,80 L1440,120 L0,120 Z"></path>
+  </svg>
+</section>
+
+<div class="container py-5">
+  <!-- Quitado el alert local para evitar duplicado; el global vive en _Layout.cshtml -->
+
+  <div class="row g-4">
+    <!-- INFO / TRUST -->
+    <div class="col-12 col-lg-5">
+      <div class="card glass-card h-100 border-0">
+        <div class="card-body p-4 p-lg-5">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="icon-pill"><i class="bi bi-chat-dots"></i></div>
+            <h2 class="h5 fw-semibold mb-0">Estamos aquí para ayudarte</h2>
+          </div>
+
+          <ul class="list-unstyled d-grid gap-3 mb-4">
+            <li class="d-flex gap-3">
+              <div class="icon-soft"><i class="bi bi-shield-check"></i></div>
+              <div><div class="fw-semibold">Datos protegidos</div><small class="text-muted">Solo para responder tu solicitud.</small></div>
+            </li>
+            <li class="d-flex gap-3">
+              <div class="icon-soft"><i class="bi bi-lightning-charge"></i></div>
+              <div><div class="fw-semibold">Respuesta rápida</div><small class="text-muted">Generalmente el mismo día hábil.</small></div>
+            </li>
+            <li class="d-flex gap-3">
+              <div class="icon-soft"><i class="bi bi-envelope-paper"></i></div>
+              <div><div class="fw-semibold">Seguimiento por email</div><small class="text-muted">Te avisamos cualquier actualización.</small></div>
+            </li>
+          </ul>
+
+          <div class="small text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Al enviar aceptas nuestros
+            <a asp-controller="Home" asp-action="Terminos" class="link-underline-opacity-75">Términos</a>
+            y
+            <a asp-controller="Home" asp-action="Privacidad" class="link-underline-opacity-75">Privacidad</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM (MISMO BACKEND) -->
+    <div class="col-12 col-lg-7">
+      <div class="card shadow-xxs border-0 rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <form id="contacto-form" asp-action="Index" method="post" class="row g-4" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+            <!-- Nombre -->
+            <div class="col-12">
+              <div class="form-floating fancy-floating">
+                <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Nombre" />
+                <label asp-for="Nombre">Nombre</label>
+              </div>
+              <span asp-validation-for="Nombre" class="text-danger small"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="col-12">
+              <div class="form-floating fancy-floating">
+                <input asp-for="Email" class="form-control form-control-lg" placeholder="correo@ejemplo.com" />
+                <label asp-for="Email">Email</label>
+              </div>
+              <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <!-- Mensaje -->
+            <div class="col-12">
+              <label asp-for="Mensaje" class="form-label fw-semibold d-flex justify-content-between">
+                <span>Mensaje</span><small class="text-muted"><span id="msgCount">0</span>/500</small>
+              </label>
+              <textarea asp-for="Mensaje" rows="6" maxlength="500"
+                        class="form-control form-control-lg fancy-area"
+                        placeholder="Cuéntanos en qué podemos ayudarte…"></textarea>
+              <span asp-validation-for="Mensaje" class="text-danger small"></span>
+            </div>
+
+            @if (isAuth)
+            {
+              <input type="hidden" asp-for="IdentityUserId" />
+              <input type="hidden" asp-for="UsuarioId" />
+            }
+
+            <div class="col-12 d-flex gap-2">
+              <button class="btn btn-primary btn-lg px-4 lift" type="submit">
+                <i class="bi bi-send me-2"></i>Enviar
+              </button>
+              <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">Volver</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- FAQ compacto -->
+      <div class="mt-4">
+        <div class="accordion shadow-xxs rounded-4" id="faqContact">
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header">
+              <button class="accordion-button rounded-top-4" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                ¿En cuánto tiempo responden?
+              </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqContact">
+              <div class="accordion-body">
+                Usualmente dentro del mismo día hábil. Si la consulta requiere revisión técnica, te avisaremos el tiempo estimado.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed rounded-bottom-4" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                ¿Qué debo incluir en el mensaje?
+              </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqContact">
+              <div class="accordion-body">
+                Un resumen corto del problema y un correo válido para contactarte.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /col form -->
+  </div><!-- /row -->
+</div><!-- /container -->
+
+@section Styles{
+  <!-- Tipografía Inter para un look más moderno -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --hero-from:#0f2747;
+      --hero-to:#0b1323;
+      --hero-accent:rgba(32,201,151,.18);
+      --ring: rgba(13,110,253,.35);
     }
 
-    <form asp-action="Index" method="post" class="row g-3 card card-body shadow-sm">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    /* utilidades */
+    .shadow-xxs{ box-shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06); }
+    .rounded-4{ border-radius: 1rem; }
+    .lift{ transition: transform .15s ease, box-shadow .15s ease; }
+    .lift:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(13,110,253,.15); }
 
-        @* Si está autenticado, el Email/Nombre pueden venir prellenados *@
-        <div class="col-md-6">
-            <label asp-for="Nombre" class="form-label"></label>
-            <input asp-for="Nombre" class="form-control" />
-            <span asp-validation-for="Nombre" class="text-danger"></span>
-        </div>
+    /* ---------- HERO COMPACTO, CENTRADO ---------- */
+    .contact-hero-compact{
+      position: relative; color:#fff;
+      padding: 38px 0 46px;
+      background:
+        radial-gradient(700px 280px at 80% -25%, var(--hero-accent), transparent 60%),
+        radial-gradient(800px 300px at 12% -35%, rgba(13,110,253,.20), transparent 60%),
+        linear-gradient(135deg, var(--hero-from), var(--hero-to));
+      overflow:hidden; border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .contact-hero-compact .container{ max-width: 860px; }
+    .hero-title{
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 700; letter-spacing: .2px;
+      font-size: clamp(28px, 4vw, 38px); margin-bottom: .35rem;
+    }
+    .hero-sub{
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: rgba(255,255,255,.80);
+      font-size: clamp(14px, 2.2vw, 18px); margin-bottom: 1.1rem;
+    }
+    .hero-cta{ border-radius: 14px; }
+    .wave{ position:absolute; left:0; width:100%; display:block; }
+    .wave--slim{ bottom:-1px; height:76px; }
+    .wave path{ fill:#fff; opacity:.98; }
 
-        <div class="col-md-6">
-            <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
+    /* Responsive (Razor => @@media) */
+    @@media (min-width: 992px){
+      .contact-hero-compact{ padding: 48px 0 58px; }
+      .hero-sub{ margin-bottom: 1.4rem; }
+    }
 
-        <div class="col-12">
-            <label asp-for="Mensaje" class="form-label"></label>
-            <textarea asp-for="Mensaje" rows="5" class="form-control"></textarea>
-            <span asp-validation-for="Mensaje" class="text-danger"></span>
-        </div>
+    /* ---------- Cards/info izquierda ---------- */
+    .glass-card{
+      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.62));
+      backdrop-filter: blur(8px); border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.07);
+    }
+    .icon-pill{
+      width:42px;height:42px;border-radius:999px; display:grid; place-items:center;
+      background: linear-gradient(135deg, rgba(13,110,253,.15), rgba(32,201,151,.15));
+      color:#0d6efd;
+    }
+    .icon-soft{
+      width:36px;height:36px;border-radius:10px; display:grid; place-items:center;
+      background: rgba(13,110,253,.08); color:#0d6efd;
+    }
 
-        @* Guarda los vínculos si ya vienen prellenados *@
-        @if (isAuth)
-        {
-            <input type="hidden" asp-for="IdentityUserId" />
-            <input type="hidden" asp-for="UsuarioId" />
-        }
+    /* ---------- Form base ---------- */
+    .fancy-floating .form-control{
+      border-radius: 14px; padding-top: 1.25rem; padding-bottom: .75rem;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .fancy-floating label{ color:#6c757d; }
+    .fancy-floating .form-control:focus{
+      box-shadow: 0 0 0 .2rem var(--ring); border-color: rgba(13,110,253,.45);
+    }
+    .fancy-area{ border-radius: 14px; }
+    .fancy-area:focus{
+      box-shadow: 0 0 0 .2rem var(--ring); border-color: rgba(13,110,253,.45);
+    }
 
-        <div class="col-12">
-            <button class="btn btn-primary" type="submit">Enviar</button>
-        </div>
-    </form>
-</div>
+    /* ====== FIX AUTOFILL (Chrome/Edge) ====== */
+    input:-webkit-autofill,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill{
+      -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+      box-shadow: 0 0 0 1000px #fff inset !important;
+      -webkit-text-fill-color: #212529 !important;
+      caret-color: #212529;
+    }
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+    /* ====== FLOATING LABEL MEJORADO + tamaño de texto cómodo ====== */
+    .fancy-floating{ position: relative; }
+
+    .fancy-floating.form-floating > label{
+      position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
+      height: auto; line-height: 1; padding: 0 .35rem; margin: 0;
+      font-size: .95rem; color: #6c757d; background: transparent;
+      pointer-events: none; transition: all .15s ease;
+    }
+
+    .fancy-floating.form-floating > .form-control{
+      padding: 1.05rem 1rem .9rem 1rem;
+      border: 1px solid #e7eaef; border-radius: 14px;
+      font-size: 1rem; font-weight: 500;
+    }
+
+    .fancy-area{
+      border: 1px solid #e7eaef;
+      font-size: 1rem;
+    }
+
+    .fancy-floating .form-control:focus + label,
+    .fancy-floating .form-control:not(:placeholder-shown) + label,
+    .fancy-floating .form-control:-webkit-autofill + label{
+      top: 0; transform: translateY(-58%) scale(.92);
+      background: #fff; color: #0d6efd;
+      border-radius: .4rem; box-shadow: 0 0 0 2px #fff;
+    }
+
+    /* Oculta placeholder en inputs flotantes; deja textarea suave */
+    .fancy-floating .form-control::placeholder{ color: transparent !important; }
+    .fancy-area::placeholder{ color:#9aa0a6; opacity:.75; }
+
+    /* ===== Accordión: sin azul cuando está activo ===== */
+    #faqContact.accordion{
+      --bs-accordion-active-bg:#fff;
+      --bs-accordion-active-color:inherit;
+      --bs-accordion-btn-bg:#fff;
+      --bs-accordion-btn-color:#212529;
+      --bs-accordion-border-color:#eef1f5;
+      --bs-accordion-btn-focus-box-shadow:0 0 0 .15rem rgba(13,110,253,.12);
+      --bs-accordion-btn-focus-border-color:rgba(13,110,253,.25);
+    }
+    #faqContact .accordion-button:not(.collapsed){
+      background-color:#fff !important; color:#212529; box-shadow:none;
+    }
+    #faqContact .accordion-button:focus{
+      border-color: rgba(13,110,253,.25);
+      box-shadow: 0 0 0 .15rem rgba(13,110,253,.12);
+    }
+    #faqContact .accordion-button:hover{ background:#fafafa; }
+
+    /* ===== Ocultar botón "X" de los alerts SOLO en esta página ===== */
+    .container.mt-3 .alert .btn-close{ display:none !important; }
+    .container.mt-3 .alert{ border-radius:.75rem; }
+  </style>
+}
+@section Scripts{
+  <partial name="_ValidationScriptsPartial" />
+  <script>
+    // contador mensaje
+    (function(){
+      const t = document.getElementById("Mensaje");
+      const c = document.getElementById("msgCount");
+      if(t && c){ const u=()=>c.textContent=(t.value||"").length; t.addEventListener("input",u); u(); }
+    })();
+
+    // Auto-cierre de los avisos globales del Layout (sin tocar el Layout)
+    document.addEventListener('DOMContentLoaded', function () {
+      const alerts = document.querySelectorAll('.container.mt-3 .alert');
+      alerts.forEach(function (el) {
+        const delay = el.classList.contains('alert-danger') ? 6000 : 4500; // error tarda más
+        setTimeout(function () {
+          try {
+            const bsAlert = (window.bootstrap && bootstrap.Alert && bootstrap.Alert.getOrCreateInstance)
+              ? bootstrap.Alert.getOrCreateInstance(el) : null;
+            if (bsAlert) { bsAlert.close(); }
+            else { el.classList.remove('show'); el.remove(); }
+          } catch (e) {
+            el.classList.remove('show'); el.remove();
+          }
+        }, delay);
+      });
+    });
+  </script>
+}

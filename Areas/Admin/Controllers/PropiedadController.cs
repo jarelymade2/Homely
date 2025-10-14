@@ -7,6 +7,9 @@ using StayGo.Models.ValueObjects;
 namespace StayGo.Areas.Admin.Controllers;
 
 [Area("Admin")]
+
+[Route("Admin/[controller]/[action]")]
+
 public class PropiedadController : Controller
 {
     private readonly StayGoContext _db;
@@ -75,5 +78,79 @@ public async Task<IActionResult> Detalles(Guid id)
 }
 
 
+    // GET: /Admin/Propiedad/Editar/{id}
+    [HttpGet]
+    public async Task<IActionResult> Editar(Guid id)
+    {
+        var prop = await _db.Propiedades
+            .Include(p => p.Direccion)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
 
+        if (prop == null) return NotFound();
+        return View(prop);
+    }
+
+    // POST: /Admin/Propiedad/Editar/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Editar(Guid id, Propiedad prop)
+    {
+        if (id != prop.Id) return BadRequest();
+        prop.Direccion ??= new Direccion();
+
+        if (!ModelState.IsValid) return View(prop);
+
+        var entity = await _db.Propiedades
+            .Include(p => p.Direccion)
+            .FirstOrDefaultAsync(p => p.Id == id);
+        if (entity == null) return NotFound();
+
+        // Campos básicos
+        entity.Titulo = prop.Titulo;
+        entity.Descripcion = prop.Descripcion;
+        entity.Tipo = prop.Tipo;
+        entity.PrecioPorNoche = prop.PrecioPorNoche;
+        entity.Capacidad = prop.Capacidad;
+        entity.Lat = prop.Lat;
+        entity.Lng = prop.Lng;
+
+        // Dirección
+        entity.Direccion ??= new Direccion();
+        entity.Direccion.Ciudad = prop.Direccion.Ciudad;
+        entity.Direccion.Pais = prop.Direccion.Pais;
+        entity.Direccion.Linea1 = prop.Direccion.Linea1;
+        entity.Direccion.Linea2 = prop.Direccion.Linea2;
+        entity.Direccion.CodigoPostal = prop.Direccion.CodigoPostal;
+
+        await _db.SaveChangesAsync();
+        TempData["Ok"] = "Propiedad actualizada.";
+        return RedirectToAction(nameof(Detalles), new { id });
+    }
+
+    // GET: /Admin/Propiedad/Eliminar/{id}
+    [HttpGet]
+    public async Task<IActionResult> Eliminar(Guid id)
+    {
+        var prop = await _db.Propiedades
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
+        if (prop == null) return NotFound();
+        return View(prop);
+    }
+
+    // POST: /Admin/Propiedad/Eliminar/{id}
+    [HttpPost, ActionName("Eliminar")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarConfirmado(Guid id)
+    {
+        var prop = await _db.Propiedades.FindAsync(id);
+        if (prop != null)
+        {
+            _db.Propiedades.Remove(prop);   // cascada elimina imágenes/habitaciones si lo configuraste
+            await _db.SaveChangesAsync();
+            TempData["Ok"] = "Propiedad eliminada.";
+        }
+        return RedirectToAction(nameof(Index));
+    }
 }

@@ -308,6 +308,9 @@ namespace StayGo.Migrations
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid?>("UsuarioId1")
                         .HasColumnType("TEXT");
 
