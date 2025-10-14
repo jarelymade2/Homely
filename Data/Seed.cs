@@ -31,7 +31,7 @@ namespace StayGo.Data
                 }
             }
 
-            // 4. Crear el Usuario Administrador si no existe
+           
             const string adminEmail = "admin@staygo.com";
             const string adminPassword = "password123!"; 
 
