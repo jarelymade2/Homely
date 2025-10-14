@@ -1,56 +1,64 @@
 using Microsoft.AspNetCore.Identity;
-using StayGo.Models; // Asegúrate de que esta línea esté aquí
+using Microsoft.EntityFrameworkCore; // Necesario para EnsureCreated/Migrate
+using StayGo.Models; 
+using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace StayGo.Data;
-
-public static class Seed
+namespace StayGo.Data
 {
-    // Usamos static Task, y simplificamos la firma para que coincida con la llamada en Program.cs
-    public static async Task Initialize(
-        IServiceProvider serviceProvider,
-        string adminEmail,
-        string adminPassword)
+    public class Seed
     {
-        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        // var context = serviceProvider.GetRequiredService<StayGoContext>(); // No es necesario si solo manejamos Identity aquí
-
-        // 1. Crear roles si no existen
-        string[] roleNames = { "Admin", "User" };
-        foreach (var roleName in roleNames)
+        public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
-            var roleExist = await roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
+           
+            var context = serviceProvider.GetRequiredService<StayGoContext>();
+            
+
+            await context.Database.MigrateAsync();
+
+          
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // 3. Crear Roles
+            string[] roleNames = { "Admin", "User", "Guest" }; 
+            foreach (var roleName in roleNames)
             {
-                await roleManager.CreateAsync(new IdentityRole(roleName));
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            // 4. Crear el Usuario Administrador si no existe
+            const string adminEmail = "admin@staygo.com";
+            const string adminPassword = "password123!"; 
+
+            if (await userManager.FindByEmailAsync(adminEmail) == null)
+            {
+                var adminUser = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    
+                    EmailConfirmed = true 
+                };
+
+                // Crear el usuario y hashear la contraseña
+                var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+                if (result.Succeeded)
+                {
+                    // Asignar el rol 'Admin'
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+                else
+                {
+                    // Opcional: Loggear si la creación del usuario falla por validación (ej. reglas de contraseña)
+                    throw new Exception($"Failed to create Admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
             }
         }
-
-        // 2. Crear usuario Administrador si no existe (StayGo@usmp.pe)
-        if (userManager.FindByEmailAsync(adminEmail).Result == null)
-        {
-            var user = new ApplicationUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                FirstName = "StayGo",
-                LastName = "Admin",
-                PhoneNumber = "999999999", // Número de prueba
-                EmailConfirmed = true // Para evitar problemas de confirmación al inicio
-            };
-
-            // Creamos el usuario con la contraseña
-            var result = await userManager.CreateAsync(user, adminPassword);
-
-            if (result.Succeeded)
-            {
-                // 3. Asignar el rol 'Admin'
-                await userManager.AddToRoleAsync(user, "Admin");
-            }
-            // NOTA: Si la creación falla, el error podría ser por las políticas de contraseña 
-            // definidas en Program.cs (aunque las quitaste, es bueno saberlo)
-        }
-        
     }
 }
