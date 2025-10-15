@@ -1,0 +1,63 @@
+@model StayGo.ViewModels.Admin.ReservaViewModel
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="@(ViewData["Title"]?.ToString() == "Crear Reserva" ? "Crear" : "Edit")" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="PropiedadId" class="form-label"></label>
+                <select asp-for="PropiedadId" class="form-select" asp-items="@Model.Propiedades">
+                    <option value="">-- Seleccione una Propiedad --</option>
+                </select>
+                <span asp-validation-for="PropiedadId" class="text-danger"></span>
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="UsuarioId" class="form-label"></label>
+                <select asp-for="UsuarioId" class="form-select" asp-items="@Model.Usuarios">
+                     <option value="">-- Seleccione un Cliente --</option>
+                </select>
+                <span asp-validation-for="UsuarioId" class="text-danger"></span>
+            </div>
+            
+            <div class="row">
+                 <div class="col-md-6 mb-3">
+                    <label asp-for="CheckIn" class="form-label"></label>
+                    <input asp-for="CheckIn" class="form-control" type="date" />
+                    <span asp-validation-for="CheckIn" class="text-danger"></span>
+                </div>
+                 <div class="col-md-6 mb-3">
+                    <label asp-for="CheckOut" class="form-label"></label>
+                    <input asp-for="CheckOut" class="form-control" type="date" />
+                    <span asp-validation-for="CheckOut" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Huespedes" class="form-label"></label>
+                    <input asp-for="Huespedes" class="form-control" />
+                    <span asp-validation-for="Huespedes" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PrecioTotal" class="form-label"></label>
+                    <input asp-for="PrecioTotal" class="form-control" />
+                    <span asp-validation-for="PrecioTotal" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Estado" class="form-label"></label>
+                <select asp-for="Estado" class="form-select" asp-items="Html.GetEnumSelectList<StayGo.Models.Enums.EstadoReserva>()"></select>
+                <span asp-validation-for="Estado" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Guardar" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+            </div>
+        </form>
+    </div>
+</div>
