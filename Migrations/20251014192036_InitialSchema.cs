@@ -322,10 +322,7 @@ namespace StayGo.Migrations
                 {
                     UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
                     PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
-<<<<<<<< HEAD:Migrations/20251014183735_InitialSchema.cs
-========
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
->>>>>>>> 6c46b03f6afe7d0b06c535191e05f03213345fcd:Migrations/20251014184446_InitialSchema.cs
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UsuarioId1 = table.Column<Guid>(type: "TEXT", nullable: true)
                 },

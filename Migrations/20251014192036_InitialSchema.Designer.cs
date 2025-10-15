@@ -11,11 +11,7 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-<<<<<<<< HEAD:Migrations/20251014183735_InitialSchema.Designer.cs
-    [Migration("20251014183735_InitialSchema")]
-========
-    [Migration("20251014184446_InitialSchema")]
->>>>>>>> 6c46b03f6afe7d0b06c535191e05f03213345fcd:Migrations/20251014184446_InitialSchema.Designer.cs
+    [Migration("20251014192036_InitialSchema")]
     partial class InitialSchema
     {
         /// <inheritdoc />
