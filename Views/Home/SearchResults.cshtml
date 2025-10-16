@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Resultados de Búsqueda";
+}
+
+<div class="container py-5">
+    <h1>Resultados de Búsqueda</h1>
+    
+    <p class="lead">
+        La página de resultados de la búsqueda está funcionando correctamente.
+        <br>
+        Ahora, la ubicación que buscaste (recientemente guardada en la sesión) es: 
+        <strong>@Context.Session.GetString("UltimaBusquedaUbicacion")</strong>.
+    </p>
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Volver a Buscar</a>
+</div>
