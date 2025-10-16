@@ -1,114 +1,132 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity; // Necesario para UserManager
-using StayGo.Models;
-using StayGo.ViewModels;
-using System.Text.Json; // Necesario para serializar/deserializar la lista
-using System.Security.Claims;
-using System.Threading.Tasks; // Necesario para usar métodos asíncronos
+using Microsoft.Extensions.Logging;
+using StayGo.ViewModels; 
+using System.Diagnostics;
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http; // Necesario para la Session
+using System.Text.Json; // Necesario para serializar/deserializar JSON
 
-namespace StayGo.Controllers;
-
-public class HomeController : Controller
+namespace StayGo.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly UserManager<ApplicationUser> _userManager; // Inyección de UserManager
-
-    public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
+    public class HomeController : Controller
     {
-        _logger = logger;
-        _userManager = userManager;
-    }
+        private readonly ILogger<HomeController> _logger;
+        private const string _historialKey = "HistorialUbicacion"; 
 
-    // Método privado para obtener el historial de búsqueda del usuario actual
-    private async Task<List<string>> GetUserSearchHistoryAsync()
-    {
-        // Solo obtener historial si el usuario está logueado
-        if (User.Identity!.IsAuthenticated)
+        public HomeController(ILogger<HomeController> logger)
         {
-            // Obtener el objeto de usuario completo
-            var user = await _userManager.GetUserAsync(User);
-            if (user != null && !string.IsNullOrEmpty(user.SearchHistoryJson))
-            {
-                // Deserializar el historial guardado en la DB
-                return JsonSerializer.Deserialize<List<string>>(user.SearchHistoryJson) ?? new List<string>();
-            }
+            _logger = logger;
         }
-        // Si no está autenticado o no hay historial, devuelve una lista vacía.
-        return new List<string>(); 
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Index() // Actualizado a async
-    {
-        // 1. RECUPERAR el historial desde la BASE DE DATOS del usuario autenticado
-        var historial = await GetUserSearchHistoryAsync();
-
-        // Pasa el historial (últimas 5 búsquedas) a la vista para el datalist.
-        ViewBag.HistorialUbicacion = historial;
         
-        // Pasa la última búsqueda (el primer elemento) para pre-llenar el campo.
-        ViewBag.UltimaUbicacion = historial.FirstOrDefault(); 
+        // --- MÉTODOS PRIVADOS PARA GESTIONAR LA SESIÓN ---
         
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
-
-    // Método que procesa la búsqueda y ACTUALIZA el historial en la BASE DE DATOS
-    [HttpGet] 
-    public async Task<IActionResult> SearchResults(string location, DateTime checkin, DateTime checkout, int children, int adults) // Actualizado a async
-    {
-        // 2. LÓGICA DE GESTIÓN DE HISTORIAL EN DB: Solo si el usuario está autenticado
-        if (!string.IsNullOrEmpty(location) && User.Identity!.IsAuthenticated)
+        // Carga la lista de ubicaciones guardadas en la sesión
+        private List<string> ObtenerHistorial()
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user != null)
+            var historialJson = HttpContext.Session.GetString(_historialKey);
+            if (string.IsNullOrEmpty(historialJson))
             {
-                // A. Recuperar la lista desde el campo SearchHistoryJson
-                var historial = JsonSerializer.Deserialize<List<string>>(user.SearchHistoryJson) ?? new List<string>();
+                return new List<string>();
+            }
+            // Deserializar JSON a List<string>
+            // Usamos un operador de coalescencia de nulos para seguridad
+            return JsonSerializer.Deserialize<List<string>>(historialJson) ?? new List<string>();
+        }
+
+        // Guarda y actualiza la lista en la sesión
+        private void AgregarAlHistorial(string ubicacion)
+        {
+            // La comprobación de nulidad evita la advertencia CS8604
+            if (string.IsNullOrWhiteSpace(ubicacion)) return;
+
+            var historial = ObtenerHistorial();
+            string ubicacionNormalizada = ubicacion.Trim();
+
+            // 1. Eliminar si ya existe (para moverla al inicio)
+            historial.RemoveAll(item => item.Equals(ubicacionNormalizada, StringComparison.OrdinalIgnoreCase));
+            
+            // 2. Insertar la nueva ubicación al inicio
+            historial.Insert(0, ubicacionNormalizada);
+
+            // 3. Limitar a 5 elementos
+            if (historial.Count > 5)
+            {
+                historial.RemoveRange(5, historial.Count - 5);
+            }
+
+            // 4. Guardar la lista actualizada en la sesión
+            HttpContext.Session.SetString(_historialKey, JsonSerializer.Serialize(historial));
+        }
+
+        // --- ACCIONES DEL CONTROLADOR ---
+
+        public IActionResult Index(
+            string? q, 
+            DateTime? checkin, 
+            DateTime? checkout, 
+            int adults = 1, 
+            int children = 0)
+        {
+            // Pasa los filtros para la persistencia del formulario
+            ViewBag.Checkin = checkin;
+            ViewBag.Checkout = checkout;
+            ViewBag.Adults = adults;
+            ViewBag.Children = children;
+            
+            // 🛑 Pasa el historial de búsqueda a la vista para el datalist
+            ViewBag.HistorialUbicacion = ObtenerHistorial();
+
+            return View();
+        }
+
+        // GET: Home/ResultadoBusqueda
+        // Procesa la búsqueda y SIEMPRE regresa al Home/Index con un mensaje.
+        public IActionResult ResultadoBusqueda(
+            string? q, 
+            DateTime? checkin, 
+            DateTime? checkout, 
+            int adults = 1, 
+            int children = 0)
+        {
+            // 🛑 LÓGICA DE BÚSQUEDA (Reemplaza esta simulación con tu código de DB) 🛑
+            int totalEstadiasEncontradas = 0; 
+            
+            // Si la ubicación es "piura" (ejemplo de éxito)
+            if (!string.IsNullOrEmpty(q) && q.Equals("piura", StringComparison.OrdinalIgnoreCase))
+            {
+                 totalEstadiasEncontradas = 5; 
+            }
+            // 🛑 FIN DE LÓGICA DE BÚSQUEDA 🛑
+
+            if (totalEstadiasEncontradas > 0)
+            {
+                // Éxito: Guardar la ubicación en el historial
+                AgregarAlHistorial(q ?? string.Empty);
                 
-                // B. Limpiar y añadir la nueva ubicación al inicio
-                historial.Remove(location);
-                historial.Insert(0, location); 
-
-                // C. Limitar la lista a un máximo de 5 elementos
-                if (historial.Count > 5)
-                {
-                    historial.RemoveRange(5, historial.Count - 5);
-                }
-
-                // D. Serializar y GUARDAR en el modelo de usuario y en la DB
-                user.SearchHistoryJson = JsonSerializer.Serialize(historial);
-                await _userManager.UpdateAsync(user); 
+                TempData["MensajeBusqueda"] = $"¡Éxito! Encontramos {totalEstadiasEncontradas} estadias que coinciden con tu búsqueda.";
+                TempData["MensajeTipo"] = "alert-success";
             }
-        }
-        
-        // Aquí debe ir la lógica real de búsqueda a tu base de datos
-        // ... 
-        
-        return View(); 
-    }
+            else
+            {
+                // Fracaso: No se guarda nada.
+                TempData["MensajeBusqueda"] = "Lo sentimos, no se encontraron estadias que coincidan con tu búsqueda. Intenta con otros filtros.";
+                TempData["MensajeTipo"] = "alert-warning";
+            }
 
-    // Redireccionan al área Identity
-    public IActionResult Login()
-    {
-        return RedirectToPage("/Account/Login", new { area = "Identity" });
-    }
-    
-    public IActionResult Register()
-    {
-        return RedirectToPage("/Account/Register", new { area = "Identity" });
+            // 🛑 Regresamos SIEMPRE al Home/Index, manteniendo los filtros en el URL.
+            return RedirectToAction("Index", new { q, checkin, checkout, adults, children });
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }

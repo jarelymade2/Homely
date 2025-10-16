@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Configuración de Sesiones (YA ESTÁ CORRECTA)
+// Configuración de Sesiones
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -33,7 +33,7 @@ builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-        // Reglas de Contraseña (coincide con tu configuración)
+        // Reglas de Contraseña
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -89,8 +89,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// 💡 CORRECCIÓN CLAVE: AÑADIR app.UseSession()
-app.UseSession(); // <-- AÑADIDO: Debe ir después de UseRouting()
+// Middleware de Session (DEBE IR AQUÍ)
+app.UseSession();
 
 // Middleware de Autenticación y Autorización
 app.UseAuthentication();
