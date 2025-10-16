@@ -13,9 +13,9 @@ namespace StayGo.Controllers;
 public class PropiedadController : Controller
 {
     private readonly StayGoContext _db;
-    private readonly UserManager<ApplicationUser> _userManager; // Nuevo: Campo para Identity
+    private readonly UserManager<ApplicationUser> _userManager; // Campo para Identity
 
-    // Constructor actualizado para inyectar UserManager
+    // Constructor CORREGIDO para inyectar ambos servicios
     public PropiedadController(StayGoContext db, UserManager<ApplicationUser> userManager)
     {
         _db = db;
@@ -24,7 +24,7 @@ public class PropiedadController : Controller
 
     // GET: /Propiedad
     [HttpGet]
-    public async Task<IActionResult> Index( // Asegúrate de que es async Task<IActionResult>
+    public async Task<IActionResult> Index(
         string? q,
         TipoPropiedad? tipo,
         string? ciudad,
@@ -47,6 +47,7 @@ public class PropiedadController : Controller
             if (user != null)
             {
                 // 1. Cargar historial
+                // Nota: user.SearchHistoryJson debe existir en tu modelo ApplicationUser
                 historial = JsonSerializer.Deserialize<List<string>>(user.SearchHistoryJson) ?? new List<string>();
 
                 // 2. Si hay una búsqueda 'q', actualizar el historial y guardar
@@ -75,12 +76,12 @@ public class PropiedadController : Controller
         ViewBag.HistorialBusqueda = historial;
         // --- FIN LÓGICA DE HISTORIAL ---
 
-        // Base query (código existente)
+        // Base query
         IQueryable<Propiedad> query = _db.Propiedades
             .Include(p => p.Imagenes)
             .AsNoTracking();
 
-        // FILTRO: búsqueda libre (código existente)
+        // FILTRO: búsqueda libre
         if (!string.IsNullOrWhiteSpace(q))
         {
             var qLike = $"%{q.Trim()}%";
@@ -97,8 +98,6 @@ public class PropiedadController : Controller
             );
         }
 
-        // ... El resto de tus filtros y orden (sin cambios) ...
-        
         // FILTRO: tipo
         if (tipo.HasValue)
             query = query.Where(p => p.Tipo == tipo.Value);
@@ -128,17 +127,17 @@ public class PropiedadController : Controller
             _             => query.OrderByDescending(p => p.Id) // recientes (proxy)
         };
 
-        // PAGINACIÓN (código existente)
+        // PAGINACIÓN
         var total = await query.CountAsync();
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        // Demo en memoria si la BD está vacía (código existente)
+        // Demo en memoria si la BD está vacía (solo para visualizar)
         if (total == 0 && items.Count == 0)
         {
-             // ... [Demo items] ...
+             // Demo items
              items = new List<Propiedad>
             {
                 new Propiedad {
@@ -165,7 +164,7 @@ public class PropiedadController : Controller
             };
         }
 
-        // Metadatos para la vista (código existente)
+        // Metadatos para la vista
         var totalParaVista = (total == 0 && items.Count > 0) ? items.Count : total;
         ViewBag.Total = totalParaVista;
         ViewBag.Page = page;
@@ -180,7 +179,7 @@ public class PropiedadController : Controller
         return View(items);
     }
 
-    // GET: /Propiedad/Details/{id} (código existente)
+    // GET: /Propiedad/Details/{id}
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {

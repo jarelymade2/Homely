@@ -6,17 +6,20 @@
     ViewData["Title"] = "Propiedades";
     var pe = new CultureInfo("es-PE");
 
-    var total    = (int)(ViewBag.Total ?? 0);
-    var page     = (int)(ViewBag.Page ?? 1);
+    var total    = (int)(ViewBag.Total ?? 0);
+    var page     = (int)(ViewBag.Page ?? 1);
     var pageSize = (int)(ViewBag.PageSize ?? 9);
-    var q        = (string?)ViewBag.Query;
-    var tipo     = (TipoPropiedad?)ViewBag.Tipo;
-    var ciudad   = (string?)ViewBag.Ciudad;
-    var min      = (decimal?)ViewBag.Min;
-    var max      = (decimal?)ViewBag.Max;
-    var orden    = (string?)ViewBag.Orden ?? "recientes";
+    var q        = (string?)ViewBag.Query;
+    var tipo     = (TipoPropiedad?)ViewBag.Tipo;
+    var ciudad   = (string?)ViewBag.Ciudad;
+    var min      = (decimal?)ViewBag.Min;
+    var max      = (decimal?)ViewBag.Max;
+    var orden    = (string?)ViewBag.Orden ?? "recientes";
 
     var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+    
+    // OBTENER EL HISTORIAL: Se asume que PropiedadController.cs ha llenado este ViewBag
+    List<string> historialBusqueda = (List<string>)(ViewBag.HistorialBusqueda ?? new List<string>());
 }
 
 <div class="container py-4">
@@ -25,13 +28,29 @@
         <h1 class="fw-bold m-0 text-primary"><i class="bi bi-houses"></i> Propiedades</h1>
     </div>
 
-    <!-- 🔹 Filtros dentro de un card -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-12 col-md-3">
                     <label class="form-label">Buscar</label>
-                    <input class="form-control" name="q" value="@q" placeholder="Título, dirección..." />
+                    
+                    @* Campo de búsqueda con atributo list para historial *@
+                    <input 
+                        class="form-control" 
+                        name="q" 
+                        value="@q" 
+                        placeholder="Título, dirección..." 
+                        list="propiedad-search-history"
+                    />
+
+                    @* Datalist para mostrar el historial de búsquedas *@
+                    <datalist id="propiedad-search-history">
+                        @foreach (var item in historialBusqueda)
+                        {
+                            <option value="@item"></option>
+                        }
+                    </datalist>
+
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label">Tipo</label>
@@ -79,7 +98,6 @@
     }
     else
     {
-        <!-- 🔹 Grid de tarjetas -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
             @foreach (var p in Model)
             {
@@ -87,9 +105,9 @@
                     <div class="card h-100 shadow-sm border-0">
                         <div class="position-relative">
                             <img class="card-img-top propiedad-img"
-                                 src="@(p.Imagenes?.FirstOrDefault(i=>i.EsPrincipal)?.Url 
-                                        ?? $"https://picsum.photos/seed/{(p.Titulo??"prop").Replace(" ","_")}/600/400")"
-                                 alt="@p.Titulo" />
+                                 src="@(p.Imagenes?.FirstOrDefault(i=>i.EsPrincipal)?.Url 
+                                          ?? $"https://picsum.photos/seed/{(p.Titulo??"prop").Replace(" ","_")}/600/400")"
+                                 alt="@p.Titulo" />
                             <span class="badge bg-primary position-absolute top-0 start-0 m-2">
                                 @p.Tipo
                             </span>
@@ -100,8 +118,8 @@
                             <p class="card-text text-muted mb-2">
                                 <i class="bi bi-geo-alt"></i>
                                 @(string.Join(", ",
-                                    new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }
-                                    .Where(s => !string.IsNullOrWhiteSpace(s)) ))
+                                    new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }
+                                    .Where(s => !string.IsNullOrWhiteSpace(s)) ))
                             </p>
 
                             <p class="mb-3 fs-5 text-success">
@@ -117,9 +135,9 @@
 
                             <div class="mt-auto d-flex gap-2">
                                 <a asp-controller="Propiedad"
-                                   asp-action="Details"
-                                   asp-route-id="@p.Id"
-                                   class="btn btn-outline-primary btn-sm">
+                                   asp-action="Details"
+                                   asp-route-id="@p.Id"
+                                   class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> Ver
                                 </a>
                             </div>
@@ -129,7 +147,6 @@
             }
         </div>
 
-        <!-- 🔹 Paginación -->
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
                 <li class="page-item @(page <= 1 ? "disabled" : "")">
