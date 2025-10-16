@@ -4,17 +4,27 @@ using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
+using Microsoft.AspNetCore.Identity; // NECESARIO
+using System.Text.Json; // NECESARIO
+using System.Threading.Tasks; // NECESARIO
 
 namespace StayGo.Controllers;
 
 public class PropiedadController : Controller
 {
     private readonly StayGoContext _db;
-    public PropiedadController(StayGoContext db) => _db = db;
+    private readonly UserManager<ApplicationUser> _userManager; // Nuevo: Campo para Identity
+
+    // Constructor actualizado para inyectar UserManager
+    public PropiedadController(StayGoContext db, UserManager<ApplicationUser> userManager)
+    {
+        _db = db;
+        _userManager = userManager;
+    }
 
     // GET: /Propiedad
     [HttpGet]
-    public async Task<IActionResult> Index(
+    public async Task<IActionResult> Index( // Asegúrate de que es async Task<IActionResult>
         string? q,
         TipoPropiedad? tipo,
         string? ciudad,
@@ -27,12 +37,50 @@ public class PropiedadController : Controller
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 60) pageSize = 9;
 
-        // Base query
+        // --- LÓGICA DE HISTORIAL DE BÚSQUEDA PERSISTENTE ---
+        List<string> historial = new List<string>();
+
+        if (User.Identity!.IsAuthenticated)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user != null)
+            {
+                // 1. Cargar historial
+                historial = JsonSerializer.Deserialize<List<string>>(user.SearchHistoryJson) ?? new List<string>();
+
+                // 2. Si hay una búsqueda 'q', actualizar el historial y guardar
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    var currentQuery = q.Trim();
+
+                    // Limpiar y añadir al inicio (la búsqueda más reciente)
+                    historial.Remove(currentQuery);
+                    historial.Insert(0, currentQuery);
+
+                    // Limitar a 5 elementos
+                    if (historial.Count > 5)
+                    {
+                        historial.RemoveRange(5, historial.Count - 5);
+                    }
+
+                    // Guardar en la DB
+                    user.SearchHistoryJson = JsonSerializer.Serialize(historial);
+                    await _userManager.UpdateAsync(user); 
+                }
+            }
+        }
+        
+        // Pasa el historial a la vista
+        ViewBag.HistorialBusqueda = historial;
+        // --- FIN LÓGICA DE HISTORIAL ---
+
+        // Base query (código existente)
         IQueryable<Propiedad> query = _db.Propiedades
             .Include(p => p.Imagenes)
             .AsNoTracking();
 
-        // FILTRO: búsqueda libre
+        // FILTRO: búsqueda libre (código existente)
         if (!string.IsNullOrWhiteSpace(q))
         {
             var qLike = $"%{q.Trim()}%";
@@ -49,6 +97,8 @@ public class PropiedadController : Controller
             );
         }
 
+        // ... El resto de tus filtros y orden (sin cambios) ...
+        
         // FILTRO: tipo
         if (tipo.HasValue)
             query = query.Where(p => p.Tipo == tipo.Value);
@@ -78,17 +128,18 @@ public class PropiedadController : Controller
             _             => query.OrderByDescending(p => p.Id) // recientes (proxy)
         };
 
-        // PAGINACIÓN
+        // PAGINACIÓN (código existente)
         var total = await query.CountAsync();
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        // Demo en memoria si la BD está vacía (solo para visualizar)
+        // Demo en memoria si la BD está vacía (código existente)
         if (total == 0 && items.Count == 0)
         {
-            items = new List<Propiedad>
+             // ... [Demo items] ...
+             items = new List<Propiedad>
             {
                 new Propiedad {
                     Titulo = "Casa de Playa",
@@ -114,7 +165,7 @@ public class PropiedadController : Controller
             };
         }
 
-        // Metadatos para la vista
+        // Metadatos para la vista (código existente)
         var totalParaVista = (total == 0 && items.Count > 0) ? items.Count : total;
         ViewBag.Total = totalParaVista;
         ViewBag.Page = page;
@@ -129,7 +180,7 @@ public class PropiedadController : Controller
         return View(items);
     }
 
-    // GET: /Propiedad/Details/{id}
+    // GET: /Propiedad/Details/{id} (código existente)
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
