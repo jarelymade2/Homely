@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http; // Necesario para usar HttpContext.Session
+using Microsoft.AspNetCore.Http;
 using StayGo.Models;
 using StayGo.ViewModels;
+using System.Text.Json; 
 
 namespace StayGo.Controllers;
 
@@ -18,9 +19,19 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Index()
     {
-        // RECUPERAR DATOS DE SESIÓN para pre-llenar la búsqueda
-        // Si existe en la sesión, se pasa a la vista; si no, es null.
-        ViewBag.UltimaUbicacion = HttpContext.Session.GetString("UltimaBusquedaUbicacion");
+        // 1. RECUPERAR el historial completo de la sesión.
+        var historyJson = HttpContext.Session.GetString("BusquedaHistorial");
+        
+        // Deserializa el JSON a una lista de strings. Si es nulo/vacío, crea una lista nueva.
+        var historial = string.IsNullOrEmpty(historyJson) 
+                        ? new List<string>() 
+                        : JsonSerializer.Deserialize<List<string>>(historyJson) ?? new List<string>();
+
+        // Pasa el historial (últimas 5 búsquedas) a la vista para el datalist.
+        ViewBag.HistorialUbicacion = historial;
+        
+        // Pasa la última búsqueda (el primer elemento) para pre-llenar el campo.
+        ViewBag.UltimaUbicacion = historial.FirstOrDefault(); 
         
         return View();
     }
@@ -36,23 +47,38 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    // Método para manejar la búsqueda de resultados (solía dar 405)
-    [HttpGet] // CORRECCIÓN CLAVE: Permite que el formulario de búsqueda use el método GET por defecto.
+    // Método que procesa la búsqueda y GESTIONA EL HISTORIAL
+    [HttpGet] 
     public IActionResult SearchResults(string location, DateTime checkin, DateTime checkout, int children, int adults)
     {
-        // 1. GUARDAR la Ubicación en la Sesión (usando HttpContext.Session)
         if (!string.IsNullOrEmpty(location))
         {
-            HttpContext.Session.SetString("UltimaBusquedaUbicacion", location);
+            // A. Recuperar la lista existente
+            var historyJson = HttpContext.Session.GetString("BusquedaHistorial");
+            var historial = string.IsNullOrEmpty(historyJson) 
+                            ? new List<string>() 
+                            : JsonSerializer.Deserialize<List<string>>(historyJson) ?? new List<string>();
+
+            // B. Asegurar que la ubicación no esté ya en la lista (evitar duplicados)
+            historial.Remove(location);
+
+            // C. Añadir la nueva ubicación al inicio (hace que sea la más reciente)
+            historial.Insert(0, location); 
+
+            // D. Limitar la lista a un máximo de 5 elementos
+            if (historial.Count > 5)
+            {
+                historial.RemoveRange(5, historial.Count - 5);
+            }
+
+            // E. Serializar y guardar la lista actualizada de vuelta en la sesión
+            var updatedJson = JsonSerializer.Serialize(historial);
+            HttpContext.Session.SetString("BusquedaHistorial", updatedJson);
         }
         
-        // Aquí debes incluir la lógica real de búsqueda a tu base de datos
-        // ... 
-        
-        return View(); // Retorna la vista de resultados (SearchResults.cshtml)
+        return View(); 
     }
 
-    // Redireccionan al área Identity (ya que están fuera de Identity)
     public IActionResult Login()
     {
         return RedirectToPage("/Account/Login", new { area = "Identity" });
