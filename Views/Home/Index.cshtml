@@ -1,5 +1,9 @@
 ﻿@{
     ViewData["Title"] = "Encuentra tu próxima estadía";
+    
+    // 1. Recuperar los datos del controlador
+    string ultimaUbicacion = ViewBag.UltimaUbicacion;
+    List<string> historialBusqueda = ViewBag.HistorialUbicacion ?? new List<string>();
 }
 
 @section Hero{
@@ -16,7 +20,23 @@
                             <div class="search-grid">
                                 <div>
                                     <label class="form-label">Ubicación</label>
-                                    <input name="location" class="form-control" placeholder="¿A dónde vas?" />
+                                    
+                                    @* 2. CAMPO DE UBICACIÓN CON ENLACE AL DATALIST *@
+                                    <input 
+                                        name="location" 
+                                        class="form-control" 
+                                        placeholder="@(string.IsNullOrEmpty(ultimaUbicacion) ? "¿A dónde vas?" : ultimaUbicacion)" 
+                                        value="@ultimaUbicacion" 
+                                        list="search-history-list" @* <-- Enlaza al datalist *@
+                                    />
+                                    
+                                    @* 3. DATALIST: Desplegable con el historial de búsquedas (max 5) *@
+                                    <datalist id="search-history-list">
+                                        @foreach (var item in historialBusqueda)
+                                        {
+                                            <option value="@item"></option>
+                                        }
+                                    </datalist>
                                 </div>
                                 <div>
                                     <label class="form-label">Llegada</label>
@@ -43,7 +63,6 @@
                     </div>
                 </div>
 
-                <!-- Sugerencias (opcionales) -->
                 <div class="mt-4 d-flex flex-wrap gap-2">
                     <span class="badge-soft">Cerca de mí</span>
                     <span class="badge-soft">Playas</span>
@@ -62,7 +81,7 @@
     </div>
 
     <div class="row g-4">
-        @* Ejemplo de card (reemplaza por tu foreach de propiedades) *@
+        @*  *@
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card card-stay">
                 <img src="~/img/demo1.jpg" class="card-img-top" alt="Alojamiento" />
@@ -82,6 +101,6 @@
 
 @section Scripts{
     <script>
-        // Aquí puedes agregar cualquier JS específico de Home si lo necesitas
+       
     </script>
 }
