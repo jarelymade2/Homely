@@ -12,14 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Configuración de Sesiones
-builder.Services.AddDistributedMemoryCache(); // 1. Servicio de almacenamiento en caché para la sesión (en memoria, ideal para desarrollo)
+// Configuración de Sesiones (YA ESTÁ CORRECTA)
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    // 2. Configuración del tiempo de expiración de la sesión
     options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true; // Hace que la cookie de sesión no sea accesible por JavaScript
-    options.Cookie.IsEssential = true; // La sesión es necesaria para que la aplicación funcione
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 // 1.1. Contexto de la Base de Datos
@@ -42,29 +41,27 @@ builder.Services
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
     })
-    .AddRoles<IdentityRole>() // Habilita el soporte para roles (necesario para tu Seed y Autorización)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización (incluye tu política 'AdminOnly')
+// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
 // =========================================================
-// 3. CONSTRUCCIÓN DE LA APLICACIÓN
+// 2. CONSTRUCCIÓN DE LA APLICACIÓN
 // =========================================================
 
 var app = builder.Build();
 
-// 3.1. Ejecución de la Siembra de Datos (Seed)
-// Esto crea los roles y al usuario "admin@staygo.com" si no existen
+// 2.1. Ejecución de la Siembra de Datos (Seed)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Llama al método SeedAsync para inicializar datos
         await StayGo.Data.Seed.SeedAsync(services);
     }
     catch (Exception ex)
@@ -75,7 +72,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // =========================================================
-// 4. PIPELINE DE SOLICITUDES HTTP
+// 3. PIPELINE DE SOLICITUDES HTTP
 // =========================================================
 
 if (app.Environment.IsDevelopment())
@@ -92,11 +89,14 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+// 💡 CORRECCIÓN CLAVE: AÑADIR app.UseSession()
+app.UseSession(); // <-- AÑADIDO: Debe ir después de UseRouting()
+
 // Middleware de Autenticación y Autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 4.1. Rutas (Routing)
+// 3.1. Rutas (Routing)
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
@@ -110,6 +110,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages(); // Necesario para las páginas de Identity (Login, Register, etc.)
+app.MapRazorPages();
 
 app.Run();
