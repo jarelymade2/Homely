@@ -4,18 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
-using Microsoft.AspNetCore.Identity; // NECESARIO
-using System.Text.Json; // NECESARIO
-using System.Threading.Tasks; // NECESARIO
+using Microsoft.AspNetCore.Identity; 
+using System.Text.Json; 
+using System.Threading.Tasks; 
 
 namespace StayGo.Controllers;
 
 public class PropiedadController : Controller
 {
     private readonly StayGoContext _db;
-    private readonly UserManager<ApplicationUser> _userManager; // Campo para Identity
+    private readonly UserManager<ApplicationUser> _userManager;
+    
+    // Define el límite de elementos en el historial
+    private const int HISTORIAL_MAX_SIZE = 5; 
 
-    // Constructor CORREGIDO para inyectar ambos servicios
+    // Constructor que inyecta el contexto de la base de datos y el UserManager
     public PropiedadController(StayGoContext db, UserManager<ApplicationUser> userManager)
     {
         _db = db;
@@ -37,7 +40,7 @@ public class PropiedadController : Controller
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 60) pageSize = 9;
 
-        // --- LÓGICA DE HISTORIAL DE BÚSQUEDA PERSISTENTE ---
+        // --- LÓGICA DE HISTORIAL DE BÚSQUEDA PERSISTENTE (SOLO PROPIEDADES) ---
         List<string> historial = new List<string>();
 
         if (User.Identity!.IsAuthenticated)
@@ -46,33 +49,38 @@ public class PropiedadController : Controller
 
             if (user != null)
             {
-                // 1. Cargar historial
-                // Nota: user.SearchHistoryJson debe existir en tu modelo ApplicationUser
-                historial = JsonSerializer.Deserialize<List<string>>(user.SearchHistoryJson) ?? new List<string>();
+                // 💡 CORRECCIÓN CRÍTICA (Anti-JsonReaderException):
+                // Asegura que el valor a deserializar sea "[]" si está vacío o nulo en la BD.
+                string jsonToDeserialize = string.IsNullOrEmpty(user.PropiedadSearchHistoryJson)
+                    ? "[]"
+                    : user.PropiedadSearchHistoryJson;
+                    
+                // 1. Cargar historial desde el campo ESPECÍFICO de Propiedades
+                historial = JsonSerializer.Deserialize<List<string>>(jsonToDeserialize) ?? new List<string>(); 
 
                 // 2. Si hay una búsqueda 'q', actualizar el historial y guardar
                 if (!string.IsNullOrWhiteSpace(q))
                 {
                     var currentQuery = q.Trim();
 
-                    // Limpiar y añadir al inicio (la búsqueda más reciente)
+                    // Limpiar duplicados y añadir al inicio (la búsqueda más reciente)
                     historial.Remove(currentQuery);
                     historial.Insert(0, currentQuery);
 
-                    // Limitar a 5 elementos
-                    if (historial.Count > 5)
+                    // Limitar el historial
+                    if (historial.Count > HISTORIAL_MAX_SIZE)
                     {
-                        historial.RemoveRange(5, historial.Count - 5);
+                        historial.RemoveRange(HISTORIAL_MAX_SIZE, historial.Count - HISTORIAL_MAX_SIZE);
                     }
 
-                    // Guardar en la DB
-                    user.SearchHistoryJson = JsonSerializer.Serialize(historial);
+                    // Guardar en el campo ESPECÍFICO de la DB
+                    user.PropiedadSearchHistoryJson = JsonSerializer.Serialize(historial);
                     await _userManager.UpdateAsync(user); 
                 }
             }
         }
         
-        // Pasa el historial a la vista
+        // Pasa el historial a la vista (Views/Propiedad/Index.cshtml)
         ViewBag.HistorialBusqueda = historial;
         // --- FIN LÓGICA DE HISTORIAL ---
 
@@ -134,28 +142,28 @@ public class PropiedadController : Controller
             .Take(pageSize)
             .ToListAsync();
 
-        // Demo en memoria si la BD está vacía (solo para visualizar)
+        // Demo en memoria si la BD está vacía (código existente)
         if (total == 0 && items.Count == 0)
         {
-             // Demo items
+             // ... [Tus datos de demostración si la base de datos está vacía] ...
              items = new List<Propiedad>
             {
                 new Propiedad {
-                    Titulo = "Casa de Playa",
+                    Titulo = "Casa de Playa (Demo)",
                     Direccion = new Models.ValueObjects.Direccion {
                         Ciudad = "Lima", Pais = "Perú", Linea1 = "Costa Verde"
                     },
                     PrecioPorNoche = 200m
                 },
                 new Propiedad {
-                    Titulo = "Departamento céntrico",
+                    Titulo = "Departamento céntrico (Demo)",
                     Direccion = new Models.ValueObjects.Direccion {
                         Ciudad = "Cusco", Pais = "Perú", Linea1 = "Av. El Sol 123"
                     },
                     PrecioPorNoche = 150m
                 },
                 new Propiedad {
-                    Titulo = "Cabaña en la montaña",
+                    Titulo = "Cabaña en la montaña (Demo)",
                     Direccion = new Models.ValueObjects.Direccion {
                         Ciudad = "Arequipa", Pais = "Perú", Linea1 = "Valle de Chilina"
                     },
@@ -179,7 +187,7 @@ public class PropiedadController : Controller
         return View(items);
     }
 
-    // GET: /Propiedad/Details/{id}
+    // GET: /Propiedad/Details/{id} (código existente)
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
