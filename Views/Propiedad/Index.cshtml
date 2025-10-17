@@ -6,15 +6,15 @@
     ViewData["Title"] = "Propiedades";
     var pe = new CultureInfo("es-PE");
 
-    var total    = (int)(ViewBag.Total ?? 0);
-    var page     = (int)(ViewBag.Page ?? 1);
+    var total      = (int)(ViewBag.Total ?? 0);
+    var page        = (int)(ViewBag.Page ?? 1);
     var pageSize = (int)(ViewBag.PageSize ?? 9);
-    var q        = (string?)ViewBag.Query;
-    var tipo     = (TipoPropiedad?)ViewBag.Tipo;
-    var ciudad   = (string?)ViewBag.Ciudad;
-    var min      = (decimal?)ViewBag.Min;
-    var max      = (decimal?)ViewBag.Max;
-    var orden    = (string?)ViewBag.Orden ?? "recientes";
+    var q       = (string?)ViewBag.Query;
+    var tipo    = (TipoPropiedad?)ViewBag.Tipo;
+    var ciudad   = (string?)ViewBag.Ciudad;
+    var min    = (decimal?)ViewBag.Min;
+    var max      = (decimal?)ViewBag.Max;
+    var orden    = (string?)ViewBag.Orden ?? "recientes";
 
     var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
     
@@ -105,9 +105,9 @@
                     <div class="card h-100 shadow-sm border-0">
                         <div class="position-relative">
                             <img class="card-img-top propiedad-img"
-                                 src="@(p.Imagenes?.FirstOrDefault(i=>i.EsPrincipal)?.Url 
-                                          ?? $"https://picsum.photos/seed/{(p.Titulo??"prop").Replace(" ","_")}/600/400")"
-                                 alt="@p.Titulo" />
+                                 src="@(p.Imagenes?.FirstOrDefault(i=>i.EsPrincipal)?.Url 
+                                         ?? $"https://picsum.photos/seed/{(p.Titulo??"prop").Replace(" ","_")}/600/400")"
+                                 alt="@p.Titulo" />
                             <span class="badge bg-primary position-absolute top-0 start-0 m-2">
                                 @p.Tipo
                             </span>
@@ -118,8 +118,8 @@
                             <p class="card-text text-muted mb-2">
                                 <i class="bi bi-geo-alt"></i>
                                 @(string.Join(", ",
-                                    new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }
-                                    .Where(s => !string.IsNullOrWhiteSpace(s)) ))
+                                     new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }
+                                     .Where(s => !string.IsNullOrWhiteSpace(s)) ))
                             </p>
 
                             <p class="mb-3 fs-5 text-success">
@@ -135,9 +135,9 @@
 
                             <div class="mt-auto d-flex gap-2">
                                 <a asp-controller="Propiedad"
-                                   asp-action="Details"
-                                   asp-route-id="@p.Id"
-                                   class="btn btn-outline-primary btn-sm">
+                                   asp-action="Details"
+                                   asp-route-id="@p.Id"
+                                   class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-eye"></i> Ver
                                 </a>
                             </div>
