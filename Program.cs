@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
+using StayGo.Services; // 🛑 Importar el namespace del servicio
+using Microsoft.AspNetCore.Identity.UI.Services; // 🛑 Importar IEmailSender
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +46,18 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización
+// 🛑 1.3. SERVICIO DE ENVÍO DE CORREO REAL (SendGrid)
+// Esta sección inyecta tu lógica de correo para que Identity la use
+// para el restablecimiento de contraseñas.
+
+// A. Configura las opciones de SendGrid leyendo appsettings.json
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("SendGridOptions"));
+
+// B. Reemplaza el servicio de correo por defecto (ficticio) con tu implementación real
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+
+// 1.4. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
