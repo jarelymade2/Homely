@@ -10,6 +10,7 @@
         new[] { Model?.Direccion?.Ciudad, Model?.Direccion?.Pais }
         .Where(s => !string.IsNullOrWhiteSpace(s)));
 }
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
 <div class="container py-4">
@@ -36,15 +37,14 @@
   <p>@Model?.Descripcion</p>
 
   <div class="border rounded p-3 bg-light my-3">
-    <strong>Mapa (placeholder)</strong>
+    <strong>Ubicación</strong>
     <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
-    <div style="height:180px;background:#e9ecef;border-radius:.5rem;"
-         class="d-flex align-items-center justify-content-center">
-      <span class="text-secondary">[Aquí iría el mapa]</span>
-    </div>
+
+    <!-- Mapa -->
+    <div id="map" style="height:300px;border-radius:.5rem;margin-top:10px;"></div>
   </div>
 
-  <!-- Solo lectura en feat/public -->
+  <!-- Botón volver -->
   <div class="mb-4">
     <a asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-secondary">
       ← Volver a propiedades
@@ -67,3 +67,38 @@
     }
   }
 </div>
+@section Styles {
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+}
+
+@section Scripts {
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Coordenadas desde el modelo o por defecto (Lima)
+            var lat = @((Model?.Lat ?? -12.0464).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var lng = @((Model?.Lng ?? -77.0428).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            // Inicializar mapa
+            var map = L.map('map').setView([lat, lng], 14);
+
+            // Capa base (OpenStreetMap gratuito)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> colaboradores'
+            }).addTo(map);
+
+            // Marcador
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("<b>@Model?.Titulo</b><br>@ubic")
+                .openPopup();
+        });
+    </script>
+}
+
