@@ -4,6 +4,7 @@ using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Models.ValueObjects;
+using StayGo.Integration; // 👈 Agrega este using para reconocer OpenWeatherIntegration
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +38,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
+// 🌤️ Registro de la integración con OpenWeather
+builder.Services.AddScoped<OpenWeatherIntegration>();
+
 var app = builder.Build();
-
-
 
 if (app.Environment.IsDevelopment())
 {

@@ -40,6 +40,15 @@
     <strong>Ubicación</strong>
     <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
 
+    <!-- 🌤️ Clima actual -->
+    @if (ViewBag.Temp != null && ViewBag.Clima != null)
+    {
+        <div class="mt-2">
+            <i class="bi bi-cloud-sun"></i>
+            <span><strong>Clima:</strong> @ViewBag.Clima, @ViewBag.Temp&nbsp;°C</span>
+        </div>
+    }
+
     <!-- Mapa -->
     <div id="map" style="height:300px;border-radius:.5rem;margin-top:10px;"></div>
   </div>
@@ -67,6 +76,7 @@
     }
   }
 </div>
+
 @section Styles {
     <link
         rel="stylesheet"
@@ -101,4 +111,3 @@
         });
     </script>
 }
-
