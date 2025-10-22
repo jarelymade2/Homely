@@ -11,8 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    [Migration("20251014192036_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20250930232428_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -310,9 +310,6 @@ namespace StayGo.Migrations
 
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("UsuarioId1")
                         .HasColumnType("TEXT");
