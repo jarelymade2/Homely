@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using StayGo.Models;
+using StayGo.Data;
 using Microsoft.EntityFrameworkCore.Metadata.Internal; // Asegúrate de que este using esté allí
 
 namespace StayGo.Areas.Identity.Pages.Account
@@ -11,11 +12,13 @@ namespace StayGo.Areas.Identity.Pages.Account
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly StayGoContext _context;
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, StayGoContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         [BindProperty]
@@ -57,7 +60,17 @@ namespace StayGo.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    // Redirección corregida para Identity
+                    var nuevoUsuario = new Usuario
+                    {
+                        Id = Guid.NewGuid(), // PK de tu tabla Usuario
+                        IdentityUserId = user.Id,    // <-- El VÍNCULO CLAVE
+                        Email = user.Email,
+                        EsAdmin = false            // Por defecto, no es admin
+                    };
+                    _context.Usuarios.Add(nuevoUsuario);
+                    await _context.SaveChangesAsync();
+
+
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return LocalRedirect(returnUrl);
                 }
