@@ -40,6 +40,26 @@
     <strong>Ubicación</strong>
     <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
 
+    <!--RESERVA-->
+    <form asp-controller="Reserva" asp-action="Create" method="get" class="row g-2 align-items-end mb-3">
+      <input type="hidden" name="propiedadId" value="@Model.Id" />
+      <div class="col-auto">
+          <label class="form-label small">Check-in</label>
+          <input type="date" name="checkin" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+      </div>
+      <div class="col-auto">
+          <label class="form-label small">Check-out</label>
+          <input type="date" name="checkout" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+      </div>
+      <div class="col-auto">
+          <label class="form-label small">Huéspedes</label>
+          <input type="number" name="huespedes" class="form-control" value="1" min="1" />
+      </div>
+      <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Reservar</button>
+      </div>
+    </form>
+
     <!-- 🌤️ Clima actual -->
     @if (ViewBag.Temp != null && ViewBag.Clima != null)
     {
@@ -48,6 +68,7 @@
             <span><strong>Clima:</strong> @ViewBag.Clima, @ViewBag.Temp&nbsp;°C</span>
         </div>
     }
+
 
     <!-- Mapa -->
     <div id="map" style="height:300px;border-radius:.5rem;margin-top:10px;"></div>

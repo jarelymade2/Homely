@@ -1,0 +1,46 @@
+@model IEnumerable<StayGo.Models.Reserva>
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Mis reservas";
+    var pe = new CultureInfo("es-PE");
+}
+
+<div class="container py-4">
+    <h3>Mis reservas</h3>
+
+    @if (!Model.Any())
+    {
+        <div class="text-muted">No tienes reservas aún.</div>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Propiedad</th>
+                    <th>Fechas</th>
+                    <th>Huéspedes</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@r.PropiedadId">
+                                @r.Propiedad?.Titulo
+                            </a>
+                        </td>
+                        <td>@r.CheckIn.ToString("yyyy-MM-dd") — @r.CheckOut.ToString("yyyy-MM-dd")</td>
+                        <td>@r.Huespedes</td>
+                        <td>@r.PrecioTotal.ToString("C", pe)</td>
+                        <td>@r.Estado</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
