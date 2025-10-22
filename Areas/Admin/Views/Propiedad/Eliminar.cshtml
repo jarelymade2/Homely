@@ -1,0 +1,22 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model StayGo.Models.Propiedad
+@{
+    ViewData["Title"] = "Eliminar Propiedad";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h3>¿Eliminar esta propiedad?</h3>
+<p class="text-muted">Esta acción eliminará también habitaciones e imágenes asociadas.</p>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <strong>@Model.Titulo</strong><br/>
+    @Model.Direccion?.Ciudad, @Model.Direccion?.Pais
+  </div>
+</div>
+
+<form asp-area="Admin" asp-controller="Propiedad" asp-action="Eliminar" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a asp-area="Admin" asp-controller="Propiedad" asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
+</form>

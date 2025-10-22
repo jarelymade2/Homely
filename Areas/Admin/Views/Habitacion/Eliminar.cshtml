@@ -1,0 +1,37 @@
+@model StayGo.Models.Habitacion
+@{
+    ViewData["Title"] = "Eliminar habitación";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+@section Styles{
+<style>
+  .card-soft{ border-radius:16px; border:1px solid #f1dcdc; background:#fff; box-shadow:0 8px 20px rgba(36,48,54,.05); }
+</style>
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h5 m-0 text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Eliminar habitación</h2>
+  <a asp-area="Admin" asp-controller="Propiedad" asp-action="Detalles" asp-route-id="@Model.PropiedadId" class="btn btn-outline-secondary">
+    Cancelar
+  </a>
+</div>
+
+<div class="card-soft p-3">
+  <p class="mb-2">¿Estás seguro de eliminar la habitación <strong>@Model.Nombre</strong>?</p>
+  <ul class="text-muted small mb-3">
+    <li>ID: @Model.Id</li>
+    <li>Capacidad: @Model.Capacidad</li>
+    <li>Precio por noche: S/ @Model.PrecioPorNoche</li>
+    @if (!string.IsNullOrWhiteSpace(Model.Numero)) { <li>Número: @Model.Numero</li> }
+    @if (Model.Piso.HasValue) { <li>Piso: @Model.Piso</li> }
+  </ul>
+
+  <div class="alert alert-warning">
+    Esta acción es permanente. Si la habitación tiene <strong>reservas o disponibilidades</strong>, no se podrá eliminar.
+  </div>
+
+  <form asp-area="Admin" asp-controller="Habitacion" asp-action="Eliminar" asp-route-propiedadId="@Model.PropiedadId" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+    @Html.AntiForgeryToken()
+    <button class="btn btn-danger" type="submit"><i class="bi bi-trash me-1"></i> Eliminar definitivamente</button>
+    <a asp-area="Admin" asp-controller="Propiedad" asp-action="Detalles" asp-route-id="@Model.PropiedadId" class="btn btn-outline-secondary">Cancelar</a>
+  </form>
+</div>

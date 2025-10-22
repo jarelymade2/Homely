@@ -6,23 +6,35 @@ using StayGo.Models.Enums;
 using StayGo.Models.ValueObjects;
 using StayGo.Integration; // 👈 Agrega este using para reconocer OpenWeatherIntegration
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+// =========================================================
+// 1. CONFIGURACIÓN DE SERVICIOS
+// =========================================================
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+
 // Connection string
+// 1.1. Contexto de la Base de Datos
+
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
+
 // Identity con ROLES y ApplicationUser
+// 1.2. Configuración de Identity (con ApplicationUser y Roles)
+
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
+        // Reglas de Contraseña (coincide con tu configuración)
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -30,18 +42,48 @@ builder.Services
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
     })
-    .AddRoles<IdentityRole>()
+
+    .AddRoles<IdentityRole>() // Habilita el soporte para roles (necesario para tu Seed y Autorización)
     .AddEntityFrameworkStores<StayGoContext>();
+
+// 1.3. Autorización (incluye tu política 'AdminOnly')
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
+
 // 🌤️ Registro de la integración con OpenWeather
 builder.Services.AddScoped<OpenWeatherIntegration>();
 
+// =========================================================
+// 2. CONSTRUCCIÓN DE LA APLICACIÓN
+// =========================================================
+
+
 var app = builder.Build();
+
+// 2.1. Ejecución de la Siembra de Datos (Seed)
+// Esto crea los roles y al usuario "admin@staygo.com" si no existen
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Llama al método SeedAsync para inicializar datos
+        await StayGo.Data.Seed.SeedAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
+// =========================================================
+// 3. PIPELINE DE SOLICITUDES HTTP
+// =========================================================
 
 if (app.Environment.IsDevelopment())
 {
@@ -57,10 +99,14 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+// Middleware de Autenticación y Autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
+
 // RUTA PARA ÁREAS (Admin)
+// 3.1. Rutas (Routing)
+
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
@@ -70,11 +116,12 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Ruta MVC por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages();
+
+app.MapRazorPages(); // Necesario para las páginas de Identity (Login, Register, etc.)
+
 
 app.Run();

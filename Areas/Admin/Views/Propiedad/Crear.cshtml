@@ -1,115 +1,183 @@
 @model StayGo.Models.Propiedad
+@using StayGo.Models.Enums
+
 @{
     ViewData["Title"] = "Crear Propiedad";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2 class="mb-3">Crear nueva propiedad</h2>
+@section Styles{
+    <style>
+        .card-soft{ border-radius:16px; border:1px solid #edf1ee; background:#fff; box-shadow:0 8px 20px rgba(36,48,54,.05); }
+        .subtle{ color:#6c757d; }
+        .form-hint{ font-size:.9rem; color:#6c757d; }
+        .thumb-sm{ width:140px; height:92px; object-fit:cover; border-radius:10px; border:1px solid #edf1ee; }
+        .section-title{ font-weight:700; color:#2f5b45; }
+    </style>
+}
 
-<form asp-area="Admin" asp-controller="Propiedad" asp-action="Crear" method="post">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 m-0">Nueva propiedad</h2>
+    <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-sage">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+    </a>
+</div>
+
+<form asp-area="Admin" asp-controller="Propiedad" asp-action="Crear" method="post" class="card-soft p-3">
     @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger mb-2"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
 
+    <!-- Básicos -->
     <div class="row g-3">
-        <div class="col-md-6">
-            <label class="form-label">Título</label>
-            <input asp-for="Titulo" class="form-control" />
-            <span asp-validation-for="Titulo" class="text-danger"></span>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Tipo</label>
-            <select asp-for="Tipo" class="form-select"
-                    asp-items="Html.GetEnumSelectList<TipoPropiedad>()"></select>
-            <span asp-validation-for="Tipo" class="text-danger"></span>
-        </div>
-        <div class="col-12">
-            <label class="form-label">Descripción</label>
-            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        <div class="col-lg-8">
+            <div class="mb-3">
+                <label class="form-label">Título</label>
+                <input asp-for="Titulo" class="form-control" placeholder="Ej: Loft moderno en Miraflores" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tipo</label>
+                    <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoPropiedad>()" id="tipoSelect"></select>
+                    <span class="form-hint">Si eliges “Hotel”, el precio por noche se gestiona por habitación.</span>
+                    <span asp-validation-for="Tipo" class="text-danger"></span>
+                </div>
+                <div class="col-md-6" id="precioGroup">
+                    <label class="form-label">Precio por noche (S/)</label>
+                    <input asp-for="PrecioPorNoche" class="form-control" type="number" step="0.01" min="0" placeholder="Ej: 220.00" />
+                    <span asp-validation-for="PrecioPorNoche" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label class="form-label">Capacidad</label>
+                    <input asp-for="Capacidad" type="number" min="1" class="form-control" placeholder="Ej: 2" />
+                    <span asp-validation-for="Capacidad" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Latitud</label>
+                    <input asp-for="Lat" type="number" step="0.000001" min="-90" max="90" class="form-control" placeholder="-12.123456" />
+                    <span asp-validation-for="Lat" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Longitud</label>
+                    <input asp-for="Lng" type="number" step="0.000001" min="-180" max="180" class="form-control" placeholder="-77.012345" />
+                    <span asp-validation-for="Lng" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Cuenta los detalles más atractivos del alojamiento..."></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
         </div>
 
-        <div class="col-md-4">
-            <label class="form-label">Precio por noche (S/)</label>
-            <input asp-for="PrecioPorNoche" class="form-control" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Capacidad</label>
-            <input asp-for="Capacidad" type="number" class="form-control" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Latitud</label>
-            <input asp-for="Lat" class="form-control" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Longitud</label>
-            <input asp-for="Lng" class="form-control" />
-        </div>
-
-        <div class="col-12"><h5 class="mt-3">Dirección</h5></div>
-        <div class="col-md-4">
-            <label class="form-label">Ciudad</label>
-            <input asp-for="Direccion.Ciudad" class="form-control" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">País</label>
-            <input asp-for="Direccion.Pais" class="form-control" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Código Postal</label>
-            <input asp-for="Direccion.CodigoPostal" class="form-control" />
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Línea 1</label>
-            <input asp-for="Direccion.Linea1" class="form-control" />
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Línea 2</label>
-            <input asp-for="Direccion.Linea2" class="form-control" />
+        <!-- Dirección -->
+        <div class="col-lg-4">
+            <div class="card-soft p-3 h-100">
+                <div class="section-title mb-2">Dirección</div>
+                <div class="mb-2">
+                    <label class="form-label">Ciudad</label>
+                    <input asp-for="Direccion.Ciudad" class="form-control" placeholder="Ej: Lima" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">País</label>
+                    <input asp-for="Direccion.Pais" class="form-control" placeholder="Ej: Perú" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Código Postal</label>
+                    <input asp-for="Direccion.CodigoPostal" class="form-control" placeholder="Ej: 15074" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Línea 1</label>
+                    <input asp-for="Direccion.Linea1" class="form-control" placeholder="Ej: Av. El Sol 123" />
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">Línea 2</label>
+                    <input asp-for="Direccion.Linea2" class="form-control" placeholder="Depto / referencia" />
+                </div>
+            </div>
         </div>
     </div>
 
     <hr class="my-4" />
-    <h5>Imágenes</h5>
-    <p class="text-muted">Agrega una o más URLs. Marca una como principal.</p>
+
+    <!-- Imágenes -->
+    <div class="section-title mb-1">Imágenes</div>
+    <p class="subtle mb-2">Agrega una o más URLs. Marca una como principal.</p>
 
     <div id="imagenes-list" class="vstack gap-2">
         <!-- item inicial (index 0) -->
-        <div class="row g-2 imagen-item" data-index="0">
+        <div class="row g-2 imagen-item align-items-center" data-index="0">
             <div class="col-md-8">
-                <input name="Imagenes[0].Url" class="form-control" placeholder="https://..." />
+                <input name="Imagenes[0].Url" class="form-control url-input" placeholder="https://..." />
             </div>
             <div class="col-md-3 d-flex align-items-center">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="principal" value="0" checked />
+                    <input class="form-check-input principal-radio" type="radio" name="principal" value="0" checked />
                     <label class="form-check-label">Principal</label>
                 </div>
             </div>
             <div class="col-md-1 d-flex align-items-center">
-                <button type="button" class="btn btn-outline-danger w-100 btn-remove">X</button>
+                <button type="button" class="btn btn-outline-danger w-100 btn-remove" title="Quitar">X</button>
             </div>
             <!-- Campo EsPrincipal real (se sincroniza por JS) -->
             <input type="hidden" name="Imagenes[0].EsPrincipal" value="true" />
+            <!-- Preview -->
+            <div class="col-12">
+                <img class="thumb-sm d-none" alt="preview" />
+            </div>
         </div>
     </div>
 
     <div class="mt-2">
-        <button type="button" id="btnAddImg" class="btn btn-outline-primary">+ Agregar imagen</button>
+        <button type="button" id="btnAddImg" class="btn btn-outline-sage">
+            <i class="bi bi-plus-lg me-1"></i> Agregar imagen
+        </button>
     </div>
 
     <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-success">Guardar</button>
-        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-sage text-white">
+            <i class="bi bi-check2 me-1"></i> Guardar
+        </button>
+        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
     </div>
 </form>
 
 @section Scripts{
 <script>
 (function(){
+  // ==== Toggle precio según Tipo ====
+  const tipo = document.getElementById('tipoSelect');
+  const precioGroup = document.getElementById('precioGroup');
+  const precioInput = precioGroup?.querySelector('input');
+
+  function togglePrecio(){
+    if (!tipo || !precioGroup) return;
+    const isHotel = (tipo.value || '').toLowerCase() === 'hotel';
+    if (isHotel){
+      // Hotel: precio por noche se define por habitación → oculta/deshabilita
+      precioGroup.style.opacity = .6;
+      precioInput.value = '';
+      precioInput.setAttribute('disabled','disabled');
+      precioInput.setAttribute('placeholder','(Se define por habitación)');
+    } else {
+      precioGroup.style.opacity = 1;
+      precioInput.removeAttribute('disabled');
+      if (!precioInput.value) precioInput.setAttribute('placeholder','Ej: 220.00');
+    }
+  }
+  tipo?.addEventListener('change', togglePrecio);
+  togglePrecio();
+
+  // ==== Imágenes (radios y preview) ====
   const list = document.getElementById('imagenes-list');
   const btnAdd = document.getElementById('btnAddImg');
 
   function syncPrincipals() {
-    // setea EsPrincipal según radio "principal"
     const radios = document.querySelectorAll('input[type=radio][name=principal]');
     const checkedVal = Array.from(radios).find(r => r.checked)?.value;
     document.querySelectorAll('.imagen-item').forEach(item => {
@@ -118,6 +186,26 @@
       if (hidden) hidden.value = (idx === checkedVal) ? 'true' : 'false';
     });
   }
+
+  function updatePreview(item) {
+    const input = item.querySelector('.url-input');
+    const preview = item.querySelector('img.thumb-sm');
+    if (!input || !preview) return;
+    const url = (input.value || '').trim();
+    if (url && /^https?:\/\//i.test(url)) {
+      preview.src = url;
+      preview.classList.remove('d-none');
+    } else {
+      preview.src = '';
+      preview.classList.add('d-none');
+    }
+  }
+
+  list.addEventListener('input', e => {
+    if (e.target.classList.contains('url-input')) {
+      updatePreview(e.target.closest('.imagen-item'));
+    }
+  });
 
   list.addEventListener('change', e => {
     if (e.target.matches('input[type=radio][name=principal]')) syncPrincipals();
@@ -139,6 +227,7 @@
             inp.value = String(i);
           }
         });
+        updatePreview(it);
       });
       // asegurar que uno quede como principal
       const radios = list.querySelectorAll('input[type=radio][name=principal]');
@@ -150,26 +239,30 @@
   btnAdd.addEventListener('click', () => {
     const idx = list.querySelectorAll('.imagen-item').length;
     const row = document.createElement('div');
-    row.className = 'row g-2 imagen-item';
+    row.className = 'row g-2 imagen-item align-items-center';
     row.setAttribute('data-index', idx);
     row.innerHTML = `
       <div class="col-md-8">
-        <input name="Imagenes[${idx}].Url" class="form-control" placeholder="https://..." />
+        <input name="Imagenes[${idx}].Url" class="form-control url-input" placeholder="https://..." />
       </div>
       <div class="col-md-3 d-flex align-items-center">
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="principal" value="${idx}" />
+          <input class="form-check-input principal-radio" type="radio" name="principal" value="${idx}" />
           <label class="form-check-label">Principal</label>
         </div>
       </div>
       <div class="col-md-1 d-flex align-items-center">
-        <button type="button" class="btn btn-outline-danger w-100 btn-remove">X</button>
+        <button type="button" class="btn btn-outline-danger w-100 btn-remove" title="Quitar">X</button>
       </div>
       <input type="hidden" name="Imagenes[${idx}].EsPrincipal" value="false" />
+      <div class="col-12">
+        <img class="thumb-sm d-none" alt="preview" />
+      </div>
     `;
     list.appendChild(row);
   });
 
+  // inicial
   syncPrincipals();
 })();
 </script>

@@ -1,47 +1,63 @@
 using Microsoft.AspNetCore.Identity;
-using StayGo.Models; // Asegúrate de que esta línea esté aquí
+using Microsoft.EntityFrameworkCore; // Necesario para EnsureCreated/Migrate
+using StayGo.Models; 
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
-
-namespace StayGo.Data;
-
-public class Seed
+namespace StayGo.Data
 {
-    public static async Task SeedAsync(IServiceProvider serviceProvider)
+    public class Seed
     {
-        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var context = serviceProvider.GetRequiredService<StayGoContext>();
-
-        // Crear roles si no existen
-        string[] roleNames = { "Admin", "User" };
-        IdentityResult roleResult;
-
-        foreach (var roleName in roleNames)
+        public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
-            var roleExist = await roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
+           
+            var context = serviceProvider.GetRequiredService<StayGoContext>();
+            
+
+            await context.Database.MigrateAsync();
+
+          
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // 3. Crear Roles
+            string[] roleNames = { "Admin", "User", "Guest" }; 
+            foreach (var roleName in roleNames)
             {
-                roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
             }
-        }
 
-        // Crear un usuario de prueba si no existe
-        if (userManager.FindByEmailAsync("admin@staygo.com").Result == null)
-        {
-            var user = new ApplicationUser
+           
+            const string adminEmail = "admin@staygo.com";
+            const string adminPassword = "password123!"; 
+
+            if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
-                UserName = "admin@staygo.com",
-                Email = "admin@staygo.com",
-                FirstName = "Admin",
-                LastName = "StayGo",
-                PhoneNumber = "123456789"
-            };
+                var adminUser = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    
+                    EmailConfirmed = true 
+                };
 
-            var result = await userManager.CreateAsync(user, "password123!");
+                // Crear el usuario y hashear la contraseña
+                var result = await userManager.CreateAsync(adminUser, adminPassword);
 
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(user, "Admin");
+                if (result.Succeeded)
+                {
+                    // Asignar el rol 'Admin'
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+                else
+                {
+                    // Opcional: Loggear si la creación del usuario falla por validación (ej. reglas de contraseña)
+                    throw new Exception($"Failed to create Admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
             }
         }
     }

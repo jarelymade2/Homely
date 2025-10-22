@@ -8,9 +8,10 @@ public class Usuario
     public Guid Id { get; set; }
     [EmailAddress]
     public string Email { get; set; } = "";
-    
+
     // Vinculación con ASP.NET Identity (tabla AspNetUsers)
     public string IdentityUserId { get; set; } = "";
+    public ApplicationUser IdentityUser { get; set; } = null!;
     public bool EsAdmin { get; set; }
 
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
