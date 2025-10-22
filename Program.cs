@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
+using StayGo.Models.Enums;
+using StayGo.Models.ValueObjects;
+using StayGo.Integration; // 👈 Agrega este using para reconocer OpenWeatherIntegration
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,14 +16,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+
+// Connection string
 // 1.1. Contexto de la Base de Datos
+
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
+
+// Identity con ROLES y ApplicationUser
 // 1.2. Configuración de Identity (con ApplicationUser y Roles)
+
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -32,18 +42,25 @@ builder.Services
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
     })
+
     .AddRoles<IdentityRole>() // Habilita el soporte para roles (necesario para tu Seed y Autorización)
     .AddEntityFrameworkStores<StayGoContext>();
 
 // 1.3. Autorización (incluye tu política 'AdminOnly')
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
+
+// 🌤️ Registro de la integración con OpenWeather
+builder.Services.AddScoped<OpenWeatherIntegration>();
+
 // =========================================================
 // 2. CONSTRUCCIÓN DE LA APLICACIÓN
 // =========================================================
+
 
 var app = builder.Build();
 
@@ -86,7 +103,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+// RUTA PARA ÁREAS (Admin)
 // 3.1. Rutas (Routing)
+
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
@@ -100,6 +120,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
 app.MapRazorPages(); // Necesario para las páginas de Identity (Login, Register, etc.)
+
 
 app.Run();
