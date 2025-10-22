@@ -11,13 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-<<<<<<<< HEAD:Migrations/20250930232428_Initial.Designer.cs
-    [Migration("20250930232428_Initial")]
-    partial class Initial
-========
     [Migration("20251014184446_InitialSchema")]
-    partial class InitialSchema
->>>>>>>> develop:Migrations/20251014184446_InitialSchema.Designer.cs
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

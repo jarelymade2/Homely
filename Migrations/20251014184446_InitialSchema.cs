@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StayGo.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Migrations/20250930232428_Initial.cs
-    public partial class Initial : Migration
-========
     public partial class InitialSchema : Migration
->>>>>>>> develop:Migrations/20251014184446_InitialSchema.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -326,10 +322,7 @@ namespace StayGo.Migrations
                 {
                     UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
                     PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
-<<<<<<<< HEAD:Migrations/20250930232428_Initial.cs
-========
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
->>>>>>>> develop:Migrations/20251014184446_InitialSchema.cs
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UsuarioId1 = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
