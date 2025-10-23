@@ -2,21 +2,40 @@
 
 <div class="row">
     <div class="col-md-8">
-        <form asp-action="@(ViewData["Title"]?.ToString() == "Crear Reserva" ? "Crear" : "Edit")" method="post">
+        <form asp-action="@(ViewData["Title"]?.ToString() == "Crear Reserva" ? "Crear" : "Edit")" method="post" id="reservaForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
             <div class="mb-3">
                 <label asp-for="PropiedadId" class="form-label"></label>
-                <select asp-for="PropiedadId" class="form-select" asp-items="@Model.Propiedades">
+                <select asp-for="PropiedadId" class="form-select" id="propiedadSelect" 
+                        asp-items="@Model.Propiedades" required>
                     <option value="">-- Seleccione una Propiedad --</option>
                 </select>
                 <span asp-validation-for="PropiedadId" class="text-danger"></span>
             </div>
             
+            <!-- 🔥 ESTA ES LA SECCIÓN QUE FALTA - AGREGALA -->
+            <div class="mb-3" id="habitacionSection" style="display: none;">
+                <label asp-for="HabitacionId" class="form-label">Habitación *</label>
+                <select asp-for="HabitacionId" class="form-select" id="habitacionSelect">
+                    <option value="">-- Seleccione una Habitación --</option>
+                    @if (Model.Habitaciones != null)
+                    {
+                        @foreach (var item in Model.Habitaciones)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="HabitacionId" class="text-danger"></span>
+                <div class="form-text">Solo necesario para propiedades tipo Hotel</div>
+            </div>
+            <!-- 🔥 FIN DE LA SECCIÓN QUE FALTA -->
+            
             <div class="mb-3">
                 <label asp-for="UsuarioId" class="form-label"></label>
-                <select asp-for="UsuarioId" class="form-select" asp-items="@Model.Usuarios">
+                <select asp-for="UsuarioId" class="form-select" asp-items="@Model.Usuarios" required>
                      <option value="">-- Seleccione un Cliente --</option>
                 </select>
                 <span asp-validation-for="UsuarioId" class="text-danger"></span>
@@ -38,12 +57,12 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Huespedes" class="form-label"></label>
-                    <input asp-for="Huespedes" class="form-control" />
+                    <input asp-for="Huespedes" class="form-control" min="1" />
                     <span asp-validation-for="Huespedes" class="text-danger"></span>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label asp-for="PrecioTotal" class="form-label"></label>
-                    <input asp-for="PrecioTotal" class="form-control" />
+                    <input asp-for="PrecioTotal" class="form-control" step="0.01" min="0.01" />
                     <span asp-validation-for="PrecioTotal" class="text-danger"></span>
                 </div>
             </div>
@@ -61,3 +80,83 @@
         </form>
     </div>
 </div>
+
+<!-- JAVASCRIPT DEFINITIVO - PEGA ESTO AL FINAL -->
+<script>
+    // Función global para cargar habitaciones
+    function cargarHabitaciones(propiedadId) {
+        console.log('🚀 Iniciando carga de habitaciones para:', propiedadId);
+        
+        const habitacionSection = document.getElementById('habitacionSection');
+        const habitacionSelect = document.getElementById('habitacionSelect');
+        
+        if (!propiedadId) {
+            habitacionSection.style.display = 'none';
+            return;
+        }
+        
+        // Mostrar loading
+        habitacionSelect.innerHTML = '<option value="">Cargando habitaciones...</option>';
+        habitacionSection.style.display = 'block';
+        
+        // Hacer petición AJAX
+        fetch(`/Admin/Reserva/GetHabitacionesByPropiedad?propiedadId=${propiedadId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Datos recibidos:', data);
+                
+                // Limpiar select
+                habitacionSelect.innerHTML = '';
+                
+                if (data.success && data.esHotel && data.habitaciones.length > 0) {
+                    // Agregar opción por defecto
+                    habitacionSelect.innerHTML = '<option value="">-- Seleccione una Habitación --</option>';
+                    
+                    // Agregar cada habitación
+                    data.habitaciones.forEach(habitacion => {
+                        const option = document.createElement('option');
+                        option.value = habitacion.id;
+                        option.textContent = habitacion.text;
+                        habitacionSelect.appendChild(option);
+                    });
+                    
+                    // Mostrar sección
+                    habitacionSection.style.display = 'block';
+                    habitacionSelect.required = true;
+                    
+                    console.log(`📋 Cargadas ${data.habitaciones.length} habitaciones`);
+                } else {
+                    // Ocultar si no es hotel o no hay habitaciones
+                    habitacionSection.style.display = 'none';
+                    habitacionSelect.required = false;
+                    console.log('❌ No hay habitaciones para mostrar');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error cargando habitaciones:', error);
+                habitacionSelect.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    }
+    
+    // Configurar evento cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎯 DOM cargado - Configurando eventos');
+        
+        const propiedadSelect = document.getElementById('propiedadSelect');
+        
+        // Evento para cambios en la propiedad
+        if (propiedadSelect) {
+            propiedadSelect.addEventListener('change', function() {
+                console.log('🔄 Propiedad cambiada:', this.value);
+                cargarHabitaciones(this.value);
+            });
+            
+            // Cargar habitaciones si ya hay una propiedad seleccionada
+            if (propiedadSelect.value) {
+                console.log('⚡ Cargando habitaciones iniciales...');
+                cargarHabitaciones(propiedadSelect.value);
+            }
+        }
+    });
+</script>
+

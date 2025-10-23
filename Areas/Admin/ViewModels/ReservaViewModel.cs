@@ -12,7 +12,7 @@ namespace StayGo.ViewModels.Admin
         [Display(Name = "Propiedad")]
         public Guid PropiedadId { get; set; }
         
-        [Display(Name = "Habitación (si aplica)")]
+        [Display(Name = "Habitación")]
         public Guid? HabitacionId { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar un usuario.")]
@@ -42,6 +42,10 @@ namespace StayGo.ViewModels.Admin
         [Required(ErrorMessage = "El estado es obligatorio.")]
         [Display(Name = "Estado de la Reserva")]
         public EstadoReserva Estado { get; set; }
+        
+        // Propiedades para mostrar información
+        public string? TipoPropiedad { get; set; }
+        public bool EsHotel => TipoPropiedad == "Hotel";
         
         // --- Propiedades para los Dropdowns ---
         public IEnumerable<SelectListItem>? Propiedades { get; set; }
