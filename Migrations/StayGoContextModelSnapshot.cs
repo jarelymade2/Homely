@@ -868,7 +868,7 @@ namespace StayGo.Migrations
             modelBuilder.Entity("StayGo.Models.Usuario", b =>
                 {
                     b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
-                        .WithOne()
+                        .WithOne("Usuario")
                         .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -888,6 +888,8 @@ namespace StayGo.Migrations
                     b.Navigation("Resenas");
 
                     b.Navigation("Reservas");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>
