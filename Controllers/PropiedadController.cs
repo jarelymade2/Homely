@@ -4,16 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
-using StayGo.Integration; // ← se añade para usar la API del clima
+using StayGo.Integration;
 
 namespace StayGo.Controllers
 {
     public class PropiedadController : Controller
     {
         private readonly StayGoContext _db;
-        private readonly OpenWeatherIntegration _openWeather; // ← agregado
+        private readonly OpenWeatherIntegration _openWeather;
 
-        // Constructor con inyección del servicio del clima
         public PropiedadController(StayGoContext db, OpenWeatherIntegration openWeather)
         {
             _db = db;
@@ -109,22 +108,40 @@ namespace StayGo.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(string id)
         {
             Console.WriteLine($"Buscando propiedad con ID: {id}");
 
-            var idString = id.ToString();
+            Propiedad? prop = null;
 
-            var prop = await _db.Propiedades
-                .Include(p => p.Imagenes)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id.ToString() == idString);
+            // Primero intentar buscar como string (comparando el Id convertido a string)
+            if (!string.IsNullOrEmpty(id))
+            {
+                prop = await _db.Propiedades
+                    .Include(p => p.Imagenes)
+                    .Include(p => p.Resenas)
+                    .ThenInclude(r => r.Usuario)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id.ToString() == id);
+            }
+
+            // Si no se encontró como string, intentar como Guid
+            if (prop == null && Guid.TryParse(id, out Guid idGuid))
+            {
+                Console.WriteLine($"Buscando como Guid: {idGuid}");
+                prop = await _db.Propiedades
+                    .Include(p => p.Imagenes)
+                    .Include(p => p.Resenas)
+                    .ThenInclude(r => r.Usuario)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == idGuid);
+            }
 
             Console.WriteLine($"Propiedad encontrada: {prop != null}");
 
             if (prop == null) return NotFound();
 
-            // ✅ Llamada al API del clima (sin tocar tu modelo ni base de datos)
+            // ✅ Llamada al API del clima
             if (prop.Direccion?.Ciudad != null)
             {
                 var clima = await _openWeather.ObtenerClimaAsync(prop.Direccion.Ciudad);
