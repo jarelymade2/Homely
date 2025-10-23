@@ -101,8 +101,8 @@ public class StayGoContext : IdentityDbContext<ApplicationUser>
         mb.Entity<Propiedad>().Property(p => p.Titulo).HasMaxLength(200).IsRequired();
         mb.Entity<Amenidad>().Property(a => a.Nombre).HasMaxLength(120).IsRequired();
         mb.Entity<ApplicationUser>()
-        .HasOne<Usuario>() // ApplicationUser tiene un Usuario
-        .WithOne(u => u.IdentityUser) // Usuario tiene un IdentityUser
+        .HasOne(au => au.Usuario) // <-- CORRECCIÓN: Especifica la propiedad
+        .WithOne(u => u.IdentityUser) 
         .HasForeignKey<Usuario>(u => u.IdentityUserId);
     }
 }
