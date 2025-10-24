@@ -1,4 +1,4 @@
-namespace StayGo.Models;
+namespace StayGo.Models.Enums;
 
 public enum EstadoReserva
 {

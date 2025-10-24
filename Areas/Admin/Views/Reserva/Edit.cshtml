@@ -1,0 +1,14 @@
+@model StayGo.ViewModels.Admin.ReservaViewModel
+
+@{
+    ViewData["Title"] = "Editar Reserva";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<partial name="_Formulario" model="Model" />
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

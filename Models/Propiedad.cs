@@ -9,7 +9,7 @@ public class Propiedad
     public string Descripcion { get; set; } = "";
     public TipoPropiedad Tipo { get; set; }
     public decimal? PrecioPorNoche { get; set; } // null si es Hotel
-    public int Capacidad { get; set; }
+    public int? Capacidad { get; set; }
     public double Lat { get; set; }
     public double Lng { get; set; }
     public Direccion Direccion { get; set; } = new();
