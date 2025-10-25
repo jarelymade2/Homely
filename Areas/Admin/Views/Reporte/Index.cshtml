@@ -1,0 +1,129 @@
+@model StayGo.ViewModels.Admin.ReportesViewModel
+
+@{
+    ViewData["Title"] = "Panel de Reportes";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-line"></i> Panel de Reportes</h1>
+        
+        <div>
+            <a asp-action="ExportarExcel" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </a>
+            <a asp-action="ExportarPdf" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Exportar a PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Reservas por Mes (Confirmadas/Completadas)</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="reservasChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Propiedades Más Reservadas</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Propiedad</th>
+                                <th>Cantidad de Reservas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var (item, index) in Model.TopPropiedades.Select((value, i) => (value, i)))
+                            {
+                                <tr>
+                                    <td>@(index + 1)</td>
+                                    <td>@item.NombrePropiedad</td>
+                                    <td><span class="badge bg-primary rounded-pill">@item.CantidadReservas</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Usuarios Más Activos</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Email del Usuario</th>
+                                <th>Cantidad de Reservas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var (item, index) in Model.TopUsuarios.Select((value, i) => (value, i)))
+                            {
+                                <tr>
+                                    <td>@(index + 1)</td>
+                                    <td>@item.EmailUsuario</td>
+                                    <td><span class="badge bg-info rounded-pill">@item.CantidadReservas</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Obtenemos los datos del Modelo de C# y los pasamos a JavaScript
+            const labels = @Json.Serialize(Model.ReservasPorMes.Select(r => r.MesAno));
+            const data = @Json.Serialize(Model.ReservasPorMes.Select(r => r.Cantidad));
+
+            const ctx = document.getElementById('reservasChart').getContext('2d');
+            const reservasChart = new Chart(ctx, {
+                type: 'bar', // Tipo de gráfico: barras
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '# de Reservas',
+                        data: data,
+                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -2,138 +2,143 @@
 @{
     ViewData["Title"] = "Gestión de Usuarios";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    // Asumo que tienes Bootstrap Icons disponible (bi)
 }
 
-<section class="hero mb-4">
-    <h1>@ViewData["Title"]</h1>
-    <p class="mb-0">Lista de todos los usuarios registrados y su actividad.</p>
-</section>
+<!-- 
+  Cambiamos 'content' por 'container-fluid py-4' para que
+  ocupe el 100% del ancho disponible y tenga padding vertical.
+--><div class="container-fluid py-4">
 
-<!-- Estadísticas rápidas -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body text-center">
-                <h3 class="card-title">@Model.Count()</h3>
-                <p class="card-text">Total Usuarios</p>
-            </div>
-        </div>
+    <!-- 
+      Encabezado de página con degradado sutil y título en color --ink (negro)
+    --><div class="page-head mb-4" style="
+        background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), 
+                    radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), 
+                    linear-gradient(135deg, var(--sage-50), var(--sage-100));
+        border: 1px solid var(--sage-200);
+        box-shadow: 0 12px 30px rgba(36,48,54,.1);
+        border-radius: var(--radius);">
+        <h2 class="mb-0" style="font-weight: 700; color: var(--ink);">@ViewData["Title"]</h2>
+        <p class="mb-0 text-muted">Lista de todos los usuarios registrados y su actividad.</p>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body text-center">
-                <h3 class="card-title">@Model.Count(u => u.TotalReservas > 0)</h3>
-                <p class="card-text">Usuarios Activos</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body text-center">
-                <h3 class="card-title">@Model.Sum(u => u.TotalReservas)</h3>
-                <p class="card-text">Total Reservas</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body text-center">
-                <h3 class="card-title">@Model.Count(u => u.EsAdmin)</h3>
-                <p class="card-text">Administradores</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="card">
-    <div class="card-body">
-        <table class="table table-hover" id="usuariosTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Email</th>
-                    <th class="text-center">Total Reservas</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var usuario in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="fw-bold">@usuario.NombreCompleto</div>
-                            @if (string.IsNullOrWhiteSpace(usuario.NombreCompleto.Trim()))
-                            {
-                                <small class="text-muted">Nombre no disponible</small>
-                            }
-                        </td>
-                        <td>@usuario.Email</td>
-                        <td class="text-center">
-                            @if (usuario.TotalReservas > 0)
-                            {
-                                <span class="badge bg-success rounded-pill">@usuario.TotalReservas</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary rounded-pill">0</span>
-                            }
-                        </td>
-                        <td>
-                            @if (usuario.EsAdmin)
-                            {
-                                <span class="badge bg-primary">
-                                    <i class="fas fa-shield-alt"></i> Administrador
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-user"></i> Cliente
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            @if (usuario.TotalReservas > 0)
-                            {
-                                <span class="badge bg-success">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-light text-dark">Sin reservas</span>
-                            }
-                        </td>
-                        
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- Estadísticas rápidas: Ahora con fondos de colores variados --><div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card blue p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count()</h3>
+                <p class="card-text text-muted mb-0">Total Usuarios</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card green p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count(u => u.TotalReservas > 0)</h3>
+                <p class="card-text text-muted mb-0">Usuarios Activos</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card amber p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Sum(u => u.TotalReservas)</h3>
+                <p class="card-text text-muted mb-0">Total Reservas</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card grey p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count(u => u.EsAdmin)</h3>
+                <p class="card-text text-muted mb-0">Administradores</p>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Filtros -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Filtros</h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <label class="form-label">Rol:</label>
-                <select class="form-select" id="rolFilter">
+    <!-- Tarjeta principal para la tabla y filtros --><div class="filter-card border-0" style="
+        background-color: var(--card); /* Fondo blanco para contraste */
+        box-shadow: var(--shadow); /* Sombra para resaltar */
+    ">
+        <!-- Encabezado de tarjeta que combina título y filtros --><div class="card-header sage-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="
+            background-color: var(--card); /* Fondo blanco */
+            border-bottom: 1px solid var(--sage-100); /* Borde sutil */
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius) var(--radius) 0 0 !important;
+            color: var(--ink); /* Texto negro */
+        ">
+            <h5 class="mb-0" style="color: var(--ink);">Usuarios Registrados</h5>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="rolFilter" style="border-color: var(--sage-200); color: var(--ink);">
                     <option value="">Todos los roles</option>
                     <option value="admin">Administradores</option>
                     <option value="cliente">Clientes</option>
                 </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Actividad:</label>
-                <select class="form-select" id="actividadFilter">
+                <select class="form-select form-select-sm" id="actividadFilter" style="border-color: var(--sage-200); color: var(--ink);">
                     <option value="">Todos los usuarios</option>
-                    <option value="activos">Con reservas</option>
-                    <option value="inactivos">Sin reservas</option>
+                    <option value="activo">Con reservas</option>
+                    <option value="inactivo">Sin reservas</option>
                 </select>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive" style="border-radius: var(--radius); overflow: hidden;">
+                <table class="table table-hover mb-0" id="usuariosTable">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Email</th>
+                            <th class="text-center">Total Reservas</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var usuario in Model)
+                        {
+                            <tr data-rol="@(usuario.EsAdmin ? "admin" : "cliente")" 
+                                data-actividad="@(usuario.TotalReservas > 0 ? "activo" : "inactivo")">
+                                <td>
+                                    <div class="fw-bold" style="color: var(--ink);">@usuario.NombreCompleto</div>
+                                    @if (string.IsNullOrWhiteSpace(usuario.NombreCompleto.Trim()))
+                                    {
+                                        <small class="text-muted">Nombre no disponible</small>
+                                    }
+                                </td>
+                                <td style="color: var(--ink);">@usuario.Email</td>
+                                <td class="text-center">
+                                    @if (usuario.TotalReservas > 0)
+                                    {
+                                        <span class="badge badge-total">@usuario.TotalReservas</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-muted">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (usuario.EsAdmin)
+                                    {
+                                        <span class="badge badge-admin">
+                                            <i class="bi bi-shield-check"></i> Administrador
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-muted">
+                                            <i class="bi bi-person"></i> Cliente
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (usuario.TotalReservas > 0)
+                                    {
+                                        <span class="badge badge-activo">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-muted">Sin reservas</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -142,70 +147,104 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Filtro por rol
-            $('#rolFilter').change(function() {
-                var rol = $(this).val();
-                $('#usuariosTable tbody tr').show();
-                
-                if (rol === 'admin') {
-                    $('#usuariosTable tbody tr').each(function() {
-                        if (!$(this).find('.badge.bg-primary').length) {
-                            $(this).hide();
-                        }
-                    });
-                } else if (rol === 'cliente') {
-                    $('#usuariosTable tbody tr').each(function() {
-                        if (!$(this).find('.badge.bg-secondary').length) {
-                            $(this).hide();
-                        }
-                    });
-                }
-            });
+            function filtrarTabla() {
+                var rol = $('#rolFilter').val();
+                var actividad = $('#actividadFilter').val();
 
-            // Filtro por actividad
-            $('#actividadFilter').change(function() {
-                var actividad = $(this).val();
-                $('#usuariosTable tbody tr').show();
-                
-                if (actividad === 'activos') {
-                    $('#usuariosTable tbody tr').each(function() {
-                        if ($(this).find('.badge.bg-secondary.rounded-pill').length) {
-                            $(this).hide();
-                        }
-                    });
-                } else if (actividad === 'inactivos') {
-                    $('#usuariosTable tbody tr').each(function() {
-                        if ($(this).find('.badge.bg-success.rounded-pill').length) {
-                            $(this).hide();
-                        }
-                    });
-                }
-            });
+                $('#usuariosTable tbody tr').each(function() {
+                    const tr = $(this);
+                    const trRol = tr.data('rol');
+                    const trActividad = tr.data('actividad');
+
+                    const rolMatch = (rol === "") || (rol === trRol);
+                    const actividadMatch = (actividad === "") || (actividad === trActividad);
+
+                    if (rolMatch && actividadMatch) {
+                        tr.show();
+                    } else {
+                        tr.hide();
+                    }
+                });
+            }
+
+            $('#rolFilter').change(filtrarTabla);
+            $('#actividadFilter').change(filtrarTabla);
         });
     </script>
 
     <style>
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
+        /* Nuevos colores para "dar vida" */
+        :root {
+            --c-blue-bg: #eef6ff;    /* Fondo azul claro */
+            --c-blue-text: #2563eb;  /* Texto azul */
+            --c-amber-bg: #fefce8;   /* Fondo ámbar claro */
+            --c-amber-text: #d97706; /* Texto ámbar */
+            --c-green-bg: var(--sage-50);
+            --c-green-text: var(--sage-700);
         }
-        
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border: 1px solid rgba(0, 0, 0, 0.125);
+
+        .stat-card {
+            background-color: var(--card);
+            box-shadow: 0 6px 15px rgba(36,48,54,.06);
+            border-radius: var(--radius);
+            border: 1px solid var(--sage-100);
+            transition: all 0.2s ease-in-out;
         }
-        
-        .badge.rounded-pill {
-            font-size: 0.8em;
-            padding: 0.4em 0.6em;
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(36,48,54,.1);
         }
+        .stat-card-title {
+            font-weight: 600;
+            font-size: 1.75rem; /* Números más grandes */
+        }
+
+        /* Aplicar los nuevos colores a las tarjetas */
+        .stat-card.blue {
+            background-color: var(--c-blue-bg);
+            border-color: #dbeafe;
+        }
+        .stat-card.blue .stat-card-title { color: var(--c-blue-text); }
+
+        .stat-card.green {
+            background-color: var(--c-green-bg);
+            border-color: var(--sage-200);
+        }
+        .stat-card.green .stat-card-title { color: var(--c-green-text); }
         
+        .stat-card.amber {
+            background-color: var(--c-amber-bg);
+            border-color: #fef3c7;
+        }
+        .stat-card.amber .stat-card-title { color: var(--c-amber-text); }
+        
+        .stat-card.grey {
+             background-color: #f8f9fa; /* Un gris neutro */
+             border-color: #e9ecef;
+        }
+        .stat-card.grey .stat-card-title { color: var(--muted); }
+
+        /* Nuevos colores para badges */
+        .badge-total { background-color: var(--c-blue-text); color: white; }
+        .badge-activo { background-color: var(--c-green-text); color: white; }
+        .badge-admin { background-color: var(--ink); color: white; }
+        .badge-muted { background-color: var(--muted); color: white; }
+
+        /* Estilo para el hover de la tabla */
         #usuariosTable tbody tr:hover {
-            background-color: #f8f9fa;
+            background-color: var(--sage-50) !important;
             transform: translateY(-1px);
             transition: all 0.2s ease;
+        }
+
+        /* Encabezado de la tabla neutral */
+        .table thead th {
+            background: #f8f9fa !important; /* Gris muy claro, no verde */
+            color: var(--ink) !important; /* Texto negro */
+            border-bottom: 1px solid #e9ecef !important;
+            text-transform: uppercase;
+            font-size: .8rem;
+            letter-spacing: .02em;
         }
     </style>
 }
