@@ -5,6 +5,8 @@ using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Models.ValueObjects;
 using StayGo.Integration;
+using StayGo.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,10 +49,66 @@ builder.Services.AddAuthorization(options =>
 });
 
 // -----------------
+// Redis Configuration (OPCIONAL)
+// -----------------
+var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled", false);
+
+if (redisEnabled)
+{
+    try
+    {
+        var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
+
+        // Registrar ConnectionMultiplexer como singleton
+        builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<Program>>();
+            try
+            {
+                var configuration = ConfigurationOptions.Parse(redisConfiguration);
+                configuration.AbortOnConnectFail = false;
+                configuration.ConnectTimeout = 5000; // 5 segundos timeout
+                var connection = ConnectionMultiplexer.Connect(configuration);
+                logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
+                return connection;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
+                throw; // Lanzar para que use el fallback
+            }
+        });
+
+        // Configurar caché distribuido con Redis
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConfiguration;
+            options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
+        });
+
+        Console.WriteLine("🔵 Redis habilitado - Usando caché distribuido");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Error al configurar Redis: {ex.Message}");
+        Console.WriteLine("📦 Usando caché en memoria como fallback");
+        builder.Services.AddDistributedMemoryCache();
+    }
+}
+else
+{
+    // Usar caché en memoria si Redis está deshabilitado
+    builder.Services.AddDistributedMemoryCache();
+    Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
+}
+
+// Registrar el servicio de caché personalizado
+builder.Services.AddScoped<ICacheService, CacheService>();
+
+// -----------------
 // Session (VERY IMPORTANT)
 // -----------------
-// Necesario para HttpContext.Session en tus controladores (ej. historial)
-builder.Services.AddDistributedMemoryCache();
+// Sesiones (con Redis si está habilitado, o en memoria)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
