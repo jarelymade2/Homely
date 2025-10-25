@@ -1,0 +1,53 @@
+@model StayGo.ViewModels.Admin.DisponibilidadViewModel
+
+@{
+    ViewData["Title"] = "Agregar Disponibilidad para " + Model.PropiedadNombre;
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Crear">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="PropiedadId" />
+            <input type="hidden" asp-for="TipoPropiedad" />
+
+            @if (Model.EsHotel)
+            {
+                <div class="mb-3">
+                    <label asp-for="HabitacionId" class="form-label"></label>
+                    <select asp-for="HabitacionId" class="form-select" asp-items="Model.Habitaciones">
+                        <option value="">Disponibilidad de propiedad completa</option>
+                    </select>
+                    <span asp-validation-for="HabitacionId" class="text-danger"></span>
+                    <div class="form-text">
+                        Selecciona una habitación específica o deja vacío para disponibilidad de toda la propiedad.
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Desde" class="form-label"></label>
+                <input asp-for="Desde" class="form-control" type="date" />
+                <span asp-validation-for="Desde" class="text-danger"></span>
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="Hasta" class="form-label"></label>
+                <input asp-for="Hasta" class="form-control" type="date" />
+                <span asp-validation-for="Hasta" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-calendar-plus"></i> Guardar Disponibilidad
+                </button>
+                <a asp-action="Index" asp-route-propiedadId="@Model.PropiedadId" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
