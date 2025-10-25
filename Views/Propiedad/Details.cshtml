@@ -45,24 +45,47 @@
     <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
 
     <!--RESERVA-->
-    <form asp-controller="Reserva" asp-action="Create" method="get" class="row g-2 align-items-end mb-3">
-      <input type="hidden" name="propiedadId" value="@Model?.Id" />
-      <div class="col-auto">
-          <label class="form-label small">Check-in</label>
-          <input type="date" name="checkin" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
-      </div>
-      <div class="col-auto">
-          <label class="form-label small">Check-out</label>
-          <input type="date" name="checkout" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
-      </div>
-      <div class="col-auto">
-          <label class="form-label small">Huéspedes</label>
-          <input type="number" name="huespedes" class="form-control" value="1" min="1" />
-      </div>
-      <div class="col-auto">
-          <button type="submit" class="btn btn-primary">Reservar</button>
-      </div>
-    </form>
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get" class="row g-2 align-items-end mb-3">
+            <input type="hidden" name="propiedadId" value="@Model?.Id" />
+            <div class="col-auto">
+                <label class="form-label small">Check-in</label>
+                <input type="date" name="checkin" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="col-auto">
+                <label class="form-label small">Check-out</label>
+                <input type="date" name="checkout" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="col-auto">
+                <label class="form-label small">Huéspedes</label>
+                <input type="number" name="huespedes" class="form-control" value="1" min="1" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-credit-card"></i> Reservar y Pagar
+                </button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i>
+            <strong>Inicia sesión para reservar</strong>
+            <p class="mb-2 mt-2">Para hacer una reserva, necesitas tener una cuenta en StayGo.</p>
+            <a asp-area="Identity" asp-page="/Account/Login"
+               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+               class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+            </a>
+            <a asp-area="Identity" asp-page="/Account/Register"
+               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+               class="btn btn-sm btn-success">
+                <i class="bi bi-person-plus"></i> Crear cuenta
+            </a>
+        </div>
+    }
 
     <!-- 🌤️ Clima actual -->
     @if (ViewBag.Temp != null && ViewBag.Clima != null)

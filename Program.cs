@@ -63,7 +63,29 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
 
+// -----------------
+// MercadoPagoIntegration registration
+// -----------------
+builder.Services.AddScoped<MercadoPagoIntegration>();
+
 var app = builder.Build();
+
+// -----------------
+// Seed Database
+// -----------------
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await Seed.SeedAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 // -----------------
 // Pipeline

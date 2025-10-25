@@ -9,7 +9,6 @@ using StayGo.Models.Enums;
 
 namespace StayGo.Controllers
 {
-    [Authorize]
     public class ReservaController : Controller
     {
         private readonly StayGoContext _db;
@@ -21,17 +20,27 @@ namespace StayGo.Controllers
             _logger = logger;
         }
 
-        // GET: /Reserva/Create?propiedadId=...&checkin=2025-10-22&checkout=2025-10-25
+        // GET: /Reserva/Create - Redirigir de vuelta si alguien intenta acceder por GET
         [HttpGet]
+        public IActionResult Create(Guid propiedadId)
+        {
+            _logger.LogWarning($"Intento de acceso GET a /Reserva/Create con propiedadId: {propiedadId}");
+            return RedirectToAction("Details", "Propiedad", new { id = propiedadId });
+        }
+
+        // POST: /Reserva/Create - Crear reserva directamente y redirigir al pago
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Guid propiedadId, string? checkin, string? checkout, int huespedes = 1)
         {
-            var prop = await _db.Propiedades
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == propiedadId);
+            _logger.LogInformation($"=== CREANDO RESERVA ===");
+            _logger.LogInformation($"PropiedadId: {propiedadId}");
+            _logger.LogInformation($"Check-in: {checkin}");
+            _logger.LogInformation($"Check-out: {checkout}");
+            _logger.LogInformation($"Huéspedes: {huespedes}");
 
-            if (prop == null) return NotFound();
-
-            // Intentamos parsear las fechas (formato yyyy-MM-dd esperado desde input type="date")
+            // Parsear las fechas
             DateOnly checkInDate = DateOnly.FromDateTime(DateTime.Today);
             DateOnly checkOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
             var culture = CultureInfo.InvariantCulture;
@@ -46,25 +55,14 @@ namespace StayGo.Controllers
                 checkOutDate = cOut;
             }
 
-            var model = new Reserva
+            // Crear el objeto de reserva
+            var input = new Reserva
             {
                 PropiedadId = propiedadId,
                 CheckIn = checkInDate,
                 CheckOut = checkOutDate,
-                Huespedes = huespedes,
-                PrecioTotal = 0m // se calculará al POST según precio por noche
+                Huespedes = huespedes
             };
-
-            ViewBag.Propiedad = prop;
-            ViewBag.PrecioPorNoche = prop.PrecioPorNoche ?? 0m;
-            return View(model);
-        }
-
-        // POST: /Reserva/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Reserva input)
-        {
             // Re-obtener propiedad para cálculo del precio y validaciones
             var prop = await _db.Propiedades.FirstOrDefaultAsync(p => p.Id == input.PropiedadId);
             if (prop == null) return NotFound();
@@ -88,9 +86,8 @@ namespace StayGo.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Propiedad = prop;
-                ViewBag.PrecioPorNoche = prop.PrecioPorNoche ?? 0m;
-                return View(input);
+                TempData["Error"] = "Error en la reserva: " + string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return RedirectToAction("Details", "Propiedad", new { id = input.PropiedadId });
             }
 
             // Calcular precio total: noches * precioPorNoche (si el precio es null, 0)
@@ -114,12 +111,15 @@ namespace StayGo.Controllers
             _db.Reservas.Add(input);
             await _db.SaveChangesAsync();
 
-            TempData["MensajeReserva"] = "Reserva creada correctamente. Revisa tu historial para ver su estado.";
-            return RedirectToAction(nameof(History));
+            TempData["MensajeReserva"] = "Reserva creada correctamente. Procede con el pago para confirmarla.";
+
+            // Redirigir al proceso de pago
+            return RedirectToAction("Iniciar", "Pago", new { reservaId = input.Id });
         }
 
         // GET: /Reserva/History
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> History()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -133,8 +133,10 @@ namespace StayGo.Controllers
                 .Include(r => r.Propiedad)
                 .Include(r => r.Pagos) // aunque dejemos pagos aparte, no molesta incluir
                 .Where(r => r.UsuarioId == userId)
-                .OrderByDescending(r => r.CheckIn.ToDateTime(TimeOnly.MinValue))
                 .ToListAsync();
+
+            // Ordenar en memoria después de traer los datos
+            reservas = reservas.OrderByDescending(r => r.CheckIn).ToList();
 
             return View(reservas);
         }
