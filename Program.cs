@@ -47,6 +47,24 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<StayGoContext>();
+    
+    try 
+    {
+        // Intentar migrar
+        context.Database.Migrate();
+    }
+    catch 
+    {
+        // Si falla, recrear completamente
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+    }
+}
+
 // 2.1. Ejecución de la Siembra de Datos (Seed)
 // Esto crea los roles y al usuario "admin@staygo.com" si no existen
 using (var scope = app.Services.CreateScope())
