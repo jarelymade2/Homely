@@ -1,19 +1,25 @@
 ﻿@* Views/Home/Index.cshtml - CÓDIGO FINAL *@
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Encuentra tu próxima estadía";
-    
+
     // Recupera los filtros y el historial
     var checkin = (DateTime?)ViewBag.Checkin;
     var checkout = (DateTime?)ViewBag.Checkout;
     var adults = (int)(ViewBag.Adults ?? 1);
     var children = (int)(ViewBag.Children ?? 0);
-    
+
     // 🛑 Historial de Búsqueda
     List<string> historialBusqueda = ViewBag.HistorialUbicacion ?? new List<string>();
-    
+
     // Recuperamos el tipo de alerta (para color del mensaje)
-    var mensajeTipo = TempData["MensajeTipo"] ?? "alert-info"; 
+    var mensajeTipo = TempData["MensajeTipo"] ?? "alert-info";
+
+    // 🌟 Propiedad Destacada
+    var propiedadDestacada = ViewBag.PropiedadDestacada as StayGo.Models.Propiedad;
+    var promedioDestacada = (double?)ViewBag.PromedioDestacada;
+    var pe = new CultureInfo("es-PE");
 }
 
 @section Hero{
@@ -132,24 +138,77 @@
 
 <section class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h4 m-0">Destacados</h2>
+        <h2 class="h4 m-0">🌟 Destacado - Mejor Valorado</h2>
         <a asp-controller="Propiedad" asp-action="Index" class="link-dark">Ver todo</a>
     </div>
 
     <div class="row g-4">
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card card-stay">
-                <img src="~/img/demo1.jpg" class="card-img-top" alt="Alojamiento" />
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h3 class="h6 fw-semibold mb-1">Loft moderno en Miraflores</h3>
-                        <span class="small text-muted">★ 4.8</span>
+        @if (propiedadDestacada != null)
+        {
+            var imagenPrincipal = propiedadDestacada.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
+                                  ?? "https://placehold.co/600x400?text=Sin+imagen";
+            var ubicacion = string.Join(", ",
+                new[] { propiedadDestacada.Direccion?.Ciudad, propiedadDestacada.Direccion?.Pais }
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
+            var capacidad = propiedadDestacada.Capacidad.HasValue
+                ? $"{propiedadDestacada.Capacidad} huéspedes"
+                : "Ver detalles";
+            var precio = propiedadDestacada.PrecioPorNoche.HasValue
+                ? propiedadDestacada.PrecioPorNoche.Value.ToString("C", pe)
+                : "Desde habitaciones";
+            var cantidadResenas = propiedadDestacada.Resenas?.Count ?? 0;
+
+            <div class="col-12 col-sm-6 col-lg-4">
+                <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedadDestacada.Id" class="text-decoration-none">
+                    <div class="card card-stay h-100 shadow-sm">
+                        <div class="position-relative">
+                            <img src="@imagenPrincipal" class="card-img-top" alt="@propiedadDestacada.Titulo" style="height: 250px; object-fit: cover;" />
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-star-fill"></i> @promedioDestacada?.ToString("F1")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h3 class="h6 fw-semibold mb-1">@propiedadDestacada.Titulo</h3>
+                            </div>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-geo-alt-fill"></i> @ubicacion
+                                @if (propiedadDestacada.Capacidad.HasValue)
+                                {
+                                    <span> · @capacidad</span>
+                                }
+                            </p>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-chat-left-text-fill"></i> @cantidadResenas @(cantidadResenas == 1 ? "reseña" : "reseñas")
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="price fw-bold">@precio</span>
+                                    @if (propiedadDestacada.PrecioPorNoche.HasValue)
+                                    {
+                                        <span class="text-muted small">/ noche</span>
+                                    }
+                                </div>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-trophy-fill"></i> Top Rated
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-muted small mb-2">Lima, Perú · 2 huéspedes</p>
-                    <div><span class="price">S/ 220</span> <span class="text-muted">/ noche</span></div>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No hay propiedades con reseñas aún.
+                    <a asp-controller="Propiedad" asp-action="Index" class="alert-link">Ver todas las propiedades</a>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </section>
 

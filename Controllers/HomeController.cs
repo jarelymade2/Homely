@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using StayGo.ViewModels; 
+using StayGo.ViewModels;
 using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http; // Necesario para la Session
 using System.Text.Json; // Necesario para serializar/deserializar JSON
+using StayGo.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace StayGo.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private const string _historialKey = "HistorialUbicacion"; 
+        private readonly StayGoContext _context;
+        private const string _historialKey = "HistorialUbicacion";
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, StayGoContext context)
         {
             _logger = logger;
+            _context = context;
         }
         
         // --- MÉTODOS PRIVADOS PARA GESTIONAR LA SESIÓN ---
@@ -62,10 +67,10 @@ namespace StayGo.Controllers
         // --- ACCIONES DEL CONTROLADOR ---
 
         public IActionResult Index(
-            string? q, 
-            DateTime? checkin, 
-            DateTime? checkout, 
-            int adults = 1, 
+            string? q,
+            DateTime? checkin,
+            DateTime? checkout,
+            int adults = 1,
             int children = 0)
         {
             // Pasa los filtros para la persistencia del formulario
@@ -73,9 +78,26 @@ namespace StayGo.Controllers
             ViewBag.Checkout = checkout;
             ViewBag.Adults = adults;
             ViewBag.Children = children;
-            
+
             // 🛑 Pasa el historial de búsqueda a la vista para el datalist
             ViewBag.HistorialUbicacion = ObtenerHistorial();
+
+            // 🌟 Obtener la propiedad con mejor reseña promedio
+            var propiedadDestacada = _context.Propiedades
+                .Include(p => p.Resenas)
+                .Include(p => p.Imagenes)
+                .Where(p => p.Resenas.Any()) // Solo propiedades con reseñas
+                .Select(p => new
+                {
+                    Propiedad = p,
+                    PromedioResenas = p.Resenas.Average(r => r.Puntuacion)
+                })
+                .OrderByDescending(x => x.PromedioResenas)
+                .ThenByDescending(x => x.Propiedad.Resenas.Count) // Desempate por cantidad de reseñas
+                .FirstOrDefault();
+
+            ViewBag.PropiedadDestacada = propiedadDestacada?.Propiedad;
+            ViewBag.PromedioDestacada = propiedadDestacada?.PromedioResenas;
 
             return View();
         }
