@@ -21,4 +21,5 @@ public class ContactoMensaje
     public Usuario? Usuario { get; set; }
 
     public DateTime FechaUtc { get; set; } = DateTime.UtcNow;
+    public DateTime FechaLocal => FechaUtc.ToLocalTime();
 }
