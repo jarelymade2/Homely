@@ -136,12 +136,16 @@ builder.Services.AddScoped<MercadoPagoIntegration>();
 
 var app = builder.Build();
 
-// 2.1. Ejecución del Seed (roles y admin)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
+        var context = services.GetRequiredService<StayGoContext>();
+        // Aplicar migraciones pendientes
+        context.Database.Migrate();
+
+        // Luego ejecutar el seed
         await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
     }
