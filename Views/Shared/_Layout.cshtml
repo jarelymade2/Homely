@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - StayGo</title>
+    <title>@ViewData["Title"] - HomeLy</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -22,8 +22,8 @@
             <div class="container">
                 @* SOLUCIÓN: Agregado asp-area="" al enlace del logo *@
                 <a class="navbar-brand fw-semibold d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="/images/logo.png" alt="StayGo" height="28" />
-                    StayGo
+                    <img src="/images/logo.png" alt="HomeLy" height="28" />
+                    HomeLy
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Alternar navegación">
@@ -90,7 +90,7 @@
 
     <footer class="border-top py-4 mt-auto">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <span class="text-muted">© @DateTime.Now.Year · StayGo</span>
+            <span class="text-muted">© @DateTime.Now.Year · HomeLy</span>
             <ul class="nav gap-3 small">
                 @* SOLUCIÓN: Agregado asp-area="" a los enlaces del footer *@
                 <li class="nav-item"><a class="nav-link text-muted" asp-area="" asp-controller="Home" asp-action="Privacidad">Privacidad</a></li>
