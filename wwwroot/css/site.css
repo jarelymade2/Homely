@@ -215,7 +215,7 @@ body {
 
 .search-card .form-label {
     font-size: .8rem;
-    color: var(--sage-600); 
+    color: var(black); 
     font-weight: 600;
     margin-bottom: 4px;
 }
