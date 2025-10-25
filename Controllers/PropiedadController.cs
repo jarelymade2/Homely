@@ -5,7 +5,6 @@ using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Integration;
-using StayGo.Integration; // ← se añade para usar la API del clima y Unsplash
 
 namespace StayGo.Controllers
 {
@@ -13,20 +12,17 @@ namespace StayGo.Controllers
     {
         private readonly StayGoContext _db;
         private readonly OpenWeatherIntegration _openWeather;
-
-        public PropiedadController(StayGoContext db, OpenWeatherIntegration openWeather)
-        private readonly OpenWeatherIntegration _openWeather; // ← agregado
-        private readonly UnsplashIntegration _unsplash; // ← agregado
+        private readonly UnsplashIntegration _unsplash;
 
         // Constructor con inyección del servicio del clima y Unsplash
         public PropiedadController(
             StayGoContext db,
             OpenWeatherIntegration openWeather,
-            UnsplashIntegration unsplash) // ← agregado
+            UnsplashIntegration unsplash)
         {
             _db = db;
             _openWeather = openWeather;
-            _unsplash = unsplash; // ← agregado
+            _unsplash = unsplash;
         }
 
         // GET: /Propiedad

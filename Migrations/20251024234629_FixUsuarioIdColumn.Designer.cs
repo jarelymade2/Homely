@@ -11,13 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-<<<<<<<< HEAD:Migrations/20251024234629_FixUsuarioIdColumn.Designer.cs
     [Migration("20251024234629_FixUsuarioIdColumn")]
     partial class FixUsuarioIdColumn
-========
-    [Migration("20251022054321_LinkUsuarioToApplicationUser")]
-    partial class LinkUsuarioToApplicationUser
->>>>>>>> 08d0f9a3ae50d718c34c0420da9cd8bac3c0e0e3:Migrations/20251022054321_LinkUsuarioToApplicationUser.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

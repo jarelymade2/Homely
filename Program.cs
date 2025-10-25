@@ -5,7 +5,6 @@ using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Models.ValueObjects;
 using StayGo.Integration;
-using StayGo.Integration; // Solo OpenWeatherIntegration y UnsplashIntegration
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +40,6 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-    .AddRoles<IdentityRole>() // Habilita roles (Admin, etc.)
-    .AddEntityFrameworkStores<StayGoContext>();
-
 // 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
@@ -71,28 +67,14 @@ builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
 
 // -----------------
+// UnsplashIntegration registration
+// -----------------
+builder.Services.AddScoped<UnsplashIntegration>();
+
+// -----------------
 // MercadoPagoIntegration registration
 // -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
-
-var app = builder.Build();
-
-// -----------------
-// Seed Database
-// -----------------
-// =========================================================
-// 🌤️ Registro de INTEGRACIONES (APIs externas)
-// =========================================================
-
-// 1️⃣ OpenWeather (ya lo tienes)
-builder.Services.AddScoped<OpenWeatherIntegration>();
-
-// 2️⃣ Unsplash (para imágenes de propiedades)
-builder.Services.AddScoped<UnsplashIntegration>();
-
-// =========================================================
-// 2. CONSTRUCCIÓN DE LA APLICACIÓN
-// =========================================================
 
 var app = builder.Build();
 
