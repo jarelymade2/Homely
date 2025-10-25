@@ -18,141 +18,187 @@
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Lato:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<div class="container py-4">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-credit-card"></i> Confirmar Reserva y Pagar
-                    </h4>
-                </div>
-                <div class="card-body">
+        <div class="col-lg-9">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb-sage-payment">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Propiedad" asp-action="Index">
+                            <i class="bi bi-houses-fill me-2"></i>Propiedades
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedad?.Id">
+                            @propiedad?.Titulo
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">Confirmar Reserva</li>
+                </ol>
+            </nav>
+
+            <!-- Título Principal -->
+            <div class="payment-header-sage mb-5">
+                <h1 class="payment-title-sage">
+                    <i class="bi bi-credit-card-fill me-3"></i>Confirmar Reserva y Pagar
+                </h1>
+                <p class="payment-subtitle-sage">Revisa los detalles de tu reserva antes de proceder al pago</p>
+            </div>
+
+            <!-- Card Principal -->
+            <div class="payment-card-sage mb-4">
+                <div class="payment-card-body">
                     <!-- Información de la Propiedad -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <img src="@imagenPrincipal" class="img-fluid rounded" alt="@propiedad?.Titulo" style="object-fit: cover; height: 200px; width: 100%;" />
-                        </div>
-                        <div class="col-md-8">
-                            <h5 class="fw-bold">@propiedad?.Titulo</h5>
-                            @if (esHotel && habitacion != null)
-                            {
-                                <div class="badge bg-info text-dark mb-2">
-                                    <i class="bi bi-door-open"></i> @habitacion.Nombre
-                                </div>
-                            }
-                            <p class="text-muted mb-2">
-                                <i class="bi bi-geo-alt"></i>
-                                @propiedad?.Direccion?.Ciudad, @propiedad?.Direccion?.Pais
-                            </p>
-                            @if (esHotel && habitacion != null)
-                            {
-                                <p class="mb-0 small">
-                                    <i class="bi bi-people"></i> Capacidad: @habitacion.Capacidad personas
-                                    @if (habitacion.TipoCama.HasValue)
-                                    {
-                                        <br/><i class="bi bi-bed"></i> <text>Cama: @habitacion.TipoCama</text>
-                                    }
-                                </p>
-                            }
-                            else
-                            {
-                                <p class="mb-0">@propiedad?.Descripcion</p>
-                            }
-                        </div>
-                    </div>
-
-                    <hr />
-
-                    <!-- Detalles de la Reserva -->
-                    <h5 class="fw-bold mb-3">
-                        <i class="bi bi-calendar-check"></i> Detalles de la Reserva
-                    </h5>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 bg-light">
-                                <div class="small text-muted">Check-in</div>
-                                <div class="fw-bold">
-                                    <i class="bi bi-calendar-event"></i> 
-                                    @checkIn.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
+                    <div class="property-info-sage mb-5">
+                        <div class="row g-4">
+                            <div class="col-md-5">
+                                <div class="property-image-sage">
+                                    <img src="@imagenPrincipal" alt="@propiedad?.Titulo" />
+                                    <div class="image-overlay-payment"></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 bg-light">
-                                <div class="small text-muted">Check-out</div>
-                                <div class="fw-bold">
-                                    <i class="bi bi-calendar-event"></i> 
-                                    @checkOut.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            <div class="col-md-7">
+                                <h3 class="property-title-sage">@propiedad?.Titulo</h3>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 bg-light">
-                                <div class="small text-muted">Huéspedes</div>
-                                <div class="fw-bold">
-                                    <i class="bi bi-people"></i> @huespedes @(huespedes == 1 ? "persona" : "personas")
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 bg-light">
-                                <div class="small text-muted">Noches</div>
-                                <div class="fw-bold">
-                                    <i class="bi bi-moon-stars"></i> @noches @(noches == 1 ? "noche" : "noches")
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr />
-
-                    <!-- Resumen de Precio -->
-                    <h5 class="fw-bold mb-3">
-                        <i class="bi bi-cash-stack"></i> Resumen de Precio
-                    </h5>
-
-                    <div class="border rounded p-3 bg-light mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>
-                                @precioPorNoche.ToString("C", pe) x @noches @(noches == 1 ? "noche" : "noches")
                                 @if (esHotel && habitacion != null)
                                 {
-                                    <br/><small class="text-muted">Habitación: @habitacion.Nombre</small>
+                                    <div class="room-badge-sage mb-3">
+                                        <i class="bi bi-door-open-fill me-2"></i>@habitacion.Nombre
+                                    </div>
                                 }
-                            </span>
-                            <span>@precioTotal.ToString("C", pe)</span>
+
+                                <div class="property-location-sage mb-3">
+                                    <i class="bi bi-geo-alt-fill me-2"></i>
+                                    @propiedad?.Direccion?.Ciudad, @propiedad?.Direccion?.Pais
+                                </div>
+
+                                @if (esHotel && habitacion != null)
+                                {
+                                    <div class="property-details-sage">
+                                        <div class="detail-item-sage">
+                                            <i class="bi bi-people-fill"></i>
+                                            <span>Capacidad: @habitacion.Capacidad personas</span>
+                                        </div>
+                                        @if (habitacion.TipoCama.HasValue)
+                                        {
+                                            <div class="detail-item-sage">
+                                                <i class="bi bi-bed-fill"></i>
+                                                <span>Cama: @habitacion.TipoCama</span>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(habitacion.Numero))
+                                        {
+                                            <div class="detail-item-sage">
+                                                <i class="bi bi-hash"></i>
+                                                <span>Habitación N° @habitacion.Numero</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
                         </div>
-                        <hr />
-                        <div class="d-flex justify-content-between">
-                            <strong class="fs-5">Total</strong>
-                            <strong class="fs-5 text-primary">@precioTotal.ToString("C", pe)</strong>
+                    </div>
+
+                    <div class="divider-sage"></div>
+
+                    <!-- Detalles de la Reserva -->
+                    <div class="reservation-details-sage mb-5">
+                        <h4 class="section-title-payment mb-4">
+                            <i class="bi bi-calendar-check-fill me-3"></i>Detalles de la Reserva
+                        </h4>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="detail-box-sage">
+                                    <div class="detail-label-sage">Check-in</div>
+                                    <div class="detail-value-sage">
+                                        <i class="bi bi-calendar-event-fill me-2"></i>
+                                        @checkIn.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-box-sage">
+                                    <div class="detail-label-sage">Check-out</div>
+                                    <div class="detail-value-sage">
+                                        <i class="bi bi-calendar-event-fill me-2"></i>
+                                        @checkOut.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-box-sage">
+                                    <div class="detail-label-sage">Huéspedes</div>
+                                    <div class="detail-value-sage">
+                                        <i class="bi bi-people-fill me-2"></i>
+                                        @huespedes @(huespedes == 1 ? "persona" : "personas")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-box-sage">
+                                    <div class="detail-label-sage">Noches</div>
+                                    <div class="detail-value-sage">
+                                        <i class="bi bi-moon-stars-fill me-2"></i>
+                                        @noches @(noches == 1 ? "noche" : "noches")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider-sage"></div>
+
+                    <!-- Resumen de Precio -->
+                    <div class="price-summary-sage mb-4">
+                        <h4 class="section-title-payment mb-4">
+                            <i class="bi bi-cash-stack me-3"></i>Resumen de Precio
+                        </h4>
+
+                        <div class="price-breakdown-sage">
+                            <div class="price-item-sage">
+                                <div class="price-description-sage">
+                                    <span>@precioPorNoche.ToString("C", pe) × @noches @(noches == 1 ? "noche" : "noches")</span>
+                                    @if (esHotel && habitacion != null)
+                                    {
+                                        <small class="text-muted d-block mt-1">Habitación: @habitacion.Nombre</small>
+                                    }
+                                </div>
+                                <div class="price-amount-sage">@precioTotal.ToString("C", pe)</div>
+                            </div>
+
+                            <div class="price-total-sage">
+                                <div class="total-label-sage">Total</div>
+                                <div class="total-amount-sage">@precioTotal.ToString("C", pe)</div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Información de MercadoPago -->
-                    <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Pago seguro con MercadoPago</strong>
-                        <p class="mb-0 small mt-2">
-                            Serás redirigido a MercadoPago para completar tu pago de forma segura. 
-                            Aceptamos tarjetas de crédito y débito.
-                        </p>
+                    <div class="payment-info-sage mb-4">
+                        <div class="payment-info-icon">
+                            <i class="bi bi-shield-check-fill"></i>
+                        </div>
+                        <div class="payment-info-content">
+                            <h6 class="payment-info-title">Pago seguro con MercadoPago</h6>
+                            <p class="payment-info-text">
+                                Serás redirigido a MercadoPago para completar tu pago de forma segura.
+                                Aceptamos tarjetas de crédito y débito.
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Botones de Acción -->
-                    <div class="d-flex gap-2 justify-content-between">
-                        <a asp-area="" asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedad?.Id" 
-                           class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Volver
+                    <div class="payment-actions-sage">
+                        <a asp-area="" asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedad?.Id"
+                           class="btn-back-payment">
+                            <i class="bi bi-arrow-left-circle me-2"></i>Volver
                         </a>
-                        
-                        <form asp-area="" asp-controller="Pago" asp-action="ProcesarPago" method="post">
+
+                        <form asp-area="" asp-controller="Pago" asp-action="ProcesarPago" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="propiedadId" value="@propiedad?.Id" />
                             @if (habitacion != null)
@@ -163,22 +209,23 @@
                             <input type="hidden" name="checkout" value="@checkOut.ToString("yyyy-MM-dd")" />
                             <input type="hidden" name="huespedes" value="@huespedes" />
 
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-credit-card"></i> Proceder al Pago
+                            <button type="submit" class="btn-proceed-payment">
+                                <i class="bi bi-credit-card-fill me-2"></i>Proceder al Pago
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Información Adicional -->
-            <div class="card shadow-sm mt-3">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3">
-                        <i class="bi bi-shield-check"></i> Política de Cancelación
-                    </h6>
-                    <p class="small text-muted mb-0">
-                        Cancelación gratuita hasta 48 horas antes del check-in. 
+            <!-- Política de Cancelación -->
+            <div class="policy-card-sage">
+                <div class="policy-icon-sage">
+                    <i class="bi bi-info-circle-fill"></i>
+                </div>
+                <div class="policy-content-sage">
+                    <h6 class="policy-title-sage">Política de Cancelación</h6>
+                    <p class="policy-text-sage">
+                        Cancelación gratuita hasta 48 horas antes del check-in.
                         Después de ese período, se aplicará un cargo del 50% del total de la reserva.
                     </p>
                 </div>
@@ -187,3 +234,457 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        :root {
+            /* Sage palette */
+            --sage-50: #f6f8f6;
+            --sage-100: #e8ede8;
+            --sage-200: #d1dbd1;
+            --sage-300: #a8baa8;
+            --sage-400: #7d997d;
+            --sage-500: #5d7a5d;
+            --sage-600: #4a6349;
+            --sage-700: #3f6b4f;
+            --sage-800: #2d4a35;
+            --sage-900: #1e3324;
+
+            --card: #ffffff;
+            --text-color: #2d3748;
+            --title-color: #1a202c;
+            --muted: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 20px rgba(63, 107, 79, 0.08);
+            --shadow-hover: 0 8px 30px rgba(63, 107, 79, 0.15);
+            --radius: 16px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--sage-50) 0%, #ffffff 100%);
+            font-family: 'Lato', sans-serif;
+            color: var(--text-color);
+        }
+
+        /* ========== BREADCRUMB ========== */
+        .breadcrumb-sage-payment {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: transparent;
+        }
+
+        .breadcrumb-sage-payment .breadcrumb-item {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .breadcrumb-sage-payment .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            padding: 0 0.75rem;
+            color: var(--sage-400);
+            font-size: 1.2rem;
+        }
+
+        .breadcrumb-sage-payment .breadcrumb-item a {
+            color: var(--sage-700);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .breadcrumb-sage-payment .breadcrumb-item a:hover {
+            color: var(--sage-600);
+        }
+
+        .breadcrumb-sage-payment .breadcrumb-item.active {
+            color: var(--title-color);
+            font-weight: 600;
+        }
+
+        /* ========== HEADER ========== */
+        .payment-header-sage {
+            text-align: center;
+        }
+
+        .payment-title-sage {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--sage-800);
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-title-sage i {
+            color: var(--sage-600);
+        }
+
+        .payment-subtitle-sage {
+            font-size: 1.15rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ========== CARD PRINCIPAL ========== */
+        .payment-card-sage {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--sage-200);
+            overflow: hidden;
+        }
+
+        .payment-card-body {
+            padding: 3rem;
+        }
+
+        /* ========== INFORMACIÓN DE PROPIEDAD ========== */
+        .property-info-sage {
+        }
+
+        .property-image-sage {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 280px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .property-image-sage img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .property-image-sage:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-overlay-payment {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%);
+        }
+
+        .property-title-sage {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--sage-800);
+            margin-bottom: 1rem;
+        }
+
+        .room-badge-sage {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--sage-100) 0%, var(--sage-200) 100%);
+            color: var(--sage-800);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .property-location-sage {
+            color: var(--sage-600);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .property-details-sage {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .detail-item-sage {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .detail-item-sage i {
+            color: var(--sage-600);
+            font-size: 1.1rem;
+        }
+
+        /* ========== DIVIDER ========== */
+        .divider-sage {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--sage-200), transparent);
+            margin: 2.5rem 0;
+        }
+
+        /* ========== SECTION TITLES ========== */
+        .section-title-payment {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--sage-800);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title-payment i {
+            color: var(--sage-600);
+        }
+
+        /* ========== DETALLES DE RESERVA ========== */
+        .detail-box-sage {
+            background: linear-gradient(135deg, var(--sage-50) 0%, #ffffff 100%);
+            border: 1px solid var(--sage-200);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .detail-box-sage:hover {
+            border-color: var(--sage-400);
+            box-shadow: 0 4px 12px rgba(63, 107, 79, 0.1);
+        }
+
+        .detail-label-sage {
+            font-size: 0.85rem;
+            color: var(--sage-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value-sage {
+            font-size: 1.05rem;
+            color: var(--title-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-value-sage i {
+            color: var(--sage-600);
+        }
+
+        /* ========== RESUMEN DE PRECIO ========== */
+        .price-breakdown-sage {
+            background: var(--sage-50);
+            border: 1px solid var(--sage-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .price-item-sage {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--sage-200);
+        }
+
+        .price-description-sage {
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .price-amount-sage {
+            color: var(--sage-700);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .price-total-sage {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label-sage {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--sage-800);
+        }
+
+        .total-amount-sage {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--sage-700);
+        }
+
+        /* ========== INFORMACIÓN DE PAGO ========== */
+        .payment-info-sage {
+            display: flex;
+            gap: 1.25rem;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .payment-info-icon {
+            flex-shrink: 0;
+        }
+
+        .payment-info-icon i {
+            font-size: 2rem;
+            color: #0284c7;
+        }
+
+        .payment-info-content {
+        }
+
+        .payment-info-title {
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .payment-info-text {
+            color: #075985;
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* ========== BOTONES DE ACCIÓN ========== */
+        .payment-actions-sage {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-back-payment {
+            display: inline-flex;
+            align-items: center;
+            background: white;
+            color: var(--sage-700);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid var(--sage-300);
+        }
+
+        .btn-back-payment:hover {
+            background: var(--sage-50);
+            border-color: var(--sage-500);
+            color: var(--sage-800);
+            transform: translateY(-2px);
+        }
+
+        .btn-proceed-payment {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--sage-600) 0%, var(--sage-700) 100%);
+            color: white;
+            padding: 1.1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(63, 107, 79, 0.3);
+            border: none;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-proceed-payment:hover {
+            background: linear-gradient(135deg, var(--sage-700) 0%, var(--sage-800) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(63, 107, 79, 0.4);
+        }
+
+        /* ========== POLÍTICA DE CANCELACIÓN ========== */
+        .policy-card-sage {
+            display: flex;
+            gap: 1.25rem;
+            background: var(--card);
+            border: 1px solid var(--sage-200);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .policy-icon-sage {
+            flex-shrink: 0;
+        }
+
+        .policy-icon-sage i {
+            font-size: 1.8rem;
+            color: var(--sage-600);
+        }
+
+        .policy-content-sage {
+        }
+
+        .policy-title-sage {
+            font-weight: 700;
+            color: var(--sage-800);
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .policy-text-sage {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.7;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @@media (max-width: 991px) {
+            .payment-title-sage {
+                font-size: 2.2rem;
+            }
+
+            .payment-card-body {
+                padding: 2rem;
+            }
+
+            .property-image-sage {
+                height: 220px;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .payment-title-sage {
+                font-size: 1.8rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .payment-card-body {
+                padding: 1.5rem;
+            }
+
+            .payment-actions-sage {
+                flex-direction: column;
+            }
+
+            .btn-back-payment,
+            .btn-proceed-payment {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .total-amount-sage {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+}
