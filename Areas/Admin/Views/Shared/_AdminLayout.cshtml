@@ -109,14 +109,16 @@
             <a asp-area="Admin" asp-controller="Reserva" asp-action="Index"><i class="bi bi-calendar-check"></i> Reservas</a>
             <a asp-area="Admin" asp-controller="Usuario" asp-action="Index"><i class="bi bi-people"></i> Usuarios</a>
             <a asp-area="Admin" asp-controller="Reportes" asp-action="Index"><i class="bi bi-graph-up"></i> Reportes</a>
-            <a asp-area="Admin" asp-controller="Ajustes" asp-action="Index"><i class="bi bi-gear"></i> Ajustes</a>
-
-            <form asp-controller="Account" asp-action="Logout" method="post" class="mt-3">
+            <a asp-action="Index" asp-controller="Contacto"asp-action="Index"><i class="bi bi-envelope"></i> Mensajes de Contacto</a>
+            <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post" class="mt-3">
                 @Html.AntiForgeryToken()
-                <button class="btn btn-outline-light w-100" type="submit">
-                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+                <button type="submit" 
+                        class="w-100 btn btn-link text-start" 
+                        style="color:#cfe3d9;font-weight:500;text-decoration:none;">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                 </button>
             </form>
+
         </nav>
     </aside>
 
