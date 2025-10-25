@@ -6,6 +6,9 @@
   --accent: #ef4444;  /* rojo acento */
   --surface: #ffffff;
   --radius: 14px;
+  --sage-50:#f5f7f4; --sage-100:#e9efe6; --sage-200:#dce6d7; --sage-300:#c9d7c2;
+  --sage-400:#a3b18a; --sage-500:#7fa174; --sage-600:#5e8a63; --sage-700:#3f6b4f;
+  --sage-800:#2f5b45; --sage-900:#26453a;
 }
 
 html, body { height: 100%; }
@@ -88,4 +91,19 @@ body.bg-body { background: var(--bg); color: var(--ink); }
 
 .card:hover img {
     transform: scale(1.05);
+}
+.navbar-sage-gradient {
+    /* El degradado que mencionaste, adaptado para la barra superior */
+    background: linear-gradient(90deg, var(--sage-900), #1b2a23 60%, var(--sage-800)) !important; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Borde sutil */
+    
+    /* Asegura que los enlaces y el texto sean blancos sobre el fondo oscuro */
+    color: #fff !important; 
+}
+.navbar-sage-gradient .nav-link,
+.navbar-sage-gradient .navbar-brand {
+    color: #fff !important; 
+}
+.navbar-sage-gradient .nav-link:hover {
+    color: #c9d7c2 !important; /* Color Sage-300 para el hover */
 }
