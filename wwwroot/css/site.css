@@ -145,7 +145,25 @@ body {
     --bs-btn-hover-color: #fff;
 }
 
+.manage-panel-gradient + div .btn-primary, 
+.card .btn-primary {
+    /* Usar el mismo estilo que tu .btn-brand */
+    background: linear-gradient(135deg, var(--sage-700), var(--sage-900)) !important;
+    color: #fff !important;
+    border: none !important;
+    /* Opcional: Ajustar el radio si es necesario */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
 
+.manage-panel-gradient + div .btn-primary:hover,
+.card .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); 
+    color: #fff;
+}
 /* ----------------------------------------
  * 4. PÁGINA PRINCIPAL (HOME)
  * ----------------------------------------

@@ -165,9 +165,10 @@
         
         /* Contenedor del panel lateral (ManageNav) */
         .manage-panel-gradient {
-            /* Degradado oscuro para el fondo del sidebar */
             background: linear-gradient(150deg, var(--sage-800) 0%, var(--sage-900) 100%) !important;
             color: var(--sage-50); 
+            border-radius: var(--radius); /* Asegura esquinas redondeadas */
+            padding: 1rem 0;
         }
 
         /* Estilo para los enlaces de navegación */
@@ -182,14 +183,15 @@
 
         /* Estilo al pasar el ratón */
         .manage-panel-gradient .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.15) !important; 
+            background-color: var(--sage-600) !important; /* Usar un color sólido oscuro de la marca */
             color: #fff !important; 
-            transform: translateX(2px);
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         /* Estilo para el ENLACE ACTIVO */
         .manage-panel-gradient .nav-link.active {
-            background-color: var(--sage-600) !important; 
+            background: linear-gradient(90deg, var(--sage-700), var(--sage-800)) !important;
             color: #fff !important; 
             font-weight: 600;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
