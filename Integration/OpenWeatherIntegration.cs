@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using StayGo.Services;
 
 namespace StayGo.Integration
 {
@@ -12,14 +13,18 @@ namespace StayGo.Integration
         private readonly HttpClient _http;
         private readonly string _apiUrl;
         private readonly string _apiKey;
+        private readonly ICacheService _cache;
+        private readonly IConfiguration _configuration;
 
-        public OpenWeatherIntegration(HttpClient http, IConfiguration configuration)
+        public OpenWeatherIntegration(HttpClient http, IConfiguration configuration, ICacheService cache)
         {
             _http = http ?? throw new ArgumentNullException(nameof(http));
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
             _apiUrl = configuration.GetValue<string>("OpenWeather:ApiUrl")?.TrimEnd('/') + "/" ?? "https://api.openweathermap.org/data/2.5/";
             _apiKey = configuration.GetValue<string>("OpenWeather:ApiKey") ?? string.Empty;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -47,22 +52,33 @@ namespace StayGo.Integration
             };
         }
 
-        // Wrapper con nombre en español usado por el controlador
+        // Wrapper con nombre en español usado por el controlador (con caché)
         public async Task<ClimaDto?> ObtenerClimaAsync(string ciudad)
         {
-            var info = await GetWeatherAsync(ciudad);
-            if (info == null) return null;
+            if (string.IsNullOrWhiteSpace(ciudad)) return null;
 
-            var temperatura = info.Main?.Temp ?? 0.0;
-            var descripcion = info.Weather != null && info.Weather.Count > 0
-                ? info.Weather[0].Description
-                : string.Empty;
+            // Crear clave de caché para la ciudad
+            var cacheKey = $"clima:{ciudad.ToLowerInvariant()}";
+            var cacheExpiration = TimeSpan.FromMinutes(
+                _configuration.GetValue<int>("Redis:CacheExpirationMinutes:Clima", 120));
 
-            return new ClimaDto
+            // Intentar obtener del caché o crear
+            return await _cache.GetOrCreateAsync(cacheKey, async () =>
             {
-                Temperatura = temperatura,
-                Descripcion = descripcion
-            };
+                var info = await GetWeatherAsync(ciudad);
+                if (info == null) return null!;
+
+                var temperatura = info.Main?.Temp ?? 0.0;
+                var descripcion = info.Weather != null && info.Weather.Count > 0
+                    ? info.Weather[0].Description
+                    : string.Empty;
+
+                return new ClimaDto
+                {
+                    Temperatura = temperatura,
+                    Descripcion = descripcion
+                };
+            }, cacheExpiration);
         }
 
         // DTO simple que espera el controlador (Temperatura, Descripcion)
