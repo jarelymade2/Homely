@@ -1,0 +1,172 @@
+@model StayGo.Models.Propiedad
+@using StayGo.Models.Enums
+@{
+    ViewData["Title"] = "Disponibilidad de " + Model.Titulo;
+    var disponibilidades = Model.Disponibilidades.OrderBy(d => d.Desde).ToList();
+    var habitaciones = ViewBag.Habitaciones as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="page-head d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="h4 m-0">@ViewData["Title"]</h2>
+        <a asp-controller="Propiedad" asp-action="Detalles" asp-route-id="@Model.Id" class="text-muted small">
+            <i class="bi bi-arrow-left"></i> Volver a la Propiedad
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- Filtro de habitación para hoteles -->
+        @if (Model.Tipo == TipoPropiedad.Hotel)
+        {
+            <div class="card card-soft mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Filtrar por Habitación</h5>
+                    <select id="habitacionFilter" class="form-select">
+                        <option value="">Todas las habitaciones (vista general)</option>
+                        @foreach (var habitacion in habitaciones)
+                        {
+                            <option value="@habitacion.Value">@habitacion.Text</option>
+                        }
+                    </select>
+                    <div class="form-text">
+                        Selecciona una habitación para ver su disponibilidad específica
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card card-soft mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Agregar Rango</h5>
+                <form asp-action="Crear" method="get">
+                    <input type="hidden" name="propiedadId" value="@Model.Id" />
+                    
+                    @if (Model.Tipo == TipoPropiedad.Hotel)
+                    {
+                        <div class="mb-2">
+                            <label class="form-label small">Habitación (opcional)</label>
+                            <select name="habitacionId" class="form-select">
+                                <option value="">Disponibilidad de propiedad completa</option>
+                                @foreach (var habitacion in habitaciones)
+                                {
+                                    <option value="@habitacion.Value">@habitacion.Text</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Agregar Disponibilidad
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h5>Periodos Activos</h5>
+        @if (disponibilidades.Any())
+        {
+            <div class="list-group">
+                @foreach (var item in disponibilidades)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div>
+                                <strong>@item.Desde.ToString("dd/MM/yy")</strong> al <strong>@item.Hasta.ToString("dd/MM/yy")</strong>
+                            </div>
+                            @if (item.HabitacionId.HasValue)
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-door-closed"></i> Habitación: @item.Habitacion?.Nombre
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-house"></i> Propiedad completa
+                                </small>
+                            }
+                        </div>
+                        <a asp-action="Eliminar" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                           <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No hay periodos de disponibilidad definidos.</div>
+        }
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card card-soft p-3">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var habitacionFilter = document.getElementById('habitacionFilter');
+            var currentHabitacionId = '';
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    var url = '/Admin/Disponibilidad/GetDisponibilidadesJson?propiedadId=@Model.Id';
+                    if (currentHabitacionId) {
+                        url += '&habitacionId=' + currentHabitacionId;
+                    }
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => successCallback(data))
+                        .catch(error => failureCallback(error));
+                },
+                eventDisplay: 'block',
+                eventDidMount: function(info) {
+                    // Tooltip con información adicional
+                    if (info.event.extendedProps.habitacion) {
+                        info.el.setAttribute('title', info.event.extendedProps.habitacion);
+                    }
+                }
+            });
+            
+            calendar.render();
+
+            // Filtro por habitación (solo para hoteles)
+            @if (Model.Tipo == TipoPropiedad.Hotel)
+            {
+                <text>
+                habitacionFilter.addEventListener('change', function() {
+                    currentHabitacionId = this.value;
+                    calendar.refetchEvents();
+                });
+                </text>
+            }
+        });
+    </script>
+}

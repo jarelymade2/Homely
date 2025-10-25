@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StayGo.Data;
 
@@ -10,9 +11,11 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    partial class StayGoContextModelSnapshot : ModelSnapshot
+    [Migration("20251024234723_FixUsuarioIdColumn2")]
+    partial class FixUsuarioIdColumn2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -469,7 +472,7 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Capacidad")
+                    b.Property<int>("Capacidad")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Descripcion")
@@ -622,10 +625,7 @@ namespace StayGo.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdentityUserId")
-                        .IsUnique();
-
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuario");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -876,17 +876,6 @@ namespace StayGo.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("StayGo.Models.Usuario", b =>
-                {
-                    b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
-                        .WithOne("Usuario")
-                        .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IdentityUser");
-                });
-
             modelBuilder.Entity("StayGo.Models.Amenidad", b =>
                 {
                     b.Navigation("PropiedadAmenidades");
@@ -899,8 +888,6 @@ namespace StayGo.Migrations
                     b.Navigation("Resenas");
 
                     b.Navigation("Reservas");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>

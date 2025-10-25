@@ -1,0 +1,26 @@
+@model StayGo.Models.Disponibilidad
+
+@{
+    ViewData["Title"] = "Eliminar Periodo de Disponibilidad";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>¿Estás seguro de que quieres eliminar este periodo?</h3>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-3">Propiedad</dt>
+        <dd class = "col-sm-9">@Model.Propiedad.Titulo</dd>
+        <dt class = "col-sm-3">Desde</dt>
+        <dd class = "col-sm-9">@Model.Desde.ToString("dd/MM/yyyy")</dd>
+        <dt class = "col-sm-3">Hasta</dt>
+        <dd class = "col-sm-9">@Model.Hasta.ToString("dd/MM/yyyy")</dd>
+    </dl>
+    
+    <form asp-action="Eliminar">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Confirmar Eliminación" class="btn btn-danger" /> |
+        <a asp-action="Index" asp-route-propiedadId="@Model.PropiedadId">Volver al Calendario</a>
+    </form>
+</div>

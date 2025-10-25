@@ -11,8 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    [Migration("20251014192036_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20251022083438_AñadirUsuarioaApplicationUser")]
+    partial class AñadirUsuarioaApplicationUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -614,7 +614,10 @@ namespace StayGo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuario");
+                    b.HasIndex("IdentityUserId")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -865,6 +868,17 @@ namespace StayGo.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("StayGo.Models.Usuario", b =>
+                {
+                    b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
+                        .WithOne("Usuario")
+                        .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityUser");
+                });
+
             modelBuilder.Entity("StayGo.Models.Amenidad", b =>
                 {
                     b.Navigation("PropiedadAmenidades");
@@ -877,6 +891,8 @@ namespace StayGo.Migrations
                     b.Navigation("Resenas");
 
                     b.Navigation("Reservas");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>

@@ -38,44 +38,50 @@
         <h2 class="h4 m-0">@Model?.Titulo</h2>
         <div class="text-muted small">ID: @Model?.Id</div>
     </div>
+        <div class="toolbar d-flex flex-wrap gap-2">
+            <a asp-area="Admin"
+            asp-controller="ImagenPropiedad"
+            asp-action="Index"
+            asp-route-propiedadId="@Model!.Id"
+            class="btn btn-outline-sage">
+                <i class="bi bi-images me-1"></i> Gestionar imágenes
+            </a>
 
-    <div class="toolbar d-flex flex-wrap gap-2">
-        <a asp-area="Admin"
-           asp-controller="ImagenPropiedad"
-           asp-action="Index"
-           asp-route-propiedadId="@Model!.Id"
-           class="btn btn-outline-sage">
-            <i class="bi bi-images me-1"></i> Gestionar imágenes
-        </a>
+            <a asp-area="Admin"
+            asp-controller="Disponibilidad"
+            asp-action="Index"
+            asp-route-propiedadId="@Model!.Id"
+            class="btn btn-outline-sage">
+                <i class="bi bi-calendar-check me-1"></i> Gestionar disponibilidad
+            </a>
+            <a asp-area="Admin"
+            asp-controller="Propiedad"
+            asp-action="Editar"
+            asp-route-id="@Model!.Id"
+            class="btn btn-outline-sage">
+                <i class="bi bi-pencil me-1"></i> Editar
+            </a>
 
-        <a asp-area="Admin"
-           asp-controller="Propiedad"
-           asp-action="Editar"
-           asp-route-id="@Model!.Id"
-           class="btn btn-outline-sage">
-            <i class="bi bi-pencil me-1"></i> Editar
-        </a>
+            <form asp-area="Admin"
+                asp-controller="Propiedad"
+                asp-action="Eliminar"
+                method="post"
+                class="d-inline"
+                onsubmit="return confirm('¿Seguro que deseas eliminar esta propiedad? También se eliminarán habitaciones e imágenes asociadas.');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model!.Id" />
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash me-1"></i> Eliminar
+                </button>
+            </form>
 
-        <form asp-area="Admin"
-              asp-controller="Propiedad"
-              asp-action="Eliminar"
-              method="post"
-              class="d-inline"
-              onsubmit="return confirm('¿Seguro que deseas eliminar esta propiedad? También se eliminarán habitaciones e imágenes asociadas.');">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@Model!.Id" />
-            <button type="submit" class="btn btn-outline-danger">
-                <i class="bi bi-trash me-1"></i> Eliminar
-            </button>
-        </form>
-
-        <a asp-area="Admin"
-           asp-controller="Propiedad"
-           asp-action="Index"
-           class="btn btn-sage text-white">
-            <i class="bi bi-arrow-left me-1"></i> Volver
-        </a>
-    </div>
+            <a asp-area="Admin"
+            asp-controller="Propiedad"
+            asp-action="Index"
+            class="btn btn-sage text-white">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
 </div>
 
 <div class="row g-3">

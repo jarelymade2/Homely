@@ -1,6 +1,6 @@
 @model StayGo.Models.Propiedad
 @using System.Globalization
-
+@using System.Security.Claims
 @{
     ViewData["Title"] = Model?.Titulo ?? "Propiedad";
     var cover = Model?.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
@@ -9,7 +9,12 @@
     var ubic = string.Join(", ",
         new[] { Model?.Direccion?.Ciudad, Model?.Direccion?.Pais }
         .Where(s => !string.IsNullOrWhiteSpace(s)));
+    var reseñas = (Model?.Resenas ?? Enumerable.Empty<StayGo.Models.Resena>()).OrderByDescending(r => r.Fecha).ToList();
+    var tieneResenas = reseñas.Any();
+    var promedio = tieneResenas ? reseñas.Average(r => r.Puntuacion) : 0.0;
+    int promedioEntero = (int)Math.Round(promedio); // para mostrar estrellas redondeadas
 }
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
 <div class="container py-4">
@@ -30,40 +35,327 @@
     <span class="badge text-bg-secondary mb-3">Hotel (precio por habitación)</span>
   }
 
+  <!-- Imagen principal -->
   <img src="@cover" class="img-fluid rounded mb-3"
        style="object-fit:cover;max-height:360px;width:100%;" alt="@Model?.Titulo" />
+
+  <!-- Imagen de Unsplash -->
+  @if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
+  {
+      <img src="@ViewBag.ImagenUnsplash" class="img-fluid rounded mb-3"
+           style="object-fit:cover;max-height:360px;width:100%;" alt="@Model?.Titulo" />
+  }
 
   <p>@Model?.Descripcion</p>
 
   <div class="border rounded p-3 bg-light my-3">
-    <strong>Mapa (placeholder)</strong>
+    <strong>Ubicación</strong>
     <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
-    <div style="height:180px;background:#e9ecef;border-radius:.5rem;"
-         class="d-flex align-items-center justify-content-center">
-      <span class="text-secondary">[Aquí iría el mapa]</span>
-    </div>
+
+    <!--RESERVA-->
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        @if (Model?.Tipo == StayGo.Models.TipoPropiedad.Hotel)
+        {
+            <!-- RESERVA PARA HOTEL (por habitación) -->
+            <div class="mt-3">
+                <h5><i class="bi bi-door-open"></i> Habitaciones Disponibles</h5>
+                @if (Model?.Habitaciones?.Any() == true)
+                {
+                    <div class="row g-3 mt-2">
+                        @foreach (var habitacion in Model.Habitaciones)
+                        {
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">@habitacion.Nombre</h6>
+                                        <p class="card-text small text-muted mb-2">
+                                            <i class="bi bi-people"></i> Capacidad: @habitacion.Capacidad personas<br/>
+                                            @if (habitacion.TipoCama.HasValue)
+                                            {
+                                                <i class="bi bi-bed"></i> <text>Cama: @habitacion.TipoCama</text><br/>
+                                            }
+                                            @if (!string.IsNullOrEmpty(habitacion.Numero))
+                                            {
+                                                <i class="bi bi-hash"></i> <text>Número: @habitacion.Numero</text>
+                                            }
+                                        </p>
+                                        <div class="fw-bold text-primary mb-2">
+                                            @habitacion.PrecioPorNoche.ToString("C", pe) <small class="text-muted">/ noche</small>
+                                        </div>
+                                        <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get">
+                                            <input type="hidden" name="propiedadId" value="@Model?.Id" />
+                                            <input type="hidden" name="habitacionId" value="@habitacion.Id" />
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label small">Check-in</label>
+                                                    <input type="date" name="checkin" class="form-control form-control-sm" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small">Check-out</label>
+                                                    <input type="date" name="checkout" class="form-control form-control-sm" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Huéspedes</label>
+                                                <input type="number" name="huespedes" class="form-control form-control-sm" value="1" min="1" max="@habitacion.Capacidad" />
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                <i class="bi bi-credit-card"></i> Reservar Habitación
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning mt-2">
+                        <i class="bi bi-exclamation-triangle"></i> Este hotel no tiene habitaciones disponibles en este momento.
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- RESERVA PARA CASA/DEPARTAMENTO (propiedad completa) -->
+            <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get" class="row g-2 align-items-end mb-3 mt-3">
+                <input type="hidden" name="propiedadId" value="@Model?.Id" />
+                <div class="col-auto">
+                    <label class="form-label small">Check-in</label>
+                    <input type="date" name="checkin" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small">Check-out</label>
+                    <input type="date" name="checkout" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small">Huéspedes</label>
+                    <input type="number" name="huespedes" class="form-control" value="1" min="1" />
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-credit-card"></i> Reservar y Pagar
+                    </button>
+                </div>
+            </form>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle"></i>
+            <strong>Inicia sesión para reservar</strong>
+            <p class="mb-2 mt-2">Para hacer una reserva, necesitas tener una cuenta en StayGo.</p>
+            <a asp-area="Identity" asp-page="/Account/Login"
+               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+               class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+            </a>
+            <a asp-area="Identity" asp-page="/Account/Register"
+               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+               class="btn btn-sm btn-success">
+                <i class="bi bi-person-plus"></i> Crear cuenta
+            </a>
+        </div>
+    }
+
+    <!-- 🌤️ Clima actual -->
+    @if (ViewBag.Temp != null && ViewBag.Clima != null)
+    {
+        <div class="mt-2">
+            <i class="bi bi-cloud-sun"></i>
+            <span><strong>Clima:</strong> @ViewBag.Clima, @ViewBag.Temp&nbsp;°C</span>
+        </div>
+    }
+
+    <!-- Mapa -->
+    <div id="map" style="height:300px;border-radius:.5rem;margin-top:10px;"></div>
   </div>
 
-  <!-- Solo lectura en feat/public -->
+  <!-- Botón volver -->
   <div class="mb-4">
     <a asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-secondary">
       ← Volver a propiedades
     </a>
   </div>
 
-  <h4>Reseñas (@(Model?.Resenas?.Count ?? 0))</h4>
-  @if (Model?.Resenas == null || !Model.Resenas.Any())
+  <!-- ===== RESEÑAS HEADER ===== -->
+  <h4 class="mt-4">Reseñas (@(Model?.Resenas?.Count ?? 0))</h4>
+
+  <!-- MENSAJES DE ÉXITO/ERROR -->
+  @if (TempData["Success"] != null)
   {
-    <div class="text-muted">Aún no hay reseñas.</div>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+  }
+
+  @if (TempData["Error"] != null)
+  {
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+  }
+
+  <!-- Puntuación promedio -->
+  @if (tieneResenas)
+  {
+      <div class="mb-3">
+          <span class="text-warning">
+              @for (int i = 1; i <= 5; i++)
+              {
+                  if (i <= promedioEntero)
+                  {
+                      <i class="bi bi-star-fill"></i>
+                  }
+                  else if (i == promedioEntero + 1 && promedio > promedioEntero)
+                  {
+                      <i class="bi bi-star-half"></i>
+                  }
+                  else
+                  {
+                      <i class="bi bi-star"></i>
+                  }
+              }
+          </span>
+          <span class="text-muted ms-2">@promedio.ToString("F1") de 5 (@reseñas.Count @(reseñas.Count == 1 ? "reseña" : "reseñas"))</span>
+      </div>
+  }
+
+  <!-- Lista de reseñas -->
+  @if (!tieneResenas)
+  {
+      <div class="text-center py-4 text-muted">
+          <i class="bi bi-chat-quote display-4"></i>
+          <p class="mt-2">Aún no hay reseñas para esta propiedad.</p>
+          <p class="small">Sé el primero en compartir tu experiencia.</p>
+      </div>
   }
   else
   {
-    @foreach (var r in Model.Resenas.OrderByDescending(x => x.Fecha))
-    {
-      <div class="border-bottom py-2">
-        <div class="small text-muted">@r.Fecha.ToShortDateString() — ⭐ @r.Puntuacion/5</div>
-        <div>@r.Comentario</div>
+      <div class="list-group">
+          @foreach (var r in reseñas)
+          {
+              <div class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                          <div class="small text-muted">
+                              @r.Fecha.ToLocalTime().ToString("yyyy-MM-dd") —
+                              @for (int s = 1; s <= 5; s++)
+                              {
+                                  if (s <= r.Puntuacion) { <i class="bi bi-star-fill text-warning"></i> }
+                                  else { <i class="bi bi-star text-muted"></i> }
+                              }
+                              <span class="ms-2">/@r.Puntuacion/5</span>
+                          </div>
+
+                          <div class="fw-semibold">
+                              @if (r.Usuario != null)
+                              {
+                                  @r.Usuario.UserName
+                              }
+                              else
+                              {
+                                  @r.UsuarioId
+                              }
+                          </div>
+                      </div>
+
+                      <div class="text-end">
+                          @* Mostrar botón eliminar solo al autor o admin *@
+                          @{
+                              var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                              var isAuthor = userId != null && userId == r.UsuarioId;
+                              var isAdmin = User.IsInRole("Admin");
+                          }
+                          @if (isAuthor || isAdmin)
+                          {
+                              <form asp-controller="Resena" asp-action="Delete" method="post" onsubmit="return confirm('¿Eliminar reseña?');">
+                                  @Html.AntiForgeryToken()
+                                  <input type="hidden" name="id" value="@r.Id" />
+                                  <button type="submit" class="btn btn-link text-danger btn-sm">Eliminar</button>
+                              </form>
+                          }
+                      </div>
+                  </div>
+
+                  <div class="mt-2">@r.Comentario</div>
+              </div>
+          }
       </div>
-    }
+  }
+
+  <hr />
+
+  <!-- Formulario para dejar reseña -->
+  @if (User.Identity?.IsAuthenticated ?? false)
+  {
+      <div class="mt-3">
+          <h5>Dejar una reseña</h5>
+          <form asp-controller="Resena" asp-action="Create" method="post" class="mt-2">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="propiedadId" value="@Model?.Id.ToString()" />
+
+              <div class="mb-2">
+                  <label class="form-label">Puntuación</label>
+                  <select name="puntuacion" class="form-select" required>
+                      <option value="">Selecciona...</option>
+                      <option value="5">⭐ 5 - Excelente</option>
+                      <option value="4">⭐ 4 - Muy bueno</option>
+                      <option value="3">⭐ 3 - Aceptable</option>
+                      <option value="2">⭐ 2 - Regular</option>
+                      <option value="1">⭐ 1 - Malo</option>
+                  </select>
+              </div>
+
+              <div class="mb-3">
+                  <label class="form-label">Comentario</label>
+                  <textarea name="comentario" class="form-control" rows="3" maxlength="300" placeholder="Escribe tu opinión..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Enviar reseña</button>
+          </form>
+      </div>
+  }
+  else
+  {
+      <div class="alert alert-light mt-3">
+          <i class="bi bi-lock"></i> Inicia sesión para dejar una reseña.
+      </div>
   }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Coordenadas desde el modelo o por defecto (Lima)
+            var lat = @((Model?.Lat ?? -12.0464).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var lng = @((Model?.Lng ?? -77.0428).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            // Inicializar mapa
+            var map = L.map('map').setView([lat, lng], 14);
+
+            // Capa base (OpenStreetMap gratuito)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> colaboradores'
+            }).addTo(map);
+
+            // Marcador
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("<b>@Model?.Titulo</b><br>@ubic")
+                .openPopup();
+        });
+    </script>
+}

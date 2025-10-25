@@ -1,0 +1,189 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Confirmar Reserva y Pagar";
+    var propiedad = ViewBag.Propiedad as StayGo.Models.Propiedad;
+    var habitacion = ViewBag.Habitacion as StayGo.Models.Habitacion;
+    var checkIn = (DateOnly)ViewBag.CheckIn;
+    var checkOut = (DateOnly)ViewBag.CheckOut;
+    var huespedes = (int)ViewBag.Huespedes;
+    var noches = (int)ViewBag.Noches;
+    var precioTotal = (decimal)ViewBag.PrecioTotal;
+    var pe = new CultureInfo("es-PE");
+
+    var imagenPrincipal = propiedad?.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
+                          ?? "https://placehold.co/600x400?text=Sin+imagen";
+
+    var esHotel = propiedad?.Tipo == StayGo.Models.TipoPropiedad.Hotel;
+    var precioPorNoche = habitacion?.PrecioPorNoche ?? propiedad?.PrecioPorNoche ?? 0;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-credit-card"></i> Confirmar Reserva y Pagar
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la Propiedad -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <img src="@imagenPrincipal" class="img-fluid rounded" alt="@propiedad?.Titulo" style="object-fit: cover; height: 200px; width: 100%;" />
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="fw-bold">@propiedad?.Titulo</h5>
+                            @if (esHotel && habitacion != null)
+                            {
+                                <div class="badge bg-info text-dark mb-2">
+                                    <i class="bi bi-door-open"></i> @habitacion.Nombre
+                                </div>
+                            }
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-geo-alt"></i>
+                                @propiedad?.Direccion?.Ciudad, @propiedad?.Direccion?.Pais
+                            </p>
+                            @if (esHotel && habitacion != null)
+                            {
+                                <p class="mb-0 small">
+                                    <i class="bi bi-people"></i> Capacidad: @habitacion.Capacidad personas
+                                    @if (habitacion.TipoCama.HasValue)
+                                    {
+                                        <br/><i class="bi bi-bed"></i> <text>Cama: @habitacion.TipoCama</text>
+                                    }
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="mb-0">@propiedad?.Descripcion</p>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Detalles de la Reserva -->
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-check"></i> Detalles de la Reserva
+                    </h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small text-muted">Check-in</div>
+                                <div class="fw-bold">
+                                    <i class="bi bi-calendar-event"></i> 
+                                    @checkIn.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small text-muted">Check-out</div>
+                                <div class="fw-bold">
+                                    <i class="bi bi-calendar-event"></i> 
+                                    @checkOut.ToString("dddd, dd MMMM yyyy", new CultureInfo("es-ES"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small text-muted">Huéspedes</div>
+                                <div class="fw-bold">
+                                    <i class="bi bi-people"></i> @huespedes @(huespedes == 1 ? "persona" : "personas")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small text-muted">Noches</div>
+                                <div class="fw-bold">
+                                    <i class="bi bi-moon-stars"></i> @noches @(noches == 1 ? "noche" : "noches")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Resumen de Precio -->
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-cash-stack"></i> Resumen de Precio
+                    </h5>
+
+                    <div class="border rounded p-3 bg-light mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>
+                                @precioPorNoche.ToString("C", pe) x @noches @(noches == 1 ? "noche" : "noches")
+                                @if (esHotel && habitacion != null)
+                                {
+                                    <br/><small class="text-muted">Habitación: @habitacion.Nombre</small>
+                                }
+                            </span>
+                            <span>@precioTotal.ToString("C", pe)</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <strong class="fs-5">Total</strong>
+                            <strong class="fs-5 text-primary">@precioTotal.ToString("C", pe)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Información de MercadoPago -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Pago seguro con MercadoPago</strong>
+                        <p class="mb-0 small mt-2">
+                            Serás redirigido a MercadoPago para completar tu pago de forma segura. 
+                            Aceptamos tarjetas de crédito y débito.
+                        </p>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-flex gap-2 justify-content-between">
+                        <a asp-area="" asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedad?.Id" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        
+                        <form asp-area="" asp-controller="Pago" asp-action="ProcesarPago" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="propiedadId" value="@propiedad?.Id" />
+                            @if (habitacion != null)
+                            {
+                                <input type="hidden" name="habitacionId" value="@habitacion.Id" />
+                            }
+                            <input type="hidden" name="checkin" value="@checkIn.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="checkout" value="@checkOut.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="huespedes" value="@huespedes" />
+
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-credit-card"></i> Proceder al Pago
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-shield-check"></i> Política de Cancelación
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Cancelación gratuita hasta 48 horas antes del check-in. 
+                        Después de ese período, se aplicará un cargo del 50% del total de la reserva.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
