@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Servicio de Redis
+  redis:
+    image: redis:7-alpine
+    container_name: staygo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - staygo-network
+
+  # Servicio de la aplicación StayGo (opcional)
+  # Descomenta si quieres correr la app también en Docker
+  # staygo-app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: staygo-app
+  #   ports:
+  #     - "5000:8080"
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ConnectionStrings__Redis=redis:6379
+  #     - Redis__Configuration=redis:6379
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - staygo-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  staygo-network:
+    driver: bridge
+

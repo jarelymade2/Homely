@@ -1,38 +1,64 @@
 @model StayGo.Models.ContactoMensaje
 @{
     ViewData["Title"] = "Detalles del Mensaje";
+    // Asumo que tienes Bootstrap Icons disponible (bi)
 }
 
-<div class="container-fluid">
+<!-- 
+  Cambiamos 'content' por 'container-fluid py-4' para que
+  ocupe todo el ancho y tenga padding vertical.
+-->
+<div class="container-fluid py-4">
+    
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@ViewData["Title"]</h1>
+        <!-- 
+          Quitamos el color en línea para que herede el --ink (negro)
+        -->
+        <h2 class="mb-0" style="font-weight: 600;">@ViewData["Title"]</h2>
         <div>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver a la lista
+            <!-- 
+              Usamos 'btn-outline-sage' de tu CSS
+            -->
+            <a asp-action="Index" class="btn btn-outline-sage">
+                <i class="bi bi-arrow-left"></i> Volver a la lista
             </a>
         </div>
     </div>
 
-    <!-- Tarjeta de información del mensaje -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+    <!-- 
+      Usamos 'filter-card' de tu CSS para la tarjeta principal
+    -->
+    <div class="filter-card border-0">
+        <!-- 
+          Aplicamos un estilo de encabezado personalizado 
+          que usa la paleta 'sage'.
+        -->
+        <div class="card-header sage-header">
+            <!-- 
+              Quitamos el color en línea para que herede el --ink (negro)
+            -->
             <h5 class="card-title mb-0">
-                <i class="fas fa-envelope me-2"></i>Mensaje de @Model.Nombre
+                <i class="bi bi-envelope-open me-2"></i>Mensaje de @Model.Nombre
             </h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
+            
             <!-- Información básica -->
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="info-item">
-                        <strong><i class="fas fa-user me-2"></i>Nombre:</strong>
+                        <strong><i class="bi bi-person me-2"></i>Nombre:</strong>
                         <span class="ms-2">@Model.Nombre</span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="info-item">
-                        <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                        <strong><i class="bi bi-envelope me-2"></i>Email:</strong>
+                        <!-- 
+                          Quitamos el color en línea para que herede el --ink (negro)
+                          o el color de enlace por defecto.
+                        -->
                         <a href="mailto:@Model.Email" class="ms-2">@Model.Email</a>
                     </div>
                 </div>
@@ -42,24 +68,27 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="info-item">
-                        <strong><i class="fas fa-calendar me-2"></i>Fecha de envío:</strong>
+                        <strong><i class="bi bi-calendar-event me-2"></i>Fecha de envío:</strong>
                         <span class="ms-2">@Model.FechaLocal.ToString("dd/MM/yyyy 'a las' HH:mm")</span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="info-item">
-                        <strong><i class="fas fa-user-tag me-2"></i>Tipo de usuario:</strong>
+                        <strong><i class="bi bi-person-badge me-2"></i>Tipo de usuario:</strong>
                         <span class="ms-2">
                             @if (!string.IsNullOrEmpty(Model.IdentityUserId))
                             {
-                                <span class="badge bg-success">
-                                    <i class="fas fa-user-check me-1"></i>Usuario Registrado
+                                <!-- 
+                                  Usamos 'badge-type' de tu CSS
+                                -->
+                                <span class="badge badge-type">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Usuario Registrado
                                 </span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-user me-1"></i>Visitante
+                                <span class="badge" style="background-color: var(--muted); color: var(--card);">
+                                    <i class="bi bi-person me-1"></i>Visitante
                                 </span>
                             }
                         </span>
@@ -71,16 +100,19 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="info-item">
-                        <strong><i class="fas fa-fingerprint me-2"></i>ID del mensaje:</strong>
-                        <code class="ms-2 small">@Model.Id</code>
+                        <strong><i class="bi bi-fingerprint me-2"></i>ID del mensaje:</strong>
+                        <!-- 
+                          Cambiamos el color del texto a uno más oscuro
+                        -->
+                        <code class="ms-2 small" style="background: var(--sage-100); color: var(--sage-800); padding: 2px 5px; border-radius: 4px;">@Model.Id</code>
                     </div>
                 </div>
             </div>
 
             <!-- Mensaje completo -->
             <div class="mb-3">
-                <strong><i class="fas fa-comment me-2"></i>Mensaje:</strong>
-                <div class="border rounded p-3 mt-2 bg-light message-content">
+                <strong><i class="bi bi-chat-text me-2"></i>Mensaje:</strong>
+                <div class="border rounded p-3 mt-2 message-content">
                     @Html.Raw(Model.Mensaje.Replace("\n", "<br/>"))
                 </div>
             </div>
@@ -88,18 +120,25 @@
             <!-- Información adicional si es usuario registrado -->
             @if (!string.IsNullOrEmpty(Model.IdentityUserId))
             {
-                <div class="alert alert-info mt-3">
-                    <h6><i class="fas fa-info-circle me-2"></i>Información adicional</h6>
-                    <p class="mb-0">
+                <!-- 
+                  Cambiamos 'alert-sage' por 'alert-light' para 
+                  reducir el color verde.
+                -->
+                <div class="alert alert-light mt-3" style="border-color: var(--sage-200);">
+                    <h6 class="mb-1"><i class="bi bi-info-circle-fill me-2"></i>Información adicional</h6>
+                    <p class="mb-0 small">
                         Este mensaje fue enviado por un usuario registrado. 
-                        ID de usuario: <code>@Model.IdentityUserId</code>
+                        ID de usuario: <code style="background: var(--sage-200); color: var(--sage-800); padding: 2px 5px; border-radius: 4px;">@Model.IdentityUserId</code>
                     </p>
                 </div>
             }
         </div>
         
-        <!-- Footer con acciones -->
-        <div class="card-footer bg-light">
+        <!-- 
+          Footer con acciones: quitamos el fondo verde claro
+          y usamos 'bg-light' de Bootstrap.
+        -->
+        <div class="card-footer bg-light" style="border-top: 1px solid #e9ecef;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <small class="text-muted">
@@ -107,15 +146,19 @@
                     </small>
                 </div>
                 <div class="btn-group">
+                    <!-- 
+                      Cambiamos 'btn-sage' (sólido) por 'btn-outline-sage' 
+                      para reducir el color verde.
+                    -->
                     <a href="mailto:@Model.Email?subject=Respuesta a tu mensaje de contacto&body=Hola @Model.Nombre,%0A%0AEn respuesta a tu mensaje:%0A%0A@Uri.EscapeDataString(Model.Mensaje)" 
-                       class="btn btn-success">
-                        <i class="fas fa-reply me-1"></i> Responder
+                       class="btn btn-outline-sage btn-sm">
+                        <i class="bi bi-reply-fill me-1"></i> Responder
                     </a>
                     <form asp-action="Eliminar" method="post" class="d-inline">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="btn btn-danger ms-2" 
+                        <button type="submit" class="btn btn-outline-danger btn-sm ms-2" 
                                 onclick="return confirm('¿Estás seguro de que quieres eliminar este mensaje? Esta acción no se puede deshacer.')">
-                            <i class="fas fa-trash me-1"></i> Eliminar
+                            <i class="bi bi-trash-fill me-1"></i> Eliminar
                         </button>
                     </form>
                 </div>
@@ -123,43 +166,39 @@
         </div>
     </div>
 
-    <!-- Navegación rápida -->
-    <div class="mt-4 d-flex justify-content-between">
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fas fa-list me-1"></i> Ver todos los mensajes
-        </a>
-        <div>
-            <small class="text-muted">
-                Mensaje recibido el @Model.FechaUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC
-            </small>
-        </div>
-    </div>
+
 </div>
 
 <style>
     .info-item {
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--sage-100);
+        font-size: 0.95rem;
     }
+    /* Quitamos la regla de color para 'strong' 
+      para que herede el --ink (negro).
+    */
 
     .message-content {
         white-space: pre-wrap;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         line-height: 1.6;
+        /* Cambiamos el fondo a uno neutral 'bg-light' 
+          y un borde estándar.
+        */
         background: #f8f9fa !important;
+        border-color: #e9ecef !important;
+        color: var(--ink);
     }
 
-    .card {
-        border: none;
-        border-radius: 10px;
+    .sage-header {
+        background: linear-gradient(0deg,var(--sage-100),var(--sage-100));
+        border-bottom: 1px solid var(--sage-200);
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius) var(--radius) 0 0 !important;
     }
-
-    .card-header {
-        border-radius: 10px 10px 0 0 !important;
-        font-weight: 600;
-    }
-
-    .badge {
-        font-size: 0.8em;
-    }
+    
+    /* Eliminamos la clase 'alert-sage' ya que 
+      la reemplazamos por 'alert-light'
+    */
 </style>

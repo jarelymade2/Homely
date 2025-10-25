@@ -2,222 +2,238 @@
 
 @{
     ViewData["Title"] = "Gestión de Reservas";
+    // Asumo que tienes Bootstrap Icons disponible (bi)
 }
 
-<h1>@ViewData["Title"]</h1>
+<!-- 
+  Usamos 'container-fluid py-4' para que
+  ocupe el 100% del ancho disponible.
+-->
+<div class="container-fluid py-4">
 
-<p>
-    <a asp-action="Crear" class="btn btn-primary">Crear Nueva Reserva</a>
-</p>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- 
+      Encabezado de página con degradado sutil
+    -->
+    <div class="page-head mb-4" style="
+        background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), 
+                    radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), 
+                    linear-gradient(135deg, var(--sage-50), var(--sage-100));
+        border: 1px solid var(--sage-200);
+        box-shadow: 0 12px 30px rgba(36,48,54,.1);
+        border-radius: var(--radius);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    ">
+        <div>
+            <h2 class="mb-0" style="font-weight: 700; color: var(--ink);">@ViewData["Title"]</h2>
+            <p class="mb-0 text-muted">Administra todas las reservas de la plataforma.</p>
+        </div>
+        <a asp-action="Crear" class="btn btn-sage" style="background-color: var(--c-blue-text); border-color: var(--c-blue-text);">
+            <i class="bi bi-plus-lg"></i> Crear Nueva Reserva
+        </a>
     </div>
-}
 
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Alertas personalizadas -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success-custom alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger-custom alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Estadísticas rápidas: con colores variados -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card blue p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count()</h3>
+                <p class="card-text text-muted mb-0">Total Reservas</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card amber p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente)</h3>
+                <p class="card-text text-muted mb-0">Pendientes</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card green p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)</h3>
+                <p class="card-text text-muted mb-0">Confirmadas</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card grey p-3 text-center">
+                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && r.CheckIn <= DateOnly.FromDateTime(DateTime.Today) && r.CheckOut >= DateOnly.FromDateTime(DateTime.Today))</h3>
+                <p class="card-text text-muted mb-0">En curso</p>
+            </div>
+        </div>
     </div>
-}
 
-<div class="card">
-    <div class="card-body">
-        <table class="table table-striped table-hover" id="reservasTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>Propiedad / Habitación</th>
-                    <th>Cliente</th>
-                    <th>Fechas</th>
-                    <th>Huéspedes</th>
-                    <th>Precio Total</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="fw-bold">@Html.DisplayFor(modelItem => item.Propiedad.Titulo)</div>
-                            <small class="text-muted">@item.Propiedad.Tipo</small>
-                            @if (item.Habitacion != null)
-                            {
-                                <div class="mt-1">
-                                    <span class="badge bg-secondary">Habitación: @item.Habitacion.Nombre</span>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="mt-1">
-                                    <span class="badge bg-light text-dark">Propiedad completa</span>
-                                </div>
-                            }
-                        </td>
-                        <td>
-                            <div>@Html.DisplayFor(modelItem => item.Usuario.Email)</div>
-                            <small class="text-muted">@item.Usuario.FirstName @item.Usuario.LastName</small>
-                        </td>
-                        <td>
-                            <div class="fw-bold">@item.CheckIn.ToString("dd/MM/yyyy")</div>
-                            <div class="text-muted">al</div>
-                            <div class="fw-bold">@item.CheckOut.ToString("dd/MM/yyyy")</div>
-                            <small class="text-muted">
-                                (@((item.CheckOut.DayNumber - item.CheckIn.DayNumber)) noches)
-                            </small>
-                        </td>
-                        <td>
-                            <span class="badge bg-primary">@item.Huespedes huésped(es)</span>
-                        </td>
-                        <td>
-                            <span class="fw-bold text-success">$@item.PrecioTotal.ToString("N2")</span>
-                        </td>
-                        <td>
-                            @{
-                                var badgeClass = item.Estado switch
-                                {
-                                    StayGo.Models.Enums.EstadoReserva.Pendiente => "bg-warning",
-                                    StayGo.Models.Enums.EstadoReserva.Confirmada => "bg-success",
-                                    StayGo.Models.Enums.EstadoReserva.Cancelada => "bg-danger",
-                                    StayGo.Models.Enums.EstadoReserva.Rechazada => "bg-dark",
-                                    StayGo.Models.Enums.EstadoReserva.Finalizada => "bg-secondary",
-                                    _ => "bg-light text-dark"
-                                };
-
-                                var estadoTexto = item.Estado switch
-                                {
-                                    StayGo.Models.Enums.EstadoReserva.Pendiente => "Pendiente",
-                                    StayGo.Models.Enums.EstadoReserva.Confirmada => "Confirmada",
-                                    StayGo.Models.Enums.EstadoReserva.Cancelada => "Cancelada",
-                                    StayGo.Models.Enums.EstadoReserva.Rechazada => "Rechazada",
-                                    StayGo.Models.Enums.EstadoReserva.Finalizada => "Finalizada",
-                                    _ => item.Estado.ToString()
-                                };
-                            }
-                            <span class="badge @badgeClass">@estadoTexto</span>
-                            
-                            @* Mostrar badge "En curso" para reservas confirmadas que están activas *@
-                            @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && 
-                                 item.CheckIn <= DateOnly.FromDateTime(DateTime.Today) && 
-                                 item.CheckOut >= DateOnly.FromDateTime(DateTime.Today))
-                            {
-                                <div class="mt-1">
-                                    <span class="badge bg-info">En curso</span>
-                                </div>
-                            }
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning" title="Editar reserva">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                                
-                                @* Mostrar botón Cancelar solo para reservas pendientes o confirmadas *@
-                                @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente || 
-                                     item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)
-                                {
-                                    <a asp-action="Cancel" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Cancelar reserva">
-                                        <i class="fas fa-times"></i> Cancelar
-                                    </a>
-                                }
-                                
-                                @* Botón para marcar como Finalizada *@
-                                @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && 
-                                     item.CheckOut < DateOnly.FromDateTime(DateTime.Today))
-                                {
-                                    <form asp-action="Finalizar" asp-route-id="@item.Id" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Marcar como finalizada">
-                                            <i class="fas fa-check"></i> Finalizar
-                                        </button>
-                                    </form>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Filtros -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Filtros</h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <label class="form-label">Estado:</label>
-                <select class="form-select" id="estadoFilter">
+    <!-- Tarjeta principal para la tabla y filtros -->
+    <div class="filter-card border-0" style="
+        background-color: var(--card); /* Fondo blanco para contraste */
+        box-shadow: var(--shadow); /* Sombra para resaltar */
+    ">
+        <!-- Encabezado de tarjeta que combina título y filtros -->
+        <div class="card-header sage-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="
+            background-color: var(--card); /* Fondo blanco */
+            border-bottom: 1px solid var(--sage-100); /* Borde sutil */
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius) var(--radius) 0 0 !important;
+            color: var(--ink); /* Texto negro */
+        ">
+            <h5 class="mb-0" style="color: var(--ink);">Lista de Reservas</h5>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="estadoFilter" style="border-color: var(--sage-200); color: var(--ink);">
                     <option value="">Todos los estados</option>
                     <option value="Pendiente">Pendiente</option>
                     <option value="Confirmada">Confirmada</option>
                     <option value="Cancelada">Cancelada</option>
                     <option value="Rechazada">Rechazada</option>
                     <option value="Finalizada">Finalizada</option>
+                    <option value="En curso">En curso</option>
                 </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Tipo Propiedad:</label>
-                <select class="form-select" id="tipoFilter">
+                <select class="form-select form-select-sm" id="tipoFilter" style="border-color: var(--sage-200); color: var(--ink);">
                     <option value="">Todos los tipos</option>
                     <option value="Hotel">Hotel</option>
                     <option value="Casa">Casa</option>
                     <option value="Departamento">Departamento</option>
                 </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Mostrar:</label>
-                <select class="form-select" id="mostrarFilter">
+                <select class="form-select form-select-sm" id="mostrarFilter" style="border-color: var(--sage-200); color: var(--ink);">
                     <option value="todas">Todas las reservas</option>
-                    <option value="hoy">Reservas de hoy</option>
-                    <option value="futuras">Futuras reservas</option>
-                    <option value="pasadas">Reservas pasadas</option>
+                    <option value="hoy">En curso hoy</option>
+                    <option value="futuras">Futuras</option>
+                    <option value="pasadas">Pasadas</option>
                 </select>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Estadísticas rápidas -->
-<div class="row mt-4">
-    <div class="col-md-2">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">@Model.Count()</h5>
-                <p class="card-text">Total Reservas</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente)</h5>
-                <p class="card-text">Pendientes</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)</h5>
-                <p class="card-text">Confirmadas</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && r.CheckIn <= DateOnly.FromDateTime(DateTime.Today) && r.CheckOut >= DateOnly.FromDateTime(DateTime.Today))</h5>
-                <p class="card-text">En curso</p>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="border-radius: var(--radius); overflow: hidden;">
+                <table class="table table-hover mb-0" id="reservasTable">
+                    <thead>
+                        <tr>
+                            <th>Propiedad / Habitación</th>
+                            <th>Cliente</th>
+                            <th>Fechas</th>
+                            <th>Huéspedes</th>
+                            <th>Precio Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var estadoTexto = item.Estado switch
+                            {
+                                StayGo.Models.Enums.EstadoReserva.Pendiente => "Pendiente",
+                                StayGo.Models.Enums.EstadoReserva.Confirmada => "Confirmada",
+                                StayGo.Models.Enums.EstadoReserva.Cancelada => "Cancelada",
+                                StayGo.Models.Enums.EstadoReserva.Rechazada => "Rechazada",
+                                StayGo.Models.Enums.EstadoReserva.Finalizada => "Finalizada",
+                                _ => item.Estado.ToString()
+                            };
+
+                            bool enCurso = item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
+                                           item.CheckIn <= DateOnly.FromDateTime(DateTime.Today) &&
+                                           item.CheckOut >= DateOnly.FromDateTime(DateTime.Today);
+                            
+                            var estadoFinal = enCurso ? "En curso" : estadoTexto;
+
+                            <tr data-estado="@estadoFinal"
+                                data-tipo="@item.Propiedad.Tipo"
+                                data-checkin="@item.CheckIn.ToString("yyyy-MM-dd")"
+                                data-checkout="@item.CheckOut.ToString("yyyy-MM-dd")">
+                                <td>
+                                    <div class="fw-bold" style="color: var(--ink);">@Html.DisplayFor(modelItem => item.Propiedad.Titulo)</div>
+                                    <small class="text-muted">@item.Propiedad.Tipo</small>
+                                    @if (item.Habitacion != null)
+                                    {
+                                        <div class="mt-1">
+                                            <span class="badge badge-muted" style="font-size: 0.7rem;">Hab: @item.Habitacion.Nombre</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mt-1">
+                                            <span class="badge badge-muted" style="font-size: 0.7rem;">Propiedad completa</span>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="color: var(--ink);">@Html.DisplayFor(modelItem => item.Usuario.Email)</div>
+                                    <small class="text-muted">@item.Usuario.FirstName @item.Usuario.LastName</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--ink);">@item.CheckIn.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted" style="line-height: 1;">al</div>
+                                    <div class="fw-bold" style="color: var(--ink);">@item.CheckOut.ToString("dd/MM/yyyy")</div>
+                                    <small class="text-muted">
+                                        (@((item.CheckOut.DayNumber - item.CheckIn.DayNumber)) noches)
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-total" style="font-size: 0.8rem;">@item.Huespedes</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold" style="color: var(--c-green-text);">@item.PrecioTotal.ToString("C")</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var badgeClass = estadoFinal switch
+                                        {
+                                            "Pendiente" => "badge-amber",
+                                            "Confirmada" => "badge-activo",
+                                            "En curso" => "badge-total",
+                                            "Cancelada" => "badge-danger",
+                                            "Rechazada" => "badge-danger",
+                                            "Finalizada" => "badge-muted",
+                                            _ => "badge-muted"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@estadoFinal</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-amber" title="Editar reserva">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        
+                                        @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente ||
+                                             item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)
+                                        {
+                                            <a asp-action="Cancel" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Cancelar reserva">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
+                                        }
+                                        
+                                        @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
+                                             item.CheckOut < DateOnly.FromDateTime(DateTime.Today))
+                                        {
+                                            <form asp-action="Finalizar" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-success" title="Marcar como finalizada">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -226,57 +242,59 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Filtro por estado
-            $('#estadoFilter').change(function() {
-                var estado = $(this).val();
-                $('#reservasTable tbody tr').show();
+            
+            // Función de filtro unificada
+            function filtrarTabla() {
+                var estado = $('#estadoFilter').val();
+                var tipo = $('#tipoFilter').val();
+                var mostrar = $('#mostrarFilter').val();
                 
-                if (estado) {
-                    $('#reservasTable tbody tr').each(function() {
-                        var rowEstado = $(this).find('td:nth-child(6) .badge').first().text().trim();
-                        if (rowEstado !== estado) {
-                            $(this).hide();
-                        }
-                    });
-                }
-            });
-
-            // Filtro por tipo de propiedad
-            $('#tipoFilter').change(function() {
-                var tipo = $(this).val();
-                $('#reservasTable tbody tr').show();
-                
-                if (tipo) {
-                    $('#reservasTable tbody tr').each(function() {
-                        var rowTipo = $(this).find('td:first .text-muted').text().trim();
-                        if (rowTipo !== tipo) {
-                            $(this).hide();
-                        }
-                    });
-                }
-            });
-
-            // Filtro por fecha
-            $('#mostrarFilter').change(function() {
-                var filtro = $(this).val();
                 var hoy = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                
-                $('#reservasTable tbody tr').show();
-                
-                if (filtro === 'hoy') {
-                    $('#reservasTable tbody tr').each(function() {
-                        var checkIn = $(this).find('td:nth-child(3) div:first').text().trim();
-                        var checkOut = $(this).find('td:nth-child(3) div:last').text().trim();
-                        
-                        // Simple check - podrías mejorar esta lógica
-                        if (checkIn !== hoy && checkOut !== hoy) {
-                            $(this).hide();
-                        }
-                    });
-                }
-            });
 
-            // Auto-ocultar alertas después de 5 segundos
+                $('#reservasTable tbody tr').each(function() {
+                    const tr = $(this);
+                    const trEstado = tr.data('estado');
+                    const trTipo = tr.data('tipo');
+                    const trCheckIn = tr.data('checkin');
+                    const trCheckOut = tr.data('checkout');
+
+                    // Match de Estado
+                    const estadoMatch = (estado === "") || (estado === trEstado);
+                    
+                    // Match de Tipo
+                    const tipoMatch = (tipo === "") || (tipo === trTipo);
+
+                    // Match de Fecha
+                    let fechaMatch = false;
+                    switch (mostrar) {
+                        case 'hoy': // En curso hoy
+                            fechaMatch = (trCheckIn <= hoy && trCheckOut >= hoy);
+                            break;
+                        case 'futuras': // Check-in es después de hoy
+                            fechaMatch = (trCheckIn > hoy);
+                            break;
+                        case 'pasadas': // Check-out es antes de hoy
+                            fechaMatch = (trCheckOut < hoy);
+                            break;
+                        case 'todas':
+                        default:
+                            fechaMatch = true;
+                            break;
+                    }
+
+                    // Mostrar si todo coincide
+                    if (estadoMatch && tipoMatch && fechaMatch) {
+                        tr.show();
+                    } else {
+                        tr.hide();
+                    }
+                });
+            }
+
+            // Asignar eventos
+            $('#estadoFilter, #tipoFilter, #mostrarFilter').change(filtrarTabla);
+
+            // Auto-ocultar alertas
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
             }, 5000);
@@ -284,29 +302,103 @@
     </script>
 
     <style>
-        .table th {
-            border-top: none;
+        /* Nuevos colores para "dar vida" */
+        :root {
+            --c-blue-bg: #eef6ff;    /* Fondo azul claro */
+            --c-blue-text: #2563eb;  /* Texto azul */
+            --c-amber-bg: #fefce8;   /* Fondo ámbar claro */
+            --c-amber-text: #d97706; /* Texto ámbar */
+            --c-green-bg: var(--sage-50);
+            --c-green-text: var(--sage-700);
+            --c-danger-bg: #fef2f2;   /* Fondo rojo claro */
+            --c-danger-text: #dc2626; /* Texto rojo */
+            --c-danger-border: #fecaca;
+        }
+
+        /* Estilo Alertas */
+        .alert-success-custom {
+            background-color: var(--c-green-bg);
+            color: var(--c-green-text);
+            border: 1px solid var(--sage-200);
+        }
+        .alert-danger-custom {
+            background-color: var(--c-danger-bg);
+            color: var(--c-danger-text);
+            border: 1px solid var(--c-danger-border);
+        }
+
+        /* Estilo Tarjetas de Estadísticas */
+        .stat-card {
+            background-color: var(--card);
+            box-shadow: 0 6px 15px rgba(36,48,54,.06);
+            border-radius: var(--radius);
+            border: 1px solid var(--sage-100);
+            transition: all 0.2s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(36,48,54,.1);
+        }
+        .stat-card-title {
             font-weight: 600;
+            font-size: 1.75rem; /* Números más grandes */
         }
-        
+        .stat-card.blue {
+            background-color: var(--c-blue-bg);
+            border-color: #dbeafe;
+        }
+        .stat-card.blue .stat-card-title { color: var(--c-blue-text); }
+        .stat-card.green {
+            background-color: var(--c-green-bg);
+            border-color: var(--sage-200);
+        }
+        .stat-card.green .stat-card-title { color: var(--c-green-text); }
+        .stat-card.amber {
+            background-color: var(--c-amber-bg);
+            border-color: #fef3c7;
+        }
+        .stat-card.amber .stat-card-title { color: var(--c-amber-text); }
+        .stat-card.grey {
+             background-color: #f8f9fa; /* Un gris neutro */
+             border-color: #e9ecef;
+        }
+        .stat-card.grey .stat-card-title { color: var(--muted); }
+
+        /* Nuevos colores para badges */
         .badge {
-            font-size: 0.75em;
-        }
-        
-        .btn-group-sm > .btn {
-            padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4em 0.7em;
         }
+        .badge-total { background-color: var(--c-blue-text); color: white; } /* Azul */
+        .badge-activo { background-color: var(--c-green-text); color: white; } /* Verde */
+        .badge-amber { background-color: var(--c-amber-text); color: white; } /* Ámbar */
+        .badge-danger { background-color: var(--c-danger-text); color: white; } /* Rojo */
+        .badge-admin { background-color: var(--ink); color: white; } /* Negro */
+        .badge-muted { background-color: var(--muted); color: white; } /* Gris */
         
+        /* Botones de colores */
+        .btn-outline-amber {
+            --bs-btn-color: var(--c-amber-text);
+            --bs-btn-border-color: var(--c-amber-text);
+            --bs-btn-hover-bg: var(--c-amber-text);
+            --bs-btn-hover-border-color: var(--c-amber-text);
+            --bs-btn-hover-color: #fff;
+        }
+
+        /* Estilo para el hover de la tabla */
         #reservasTable tbody tr:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-1px);
-            transition: all 0.2s ease;
+            background-color: var(--sage-50) !important;
         }
-        
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border: 1px solid rgba(0, 0, 0, 0.125);
+
+        /* Encabezado de la tabla neutral */
+        .table thead th {
+            background: #f8f9fa !important; /* Gris muy claro, no verde */
+            color: var(--ink) !important; /* Texto negro */
+            border-bottom: 1px solid #e9ecef !important;
+            text-transform: uppercase;
+            font-size: .8rem;
+            letter-spacing: .02em;
         }
     </style>
 }
