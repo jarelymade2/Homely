@@ -12,6 +12,7 @@ namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
     [Migration("20250930232428_Initial")]
+    [Migration("20251014184446_InitialSchema")]
     partial class Initial
     {
         /// <inheritdoc />

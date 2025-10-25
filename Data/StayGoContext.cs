@@ -9,7 +9,7 @@ namespace StayGo.Data;
 public class StayGoContext : IdentityDbContext<ApplicationUser>
 {
     public StayGoContext(DbContextOptions<StayGoContext> options) : base(options) { }
-
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Propiedad> Propiedades => Set<Propiedad>();
     public DbSet<Habitacion> Habitaciones => Set<Habitacion>();
     public DbSet<ImagenPropiedad> ImagenesPropiedad => Set<ImagenPropiedad>();
@@ -229,5 +229,9 @@ public class StayGoContext : IdentityDbContext<ApplicationUser>
         // mb.Entity<Reserva>().Property(r => r.Estado).HasDefaultValue(EstadoReserva.Pendiente);
 
         // Fin OnModelCreating
+        mb.Entity<ApplicationUser>()
+        .HasOne(au => au.Usuario) // <-- CORRECCIÓN: Especifica la propiedad
+        .WithOne(u => u.IdentityUser) 
+        .HasForeignKey<Usuario>(u => u.IdentityUserId);
     }
 }

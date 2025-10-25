@@ -7,6 +7,7 @@ namespace StayGo.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
+
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -322,6 +323,10 @@ namespace StayGo.Migrations
                 {
                     UsuarioId = table.Column<string>(type: "TEXT", nullable: false),
                     PropiedadId = table.Column<Guid>(type: "TEXT", nullable: false),
+<<<<<<< HEAD
+=======
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+>>>>>>> 08d0f9a3ae50d718c34c0420da9cd8bac3c0e0e3
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UsuarioId1 = table.Column<Guid>(type: "TEXT", nullable: true)
                 },

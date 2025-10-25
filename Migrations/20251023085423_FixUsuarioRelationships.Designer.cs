@@ -11,13 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-<<<<<<<< HEAD:Migrations/20251024234629_FixUsuarioIdColumn.Designer.cs
-    [Migration("20251024234629_FixUsuarioIdColumn")]
-    partial class FixUsuarioIdColumn
-========
-    [Migration("20251022054321_LinkUsuarioToApplicationUser")]
-    partial class LinkUsuarioToApplicationUser
->>>>>>>> 08d0f9a3ae50d718c34c0420da9cd8bac3c0e0e3:Migrations/20251022054321_LinkUsuarioToApplicationUser.Designer.cs
+    [Migration("20251023085423_FixUsuarioRelationships")]
+    partial class FixUsuarioRelationships
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -218,14 +213,6 @@ namespace StayGo.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("PropiedadSearchHistoryJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("SearchHistoryJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
@@ -455,7 +442,6 @@ namespace StayGo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Monto")
-                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ReservaId")
@@ -477,7 +463,7 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Capacidad")
+                    b.Property<int?>("Capacidad")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Descripcion")
@@ -491,7 +477,6 @@ namespace StayGo.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<decimal?>("PrecioPorNoche")
-                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Tipo")
@@ -569,10 +554,10 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CheckIn")
+                    b.Property<DateOnly>("CheckIn")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CheckOut")
+                    b.Property<DateOnly>("CheckOut")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Estado")
@@ -585,7 +570,6 @@ namespace StayGo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PrecioTotal")
-                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PropiedadId")
@@ -887,7 +871,7 @@ namespace StayGo.Migrations
             modelBuilder.Entity("StayGo.Models.Usuario", b =>
                 {
                     b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
-                        .WithOne()
+                        .WithOne("Usuario")
                         .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -907,6 +891,8 @@ namespace StayGo.Migrations
                     b.Navigation("Resenas");
 
                     b.Navigation("Reservas");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>

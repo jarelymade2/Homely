@@ -35,8 +35,16 @@
     <span class="badge text-bg-secondary mb-3">Hotel (precio por habitación)</span>
   }
 
+  <!-- Imagen principal -->
   <img src="@cover" class="img-fluid rounded mb-3"
        style="object-fit:cover;max-height:360px;width:100%;" alt="@Model?.Titulo" />
+
+  <!-- Imagen de Unsplash -->
+  @if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
+  {
+      <img src="@ViewBag.ImagenUnsplash" class="img-fluid rounded mb-3"
+           style="object-fit:cover;max-height:360px;width:100%;" alt="@Model?.Titulo" />
+  }
 
   <p>@Model?.Descripcion</p>
 

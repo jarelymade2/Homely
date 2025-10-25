@@ -5,6 +5,7 @@ using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Integration;
+using StayGo.Integration; // ← se añade para usar la API del clima y Unsplash
 
 namespace StayGo.Controllers
 {
@@ -14,9 +15,18 @@ namespace StayGo.Controllers
         private readonly OpenWeatherIntegration _openWeather;
 
         public PropiedadController(StayGoContext db, OpenWeatherIntegration openWeather)
+        private readonly OpenWeatherIntegration _openWeather; // ← agregado
+        private readonly UnsplashIntegration _unsplash; // ← agregado
+
+        // Constructor con inyección del servicio del clima y Unsplash
+        public PropiedadController(
+            StayGoContext db,
+            OpenWeatherIntegration openWeather,
+            UnsplashIntegration unsplash) // ← agregado
         {
             _db = db;
             _openWeather = openWeather;
+            _unsplash = unsplash; // ← agregado
         }
 
         // GET: /Propiedad
@@ -34,12 +44,10 @@ namespace StayGo.Controllers
             if (page < 1) page = 1;
             if (pageSize is < 1 or > 60) pageSize = 9;
 
-            // Base query
             IQueryable<Propiedad> query = _db.Propiedades
                 .Include(p => p.Imagenes)
                 .AsNoTracking();
 
-            // FILTRO: búsqueda libre
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var qLike = $"%{q.Trim()}%";
@@ -56,11 +64,9 @@ namespace StayGo.Controllers
                 );
             }
 
-            // FILTRO: tipo
             if (tipo.HasValue)
                 query = query.Where(p => p.Tipo == tipo.Value);
 
-            // FILTRO: ciudad
             if (!string.IsNullOrWhiteSpace(ciudad))
             {
                 var cLike = $"%{ciudad.Trim()}%";
@@ -68,33 +74,28 @@ namespace StayGo.Controllers
                                          EF.Functions.Like(p.Direccion.Ciudad ?? "", cLike));
             }
 
-            // FILTRO: precios
             if (min.HasValue)
                 query = query.Where(p => p.PrecioPorNoche.HasValue && p.PrecioPorNoche.Value >= min.Value);
 
             if (max.HasValue)
                 query = query.Where(p => p.PrecioPorNoche.HasValue && p.PrecioPorNoche.Value <= max.Value);
 
-            // ORDEN
             query = orden switch
             {
                 "precio_asc" => query.OrderBy(p => p.PrecioPorNoche ?? decimal.MaxValue),
                 "precio_desc" => query.OrderByDescending(p => p.PrecioPorNoche ?? decimal.Zero),
                 "titulo" => query.OrderBy(p => p.Titulo),
                 "titulo_desc" => query.OrderByDescending(p => p.Titulo),
-                _ => query.OrderByDescending(p => p.Id) // recientes (proxy)
+                _ => query.OrderByDescending(p => p.Id)
             };
 
-            // PAGINACIÓN
             var total = await query.CountAsync();
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Metadatos para la vista
-            var totalParaVista = (total == 0 && items.Count > 0) ? items.Count : total;
-            ViewBag.Total = totalParaVista;
+            ViewBag.Total = (total == 0 && items.Count > 0) ? items.Count : total;
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.Query = q;
@@ -157,6 +158,18 @@ namespace StayGo.Controllers
                     ViewBag.Temp = "N/D";
                     ViewBag.Clima = "No disponible";
                 }
+            }
+
+            // 🖼️ Llamada al API de Unsplash
+            try
+            {
+                ViewBag.ImagenUnsplash = !string.IsNullOrWhiteSpace(prop.Titulo)
+                    ? await _unsplash.ObtenerImagenAsync(prop.Titulo) ?? ""
+                    : "";
+            }
+            catch
+            {
+                ViewBag.ImagenUnsplash = "";
             }
 
             return View(prop);

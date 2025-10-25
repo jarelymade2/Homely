@@ -45,6 +45,39 @@ namespace StayGo.Integration
                 Weather = apiResp.Weather ?? new List<Weather>(),
                 Name = apiResp.Name ?? string.Empty
             };
+                using var client = new HttpClient();
+                var apiKey = _config["OpenWeather:ApiKey"];
+                var baseUrl = _config["OpenWeather:ApiUrl"];
+
+                var url = $"{baseUrl}weather?q={Uri.EscapeDataString(ciudad)}&appid={apiKey}&units=metric&lang=es";
+
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<OpenWeatherResponse>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (data == null) return null;
+
+                // Nota: Usamos el operador de nulabilidad (?) y el operador null-coalescing (??) 
+                // para evitar advertencias y posibles NullReferenceExceptions al acceder a los datos.
+                return new WeatherResult
+                {
+                    Ciudad = data.Name ?? "N/A",
+                    Temperatura = data.Main?.Temp ?? 0, // Añadido ? para Main
+                    Descripcion = data.Weather?.FirstOrDefault()?.Description ?? "Sin datos", // Añadido ? para Weather
+                    Lat = data.Coord?.Lat ?? 0, // Añadido ? para Coord
+                    Lon = data.Coord?.Lon ?? 0  // Añadido ? para Coord
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener clima desde OpenWeather");
+                return null;
+            }
         }
         // ...existing code...
         // Wrapper con nombre en español usado por el controlador
@@ -77,10 +110,18 @@ namespace StayGo.Integration
     // DTOs para deserializar la respuesta de OpenWeather
     public class OpenWeatherResponse
     {
+<<<<<<< HEAD
         public Coord? Coord { get; set; }
         public Main? Main { get; set; }
         public List<Weather>? Weather { get; set; }
         public string? Name { get; set; }
+=======
+        // 🛑 Corrección CS8618: Añadir ?
+        public WeatherCoord? Coord { get; set; } // Línea 61
+        public WeatherMain? Main { get; set; } // Línea 62
+        public List<WeatherDescription>? Weather { get; set; } // Línea 63
+        public string? Name { get; set; } // Línea 64
+>>>>>>> 08d0f9a3ae50d718c34c0420da9cd8bac3c0e0e3
     }
 
     public class Coord
@@ -117,7 +158,25 @@ namespace StayGo.Integration
     // Clase para representar una descripción breve (si la necesitas)
     public class WeatherDescription
     {
+<<<<<<< HEAD
         public string Ciudad { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
     }
+=======
+        // 🛑 Corrección CS8618: Añadir ?
+        public string? Description { get; set; } // Línea 81
+        public string? Icon { get; set; } // Línea 82
+    }
+
+    // 🔹 Modelo simplificado para la vista/controlador
+    public class WeatherResult
+    {
+        // 🛑 Corrección CS8618: Añadir ?
+        public string? Ciudad { get; set; } // Línea 88
+        public double Temperatura { get; set; } // double no es tipo de referencia, no necesita ?
+        public string? Descripcion { get; set; } // Línea 90
+        public double Lat { get; set; } // double no necesita ?
+        public double Lon { get; set; } // double no necesita ?
+    }
+>>>>>>> 08d0f9a3ae50d718c34c0420da9cd8bac3c0e0e3
 }

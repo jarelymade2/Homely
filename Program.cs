@@ -5,6 +5,7 @@ using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Models.ValueObjects;
 using StayGo.Integration;
+using StayGo.Integration; // Solo OpenWeatherIntegration y UnsplashIntegration
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddRazorPages();
 // -----------------
 // Connection string
 // -----------------
+// 1.1. Contexto de la Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
@@ -24,6 +26,7 @@ builder.Services.AddDbContext<StayGoContext>(options =>
 // -----------------
 // Identity (with Roles)
 // -----------------
+// 1.2. Configuración de Identity (con ApplicationUser y Roles)
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -38,6 +41,10 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
+    .AddRoles<IdentityRole>() // Habilita roles (Admin, etc.)
+    .AddEntityFrameworkStores<StayGoContext>();
+
+// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -73,12 +80,30 @@ var app = builder.Build();
 // -----------------
 // Seed Database
 // -----------------
+// =========================================================
+// 🌤️ Registro de INTEGRACIONES (APIs externas)
+// =========================================================
+
+// 1️⃣ OpenWeather (ya lo tienes)
+builder.Services.AddScoped<OpenWeatherIntegration>();
+
+// 2️⃣ Unsplash (para imágenes de propiedades)
+builder.Services.AddScoped<UnsplashIntegration>();
+
+// =========================================================
+// 2. CONSTRUCCIÓN DE LA APLICACIÓN
+// =========================================================
+
+var app = builder.Build();
+
+// 2.1. Ejecución del Seed (roles y admin)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         await Seed.SeedAsync(services);
+        await StayGo.Data.Seed.SeedAsync(services);
     }
     catch (Exception ex)
     {
@@ -113,6 +138,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // RUTA PARA ÁREAS (Admin)
+app.UseAuthentication();
+app.UseAuthorization();
+
+// =========================================================
+// 4. RUTAS
+// =========================================================
+
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",

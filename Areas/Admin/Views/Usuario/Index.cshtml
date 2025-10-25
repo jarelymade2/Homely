@@ -1,0 +1,211 @@
+@model IEnumerable<StayGo.ViewModels.Admin.UsuarioAdminViewModel>
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<section class="hero mb-4">
+    <h1>@ViewData["Title"]</h1>
+    <p class="mb-0">Lista de todos los usuarios registrados y su actividad.</p>
+</section>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center">
+                <h3 class="card-title">@Model.Count()</h3>
+                <p class="card-text">Total Usuarios</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h3 class="card-title">@Model.Count(u => u.TotalReservas > 0)</h3>
+                <p class="card-text">Usuarios Activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <h3 class="card-title">@Model.Sum(u => u.TotalReservas)</h3>
+                <p class="card-text">Total Reservas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h3 class="card-title">@Model.Count(u => u.EsAdmin)</h3>
+                <p class="card-text">Administradores</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover" id="usuariosTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th class="text-center">Total Reservas</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usuario in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold">@usuario.NombreCompleto</div>
+                            @if (string.IsNullOrWhiteSpace(usuario.NombreCompleto.Trim()))
+                            {
+                                <small class="text-muted">Nombre no disponible</small>
+                            }
+                        </td>
+                        <td>@usuario.Email</td>
+                        <td class="text-center">
+                            @if (usuario.TotalReservas > 0)
+                            {
+                                <span class="badge bg-success rounded-pill">@usuario.TotalReservas</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary rounded-pill">0</span>
+                            }
+                        </td>
+                        <td>
+                            @if (usuario.EsAdmin)
+                            {
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-shield-alt"></i> Administrador
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-user"></i> Cliente
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            @if (usuario.TotalReservas > 0)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark">Sin reservas</span>
+                            }
+                        </td>
+                        
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Filtros</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Rol:</label>
+                <select class="form-select" id="rolFilter">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administradores</option>
+                    <option value="cliente">Clientes</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Actividad:</label>
+                <select class="form-select" id="actividadFilter">
+                    <option value="">Todos los usuarios</option>
+                    <option value="activos">Con reservas</option>
+                    <option value="inactivos">Sin reservas</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Filtro por rol
+            $('#rolFilter').change(function() {
+                var rol = $(this).val();
+                $('#usuariosTable tbody tr').show();
+                
+                if (rol === 'admin') {
+                    $('#usuariosTable tbody tr').each(function() {
+                        if (!$(this).find('.badge.bg-primary').length) {
+                            $(this).hide();
+                        }
+                    });
+                } else if (rol === 'cliente') {
+                    $('#usuariosTable tbody tr').each(function() {
+                        if (!$(this).find('.badge.bg-secondary').length) {
+                            $(this).hide();
+                        }
+                    });
+                }
+            });
+
+            // Filtro por actividad
+            $('#actividadFilter').change(function() {
+                var actividad = $(this).val();
+                $('#usuariosTable tbody tr').show();
+                
+                if (actividad === 'activos') {
+                    $('#usuariosTable tbody tr').each(function() {
+                        if ($(this).find('.badge.bg-secondary.rounded-pill').length) {
+                            $(this).hide();
+                        }
+                    });
+                } else if (actividad === 'inactivos') {
+                    $('#usuariosTable tbody tr').each(function() {
+                        if ($(this).find('.badge.bg-success.rounded-pill').length) {
+                            $(this).hide();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .badge.rounded-pill {
+            font-size: 0.8em;
+            padding: 0.4em 0.6em;
+        }
+        
+        #usuariosTable tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+    </style>
+}
