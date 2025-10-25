@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using StayGo.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks; // Añadido para asegurar que Task se reconoce
 
 namespace StayGo.Areas.Identity.Pages.Account.Manage
 {
@@ -19,44 +20,30 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        /// directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public string? Username { get; set; }
+        // CORRECCIÓN CS8618: Inicializar las propiedades
+        public string Username { get; set; } = string.Empty;
 
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        /// directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
-        public string? StatusMessage { get; set; }
+        public string StatusMessage { get; set; } = string.Empty;
 
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        /// directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
-        public InputModel? Input { get; set; }
+        public InputModel Input { get; set; } = new InputModel(); 
 
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        /// directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            /// directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Phone]
-            [Display(Name = "Phone number")]
+            [Display(Name = "Número de teléfono")]
             public string? PhoneNumber { get; set; }
 
-            [Display(Name = "First Name")]
+            [Required]
+            [Display(Name = "Nombre")]
+            // NOTA: Si pones [Required], puedes usar 'string' en lugar de 'string?' 
+            // pero si usas 'string?', debes ser cuidadoso donde lo asignas. 
+            // Lo dejamos como 'string?' ya que así está en tu código.
             public string? FirstName { get; set; }
 
-            [Display(Name = "Last Name")]
+            [Required]
+            [Display(Name = "Apellido")]
             public string? LastName { get; set; }
         }
 
@@ -65,7 +52,8 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            Username = userName;
+            // CORRECCIÓN CS8601 (Línea 50): Usamos '!' para asegurar que userName no es nulo aquí
+            Username = userName!;
 
             Input = new InputModel
             {
@@ -80,7 +68,7 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"No se pudo cargar el usuario con ID '{_userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
@@ -92,7 +80,7 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"No se pudo cargar el usuario con ID '{_userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -101,33 +89,38 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input?.PhoneNumber != phoneNumber)
+            // --- Lógica de actualización de campos ---
+
+            // 1. Actualizar Nombre y Apellido
+            // CORRECCIÓN CS8601 (Líneas 91 y 95): Usamos '!' en la asignación para suprimir la advertencia,
+            // ya que ModelState.IsValid pasó (y ambos tienen [Required]).
+            if (Input.FirstName != user.FirstName)
             {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input?.PhoneNumber);
+                user.FirstName = Input.FirstName!; 
+            }
+            if (Input.LastName != user.LastName)
+            {
+                user.LastName = Input.LastName!;
+            }
+            
+            // 2. Actualizar Teléfono
+            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            if (Input.PhoneNumber != phoneNumber)
+            {
+                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
                 if (!setPhoneResult.Succeeded)
                 {
-                    StatusMessage = "Error al actualizar el número de teléfono.";
+                    StatusMessage = "Error inesperado al intentar actualizar el número de teléfono.";
                     return RedirectToPage();
                 }
             }
-
-            if (Input?.FirstName != user.FirstName || Input?.LastName != user.LastName)
-            {
-                user.FirstName = Input?.FirstName ?? "";
-                user.LastName = Input?.LastName ?? "";
-                var updateResult = await _userManager.UpdateAsync(user);
-                if (!updateResult.Succeeded)
-                {
-                    StatusMessage = "Error al actualizar el perfil.";
-                    return RedirectToPage();
-                }
-            }
+            
+            // 3. Guardar cambios en el usuario (incluyendo FirstName y LastName)
+            await _userManager.UpdateAsync(user);
 
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Tu perfil ha sido actualizado correctamente.";
+            StatusMessage = "Tu perfil ha sido actualizado";
             return RedirectToPage();
         }
     }
 }
-
