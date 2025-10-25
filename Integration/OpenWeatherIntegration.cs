@@ -38,13 +38,15 @@ namespace StayGo.Integration
 
                 if (data == null) return null;
 
+                // Nota: Usamos el operador de nulabilidad (?) y el operador null-coalescing (??) 
+                // para evitar advertencias y posibles NullReferenceExceptions al acceder a los datos.
                 return new WeatherResult
                 {
-                    Ciudad = data.Name,
-                    Temperatura = data.Main.Temp,
-                    Descripcion = data.Weather.FirstOrDefault()?.Description ?? "Sin datos",
-                    Lat = data.Coord.Lat,
-                    Lon = data.Coord.Lon
+                    Ciudad = data.Name ?? "N/A",
+                    Temperatura = data.Main?.Temp ?? 0, // Añadido ? para Main
+                    Descripcion = data.Weather?.FirstOrDefault()?.Description ?? "Sin datos", // Añadido ? para Weather
+                    Lat = data.Coord?.Lat ?? 0, // Añadido ? para Coord
+                    Lon = data.Coord?.Lon ?? 0  // Añadido ? para Coord
                 };
             }
             catch (Exception ex)
@@ -58,10 +60,11 @@ namespace StayGo.Integration
     // 🔹 Modelos para deserializar la respuesta de OpenWeather
     public class OpenWeatherResponse
     {
-        public WeatherCoord Coord { get; set; }
-        public WeatherMain Main { get; set; }
-        public List<WeatherDescription> Weather { get; set; }
-        public string Name { get; set; }
+        // 🛑 Corrección CS8618: Añadir ?
+        public WeatherCoord? Coord { get; set; } // Línea 61
+        public WeatherMain? Main { get; set; } // Línea 62
+        public List<WeatherDescription>? Weather { get; set; } // Línea 63
+        public string? Name { get; set; } // Línea 64
     }
 
     public class WeatherCoord
@@ -78,17 +81,19 @@ namespace StayGo.Integration
 
     public class WeatherDescription
     {
-        public string Description { get; set; }
-        public string Icon { get; set; }
+        // 🛑 Corrección CS8618: Añadir ?
+        public string? Description { get; set; } // Línea 81
+        public string? Icon { get; set; } // Línea 82
     }
 
     // 🔹 Modelo simplificado para la vista/controlador
     public class WeatherResult
     {
-        public string Ciudad { get; set; }
-        public double Temperatura { get; set; }
-        public string Descripcion { get; set; }
-        public double Lat { get; set; }
-        public double Lon { get; set; }
+        // 🛑 Corrección CS8618: Añadir ?
+        public string? Ciudad { get; set; } // Línea 88
+        public double Temperatura { get; set; } // double no es tipo de referencia, no necesita ?
+        public string? Descripcion { get; set; } // Línea 90
+        public double Lat { get; set; } // double no necesita ?
+        public double Lon { get; set; } // double no necesita ?
     }
 }

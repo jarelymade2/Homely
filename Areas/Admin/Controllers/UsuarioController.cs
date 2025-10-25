@@ -20,23 +20,38 @@ namespace StayGo.Areas.Admin.Controllers
         }
 
         // GET: Admin/Usuario
-     public async Task<IActionResult> Index()
-{
-    var listaUsuarios = await _context.Users
-        .OrderBy(u => u.LastName)
-        .Select(u => new UsuarioAdminViewModel
+        public async Task<IActionResult> Index()
         {
-            Id = u.Id,
-            NombreCompleto = (u.FirstName ?? "") + " " + (u.LastName ?? ""),
-            Email = u.Email ?? "N/A",
-            // Si ApplicationUser tiene una colección de Reservas
-            TotalReservas = u.Reservas.Count(),
-            EsAdmin = _context.UserRoles.Any(ur => ur.UserId == u.Id && 
-                      ur.RoleId == _context.Roles.FirstOrDefault(r => r.Name == "Admin").Id)
-        })
-        .ToListAsync();
+            // 🛑 PASO 1: OBTENER EL ID DEL ROL 'Admin' DE FORMA SEGURA
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            
+            // Si el rol Admin no existe, devolvemos una lista vacía o manejamos el error.
+            if (adminRole == null)
+            {
+                // Podrías registrar un error aquí, pero devolver una lista vacía es seguro.
+                return View(new List<UsuarioAdminViewModel>());
+            }
+            
+            // Guardamos el ID del rol para usarlo en la consulta
+            var adminRoleId = adminRole.Id;
 
-    return View(listaUsuarios);
-}
+            // 🛑 PASO 2: USAR EL ID DEL ROL EN LA CONSULTA LINQ
+            var listaUsuarios = await _context.Users
+                .OrderBy(u => u.LastName)
+                .Select(u => new UsuarioAdminViewModel
+                {
+                    Id = u.Id,
+                    NombreCompleto = (u.FirstName ?? "") + " " + (u.LastName ?? ""),
+                    Email = u.Email ?? "N/A",
+                    // Asumiendo que 'Reservas' es una colección de navegación en ApplicationUser
+                    TotalReservas = u.Reservas != null ? u.Reservas.Count() : 0, 
+                    
+                    // La consulta se simplifica y es segura porque adminRoleId es una variable local no nula.
+                    EsAdmin = _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId)
+                })
+                .ToListAsync();
+
+            return View(listaUsuarios);
+        }
     }
 }
