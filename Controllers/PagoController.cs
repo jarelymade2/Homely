@@ -30,10 +30,11 @@ public class PagoController : Controller
     /// Muestra la página de confirmación con los detalles de la reserva antes de proceder al pago
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> Confirmar(Guid propiedadId, string? checkin, string? checkout, int huespedes = 1)
+    public async Task<IActionResult> Confirmar(Guid propiedadId, Guid? habitacionId, string? checkin, string? checkout, int huespedes = 1)
     {
         _logger.LogInformation("=== CONFIRMAR PAGO ===");
         _logger.LogInformation("PropiedadId recibido: {PropiedadId}", propiedadId);
+        _logger.LogInformation("HabitacionId recibido: {HabitacionId}", habitacionId);
         _logger.LogInformation("Check-in: {CheckIn}", checkin);
         _logger.LogInformation("Check-out: {CheckOut}", checkout);
         _logger.LogInformation("Huéspedes: {Huespedes}", huespedes);
@@ -47,6 +48,7 @@ public class PagoController : Controller
         // Obtener la propiedad
         var propiedad = await _db.Propiedades
             .Include(p => p.Imagenes)
+            .Include(p => p.Habitaciones)
             .FirstOrDefaultAsync(p => p.Id == propiedadId);
 
         _logger.LogInformation("Propiedad encontrada: {Encontrada}", propiedad != null);
@@ -61,6 +63,28 @@ public class PagoController : Controller
             _logger.LogWarning("Propiedad no encontrada con ID: {PropiedadId}", propiedadId);
             TempData["Error"] = "Propiedad no encontrada.";
             return RedirectToAction("Index", "Propiedad");
+        }
+
+        // Si es un hotel, verificar que se haya seleccionado una habitación
+        Habitacion? habitacion = null;
+        if (propiedad.Tipo == TipoPropiedad.Hotel)
+        {
+            if (!habitacionId.HasValue)
+            {
+                TempData["Error"] = "Debes seleccionar una habitación para reservar en un hotel.";
+                return RedirectToAction("Details", "Propiedad", new { id = propiedadId });
+            }
+
+            habitacion = await _db.Habitaciones
+                .FirstOrDefaultAsync(h => h.Id == habitacionId.Value && h.PropiedadId == propiedadId);
+
+            if (habitacion == null)
+            {
+                TempData["Error"] = "Habitación no encontrada.";
+                return RedirectToAction("Details", "Propiedad", new { id = propiedadId });
+            }
+
+            _logger.LogInformation("Habitación encontrada: {Nombre}, Precio: {Precio}", habitacion.Nombre, habitacion.PrecioPorNoche);
         }
 
         // Parsear las fechas
@@ -95,8 +119,14 @@ public class PagoController : Controller
 
         // Calcular el precio total
         decimal precioTotal = 0;
-        if (propiedad.PrecioPorNoche.HasValue)
+        if (habitacion != null)
         {
+            // Si es un hotel, usar el precio de la habitación
+            precioTotal = habitacion.PrecioPorNoche * noches;
+        }
+        else if (propiedad.PrecioPorNoche.HasValue)
+        {
+            // Si es casa/departamento, usar el precio de la propiedad
             precioTotal = propiedad.PrecioPorNoche.Value * noches;
         }
         else
@@ -107,6 +137,7 @@ public class PagoController : Controller
 
         // Pasar los datos a la vista
         ViewBag.Propiedad = propiedad;
+        ViewBag.Habitacion = habitacion;
         ViewBag.CheckIn = checkInDate;
         ViewBag.CheckOut = checkOutDate;
         ViewBag.Huespedes = huespedes;
@@ -121,10 +152,11 @@ public class PagoController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ProcesarPago(Guid propiedadId, string checkin, string checkout, int huespedes)
+    public async Task<IActionResult> ProcesarPago(Guid propiedadId, Guid? habitacionId, string checkin, string checkout, int huespedes)
     {
         _logger.LogInformation("=== PROCESAR PAGO ===");
         _logger.LogInformation("PropiedadId: {PropiedadId}", propiedadId);
+        _logger.LogInformation("HabitacionId: {HabitacionId}", habitacionId);
         _logger.LogInformation("Check-in: {CheckIn}", checkin);
         _logger.LogInformation("Check-out: {CheckOut}", checkout);
         _logger.LogInformation("Huéspedes: {Huespedes}", huespedes);
@@ -137,6 +169,7 @@ public class PagoController : Controller
 
         // Obtener la propiedad
         var propiedad = await _db.Propiedades
+            .Include(p => p.Habitaciones)
             .FirstOrDefaultAsync(p => p.Id == propiedadId);
 
         _logger.LogInformation("Propiedad encontrada: {Encontrada}", propiedad != null);
@@ -151,6 +184,28 @@ public class PagoController : Controller
             _logger.LogWarning("Propiedad no encontrada con ID: {PropiedadId}", propiedadId);
             TempData["Error"] = "Propiedad no encontrada.";
             return RedirectToAction("Index", "Propiedad");
+        }
+
+        // Si es un hotel, verificar que se haya seleccionado una habitación
+        Habitacion? habitacion = null;
+        if (propiedad.Tipo == TipoPropiedad.Hotel)
+        {
+            if (!habitacionId.HasValue)
+            {
+                TempData["Error"] = "Debes seleccionar una habitación para reservar en un hotel.";
+                return RedirectToAction("Details", "Propiedad", new { id = propiedadId });
+            }
+
+            habitacion = await _db.Habitaciones
+                .FirstOrDefaultAsync(h => h.Id == habitacionId.Value && h.PropiedadId == propiedadId);
+
+            if (habitacion == null)
+            {
+                TempData["Error"] = "Habitación no encontrada.";
+                return RedirectToAction("Details", "Propiedad", new { id = propiedadId });
+            }
+
+            _logger.LogInformation("Habitación encontrada: {Nombre}, Precio: {Precio}", habitacion.Nombre, habitacion.PrecioPorNoche);
         }
 
         // Parsear las fechas
@@ -182,16 +237,27 @@ public class PagoController : Controller
 
         // Calcular el precio total
         int noches = checkOutDate.DayNumber - checkInDate.DayNumber;
-        decimal precioTotal = propiedad.PrecioPorNoche.HasValue ? propiedad.PrecioPorNoche.Value * noches : 0;
+        decimal precioTotal = 0;
+        if (habitacion != null)
+        {
+            // Si es un hotel, usar el precio de la habitación
+            precioTotal = habitacion.PrecioPorNoche * noches;
+        }
+        else if (propiedad.PrecioPorNoche.HasValue)
+        {
+            // Si es casa/departamento, usar el precio de la propiedad
+            precioTotal = propiedad.PrecioPorNoche.Value * noches;
+        }
 
-        _logger.LogInformation("Creando reserva - PropiedadId: {PropiedadId}, UsuarioId: {UserId}, Noches: {Noches}, Total: {Total}",
-            propiedadId, userId, noches, precioTotal);
+        _logger.LogInformation("Creando reserva - PropiedadId: {PropiedadId}, HabitacionId: {HabitacionId}, UsuarioId: {UserId}, Noches: {Noches}, Total: {Total}",
+            propiedadId, habitacionId, userId, noches, precioTotal);
 
         // Crear la reserva
         var reserva = new Reserva
         {
             Id = Guid.NewGuid(),
             PropiedadId = propiedadId,
+            HabitacionId = habitacionId, // Será null si no es un hotel
             UsuarioId = userId,
             CheckIn = checkInDate,
             CheckOut = checkOutDate,

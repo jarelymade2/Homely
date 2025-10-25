@@ -121,6 +121,7 @@ namespace StayGo.Controllers
                     .Include(p => p.Imagenes)
                     .Include(p => p.Resenas)
                     .ThenInclude(r => r.Usuario)
+                    .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id.ToString() == id);
             }
@@ -133,6 +134,7 @@ namespace StayGo.Controllers
                     .Include(p => p.Imagenes)
                     .Include(p => p.Resenas)
                     .ThenInclude(r => r.Usuario)
+                    .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == idGuid);
             }
