@@ -211,6 +211,14 @@ namespace StayGo.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("PropiedadSearchHistoryJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SearchHistoryJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
@@ -439,6 +447,7 @@ namespace StayGo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Monto")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ReservaId")
@@ -474,6 +483,7 @@ namespace StayGo.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<decimal?>("PrecioPorNoche")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Tipo")
@@ -551,10 +561,10 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateOnly>("CheckIn")
+                    b.Property<DateTime>("CheckIn")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateOnly>("CheckOut")
+                    b.Property<DateTime>("CheckOut")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Estado")
@@ -567,6 +577,7 @@ namespace StayGo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PrecioTotal")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PropiedadId")

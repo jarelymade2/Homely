@@ -1,0 +1,102 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Pago Fallido";
+    var reserva = ViewBag.Reserva as StayGo.Models.Reserva;
+    var pe = new CultureInfo("es-PE");
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <!-- Icono de error -->
+                    <div class="mb-4">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 5rem;"></i>
+                    </div>
+
+                    <!-- Título -->
+                    <h2 class="text-danger mb-3">Pago No Completado</h2>
+                    <p class="lead text-muted mb-4">
+                        No se pudo procesar tu pago. Tu reserva sigue pendiente.
+                    </p>
+
+                    <!-- Detalles de la reserva -->
+                    @if (reserva != null)
+                    {
+                        <div class="card bg-light mb-4">
+                            <div class="card-body text-start">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-house-door"></i> Detalles de la reserva
+                                </h5>
+                                
+                                <div class="row mb-2">
+                                    <div class="col-sm-4 fw-semibold">Propiedad:</div>
+                                    <div class="col-sm-8">@reserva.Propiedad?.Titulo</div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-sm-4 fw-semibold">Check-in:</div>
+                                    <div class="col-sm-8">@reserva.CheckIn.ToString("dd/MM/yyyy")</div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-sm-4 fw-semibold">Check-out:</div>
+                                    <div class="col-sm-8">@reserva.CheckOut.ToString("dd/MM/yyyy")</div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-sm-4 fw-semibold">Huéspedes:</div>
+                                    <div class="col-sm-8">@reserva.Huespedes</div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div class="col-sm-4 fw-semibold">Total a pagar:</div>
+                                    <div class="col-sm-8">
+                                        <span class="fw-bold">@reserva.PrecioTotal.ToString("C", pe)</span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-4 fw-semibold">Estado:</div>
+                                    <div class="col-sm-8">
+                                        <span class="badge bg-warning text-dark">Pendiente de pago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Mensaje informativo -->
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>¿Qué pasó?</strong><br>
+                        El pago no se completó. Esto puede deberse a fondos insuficientes, datos incorrectos o cancelación del proceso.
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        @if (reserva != null)
+                        {
+                            <a asp-controller="Pago" asp-action="Iniciar" asp-route-reservaId="@reserva.Id" class="btn btn-primary btn-lg">
+                                <i class="bi bi-arrow-repeat"></i> Intentar nuevamente
+                            </a>
+                        }
+                        <a asp-controller="Reserva" asp-action="History" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-calendar-check"></i> Ver mis reservas
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted">
+                            <i class="bi bi-house"></i> Volver al inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

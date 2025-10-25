@@ -7,6 +7,8 @@ public class ApplicationUser : IdentityUser
 {
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
+    public string SearchHistoryJson { get; set; } = "[]";
+    public string PropiedadSearchHistoryJson { get; set; } = "[]";
     public Usuario? Usuario { get; set; }
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
     public ICollection<Resena> Resenas { get; set; } = new List<Resena>();

@@ -2,16 +2,21 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
 using StayGo.Models;
+using StayGo.Models.Enums;
+using StayGo.Models.ValueObjects;
+using StayGo.Integration;
+using StayGo.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =========================================================
-// 1. CONFIGURACIÓN DE SERVICIOS
-// =========================================================
-
+// Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+// -----------------
+// Connection string
+// -----------------
 // 1.1. Contexto de la Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
@@ -19,12 +24,14 @@ var connectionString = builder.Configuration.GetConnectionString("StayGoContext"
 builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
+// -----------------
+// Identity (with Roles)
+// -----------------
 // 1.2. Configuración de Identity (con ApplicationUser y Roles)
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-        // Reglas de Contraseña (coincide con tu configuración)
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -32,47 +39,110 @@ builder.Services
         options.Password.RequiredLength = 6;
         options.Password.RequiredUniqueChars = 1;
     })
-    .AddRoles<IdentityRole>() // Habilita el soporte para roles (necesario para tu Seed y Autorización)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización (incluye tu política 'AdminOnly')
+// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
-// =========================================================
-// 2. CONSTRUCCIÓN DE LA APLICACIÓN
-// =========================================================
+// -----------------
+// Redis Configuration (OPCIONAL)
+// -----------------
+var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled", false);
+
+if (redisEnabled)
+{
+    try
+    {
+        var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
+
+        // Registrar ConnectionMultiplexer como singleton
+        builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<Program>>();
+            try
+            {
+                var configuration = ConfigurationOptions.Parse(redisConfiguration);
+                configuration.AbortOnConnectFail = false;
+                configuration.ConnectTimeout = 5000; // 5 segundos timeout
+                var connection = ConnectionMultiplexer.Connect(configuration);
+                logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
+                return connection;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
+                throw; // Lanzar para que use el fallback
+            }
+        });
+
+        // Configurar caché distribuido con Redis
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConfiguration;
+            options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
+        });
+
+        Console.WriteLine("🔵 Redis habilitado - Usando caché distribuido");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Error al configurar Redis: {ex.Message}");
+        Console.WriteLine("📦 Usando caché en memoria como fallback");
+        builder.Services.AddDistributedMemoryCache();
+    }
+}
+else
+{
+    // Usar caché en memoria si Redis está deshabilitado
+    builder.Services.AddDistributedMemoryCache();
+    Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
+}
+
+// Registrar el servicio de caché personalizado
+builder.Services.AddScoped<ICacheService, CacheService>();
+
+// -----------------
+// Session (VERY IMPORTANT)
+// -----------------
+// Sesiones (con Redis si está habilitado, o en memoria)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true; // útil si tienes GDPR / consentimiento
+    // options.Cookie.SameSite = SameSiteMode.Lax; // opcional
+});
+
+// -----------------
+// OpenWeatherIntegration registration
+// -----------------
+// Registramos como servicio y como HttpClient (typed client)
+builder.Services.AddHttpClient<OpenWeatherIntegration>();
+builder.Services.AddScoped<OpenWeatherIntegration>();
+
+// -----------------
+// UnsplashIntegration registration
+// -----------------
+builder.Services.AddScoped<UnsplashIntegration>();
+
+// -----------------
+// MercadoPagoIntegration registration
+// -----------------
+builder.Services.AddScoped<MercadoPagoIntegration>();
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<StayGoContext>();
-    
-    try 
-    {
-        // Intentar migrar
-        context.Database.Migrate();
-    }
-    catch 
-    {
-        // Si falla, recrear completamente
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
-    }
-}
-
-// 2.1. Ejecución de la Siembra de Datos (Seed)
-// Esto crea los roles y al usuario "admin@staygo.com" si no existen
+// 2.1. Ejecución del Seed (roles y admin)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Llama al método SeedAsync para inicializar datos
+        await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
     }
     catch (Exception ex)
@@ -82,10 +152,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// =========================================================
-// 3. PIPELINE DE SOLICITUDES HTTP
-// =========================================================
-
+// -----------------
+// Pipeline
+// -----------------
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -98,13 +167,24 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
-// Middleware de Autenticación y Autorización
+// IMPORTANTE: Session debe registrarse en la pipeline antes de ejecutar los endpoints.
+// Colocamos UseSession() aquí, después de UseRouting().
+app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 3.1. Rutas (Routing)
+// RUTA PARA ÁREAS (Admin)
+app.UseAuthentication();
+app.UseAuthorization();
+
+// =========================================================
+// 4. RUTAS
+// =========================================================
+
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
@@ -114,10 +194,11 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
+// Ruta MVC por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages(); // Necesario para las páginas de Identity (Login, Register, etc.)
+app.MapRazorPages();
 
 app.Run();

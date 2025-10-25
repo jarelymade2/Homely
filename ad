@@ -1,0 +1,12 @@
+Controllers/PropiedadController.cs
+Migrations/20250916201509_InitialSetup.cs
+Migrations/20250927104730_InitialCreate.Designer.cs
+Migrations/20250930232428_Initial.Designer.cs
+Migrations/20250930232428_Initial.cs
+Migrations/20251014192036_InitialSchema.Designer.cs
+Migrations/20251014192036_InitialSchema.cs
+Migrations/20251016040216_AddSearchHistoryToUser.Designer.cs
+Migrations/20251016043657_AddPropiedadSearchHistory.Designer.cs
+Program.cs
+appsettings.json
+staygo.db

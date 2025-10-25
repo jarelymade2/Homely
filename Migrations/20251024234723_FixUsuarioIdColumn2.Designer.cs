@@ -11,8 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    [Migration("20251022054321_LinkUsuarioToApplicationUser")]
-    partial class LinkUsuarioToApplicationUser
+    [Migration("20251024234723_FixUsuarioIdColumn2")]
+    partial class FixUsuarioIdColumn2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -625,10 +625,7 @@ namespace StayGo.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdentityUserId")
-                        .IsUnique();
-
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuario");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -877,17 +874,6 @@ namespace StayGo.Migrations
                     b.Navigation("Propiedad");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("StayGo.Models.Usuario", b =>
-                {
-                    b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
-                        .WithOne()
-                        .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IdentityUser");
                 });
 
             modelBuilder.Entity("StayGo.Models.Amenidad", b =>

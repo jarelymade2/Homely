@@ -11,8 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    [Migration("20251014184446_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20251025181044_PropiedadSearchHistory")]
+    partial class PropiedadSearchHistory
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -213,6 +213,14 @@ namespace StayGo.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("PropiedadSearchHistoryJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SearchHistoryJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
@@ -442,6 +450,7 @@ namespace StayGo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Monto")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ReservaId")
@@ -463,7 +472,7 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Capacidad")
+                    b.Property<int?>("Capacidad")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Descripcion")
@@ -477,6 +486,7 @@ namespace StayGo.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<decimal?>("PrecioPorNoche")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Tipo")
@@ -554,10 +564,10 @@ namespace StayGo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateOnly>("CheckIn")
+                    b.Property<DateTime>("CheckIn")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateOnly>("CheckOut")
+                    b.Property<DateTime>("CheckOut")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Estado")
@@ -570,6 +580,7 @@ namespace StayGo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PrecioTotal")
+                        .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PropiedadId")
@@ -614,7 +625,10 @@ namespace StayGo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuario");
+                    b.HasIndex("IdentityUserId")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -865,6 +879,17 @@ namespace StayGo.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("StayGo.Models.Usuario", b =>
+                {
+                    b.HasOne("StayGo.Models.ApplicationUser", "IdentityUser")
+                        .WithOne("Usuario")
+                        .HasForeignKey("StayGo.Models.Usuario", "IdentityUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityUser");
+                });
+
             modelBuilder.Entity("StayGo.Models.Amenidad", b =>
                 {
                     b.Navigation("PropiedadAmenidades");
@@ -877,6 +902,8 @@ namespace StayGo.Migrations
                     b.Navigation("Resenas");
 
                     b.Navigation("Reservas");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>

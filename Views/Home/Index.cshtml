@@ -1,39 +1,115 @@
-﻿@{
+﻿@* Views/Home/Index.cshtml - CÓDIGO FINAL *@
+
+@{
     ViewData["Title"] = "Encuentra tu próxima estadía";
+    
+    // Recupera los filtros y el historial
+    var checkin = (DateTime?)ViewBag.Checkin;
+    var checkout = (DateTime?)ViewBag.Checkout;
+    var adults = (int)(ViewBag.Adults ?? 1);
+    var children = (int)(ViewBag.Children ?? 0);
+    
+    // 🛑 Historial de Búsqueda
+    List<string> historialBusqueda = ViewBag.HistorialUbicacion ?? new List<string>();
+    
+    // Recuperamos el tipo de alerta (para color del mensaje)
+    var mensajeTipo = TempData["MensajeTipo"] ?? "alert-info"; 
 }
 
 @section Hero{
     <section class="hero">
         <div class="overlay">
             <div class="container">
+                
+                @* Bloque para mostrar el mensaje de éxito o fracaso *@
+                @if (TempData["MensajeBusqueda"] != null)
+                {
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-12 col-lg-8">
+                            <div class="alert @mensajeTipo alert-dismissible fade show" role="alert">
+                                @TempData["MensajeBusqueda"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
                 <div class="row gy-4 align-items-end">
                     <div class="col-12 col-lg-6 text-white">
                         <h1 class="fw-bold display-5 mb-3">Encuentra tu próxima estadía</h1>
                         <p class="lead mb-4">Explora alojamientos únicos cerca de ti o en cualquier parte del mundo.</p>
                     </div>
                     <div class="col-12">
-                        <form asp-controller="Home" asp-action="SearchResults" method="get" class="search-card">
+                        @* 🛑 FORMULARIO CORREGIDO: Apunta a Home/ResultadoBusqueda *@
+                        <form asp-controller="Home" asp-action="ResultadoBusqueda" method="get" class="search-card">
                             <div class="search-grid">
+                                
+                                @* 1. CAMPO DE UBICACIÓN (con historial) *@
                                 <div>
                                     <label class="form-label">Ubicación</label>
-                                    <input name="location" class="form-control" placeholder="¿A dónde vas?" />
+                                    <input 
+                                        name="q" 
+                                        class="form-control" 
+                                        placeholder="¿A dónde vas?" 
+                                        list="search-history-list"
+                                    />
+                                    
+                                    @* DATALIST CON HISTORIAL *@
+                                    <datalist id="search-history-list">
+                                        @foreach (var item in historialBusqueda)
+                                        {
+                                            <option value="@item"></option>
+                                        }
+                                    </datalist>
                                 </div>
+                                
+                                @* 2. LLEGADA (Persistencia) *@
                                 <div>
                                     <label class="form-label">Llegada</label>
-                                    <input type="date" name="checkin" class="form-control" />
+                                    <input 
+                                        type="date" 
+                                        name="checkin" 
+                                        class="form-control" 
+                                        value="@(checkin?.ToString("yyyy-MM-dd"))"
+                                    />
                                 </div>
+                                
+                                @* 3. SALIDA (Persistencia) *@
                                 <div>
                                     <label class="form-label">Salida</label>
-                                    <input type="date" name="checkout" class="form-control" />
+                                    <input 
+                                        type="date" 
+                                        name="checkout" 
+                                        class="form-control"
+                                        value="@(checkout?.ToString("yyyy-MM-dd"))"
+                                    />
                                 </div>
+                                
+                                @* 4. ADULTOS (Persistencia) *@
                                 <div>
                                     <label class="form-label">Adultos</label>
-                                    <input type="number" min="1" value="1" name="adults" class="form-control" />
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        name="adults" 
+                                        class="form-control" 
+                                        value="@adults"
+                                    />
                                 </div>
+                                
+                                @* 5. NIÑOS (Persistencia) *@
                                 <div>
                                     <label class="form-label">Niños</label>
-                                    <input type="number" min="0" value="0" name="children" class="form-control" />
+                                    <input 
+                                        type="number" 
+                                        min="0" 
+                                        name="children" 
+                                        class="form-control"
+                                        value="@children"
+                                    />
                                 </div>
+                                
+                                @* 6. BOTÓN BUSCAR *@
                                 <div class="d-grid">
                                     <label class="form-label invisible">Buscar</label>
                                     <button class="btn btn-brand w-100" type="submit">Buscar</button>
@@ -43,7 +119,6 @@
                     </div>
                 </div>
 
-                <!-- Sugerencias (opcionales) -->
                 <div class="mt-4 d-flex flex-wrap gap-2">
                     <span class="badge-soft">Cerca de mí</span>
                     <span class="badge-soft">Playas</span>
@@ -53,7 +128,7 @@
             </div>
         </div>
     </section>
-}
+} 
 
 <section class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -62,7 +137,6 @@
     </div>
 
     <div class="row g-4">
-        @* Ejemplo de card (reemplaza por tu foreach de propiedades) *@
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card card-stay">
                 <img src="~/img/demo1.jpg" class="card-img-top" alt="Alojamiento" />
@@ -76,12 +150,11 @@
                 </div>
             </div>
         </div>
-        @* ... *@
     </div>
 </section>
 
 @section Scripts{
     <script>
-        // Aquí puedes agregar cualquier JS específico de Home si lo necesitas
+        
     </script>
 }

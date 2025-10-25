@@ -2,6 +2,7 @@
 @using System.Globalization
 
 @{
+    // Configuración de la vista
     ViewData["Title"] = Model?.Titulo ?? "Propiedad";
     var cover = Model?.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
                 ?? "https://placehold.co/1200x360?text=Sin+imagen";
@@ -10,60 +11,693 @@
         new[] { Model?.Direccion?.Ciudad, Model?.Direccion?.Pais }
         .Where(s => !string.IsNullOrWhiteSpace(s)));
 }
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
-<div class="container py-4">
-  <h2 class="mb-2">@Model?.Titulo</h2>
+<div class="container pt-4 pb-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb-sage">
+            <li class="breadcrumb-item">
+                <a asp-controller="Propiedad" asp-action="Index">
+                    <i class="bi bi-houses-fill me-2"></i>Propiedades
+                </a>
+            </li>
+            <li class="breadcrumb-item active">@Model?.Titulo</li>
+        </ol>
+    </nav>
 
-  <div class="text-muted mb-2">
-    <i class="bi bi-geo-alt"></i> @ubic
-  </div>
+    <div class="property-header-sage mb-5">
+        <h1 class="property-title-main">@Model?.Titulo</h1>
 
-  @if (Model?.PrecioPorNoche.HasValue == true)
-  {
-    <div class="fw-semibold mb-3">
-      @Model!.PrecioPorNoche!.Value.ToString("C", pe) <small class="text-muted">/ noche</small>
+        <div class="property-badges-group">
+            <div class="location-badge-sage">
+                <i class="bi bi-geo-alt-fill me-2"></i>@ubic
+            </div>
+
+            @if (Model?.PrecioPorNoche.HasValue == true)
+            {
+                <div class="price-badge-sage">
+                    <span class="price-value">@Model!.PrecioPorNoche!.Value.ToString("C", pe)</span>
+                    <span class="price-label">/ noche</span>
+                </div>
+            }
+            else
+            {
+                <span class="hotel-badge-sage">
+                    <i class="bi bi-building me-2"></i>Hotel - Precio por habitación
+                </span>
+            }
+
+            @if (!string.IsNullOrEmpty(ViewBag.PrecioSoles?.ToString()))
+            {
+                <div class="converted-price-sage">
+                    <i class="bi bi-currency-exchange me-2"></i>
+                    @(ViewBag.PrecioSoles) <small>/ noche</small>
+                </div>
+            }
+        </div>
     </div>
-  }
-  else
-  {
-    <span class="badge text-bg-secondary mb-3">Hotel (precio por habitación)</span>
-  }
 
-  <img src="@cover" class="img-fluid rounded mb-3"
-       style="object-fit:cover;max-height:360px;width:100%;" alt="@Model?.Titulo" />
-
-  <p>@Model?.Descripcion</p>
-
-  <div class="border rounded p-3 bg-light my-3">
-    <strong>Mapa (placeholder)</strong>
-    <div class="small text-muted">Lat: @Model?.Lat, Lng: @Model?.Lng</div>
-    <div style="height:180px;background:#e9ecef;border-radius:.5rem;"
-         class="d-flex align-items-center justify-content-center">
-      <span class="text-secondary">[Aquí iría el mapa]</span>
+    <div class="content-card-sage mb-5 p-4 p-lg-5">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="image-wrapper-sage main-image-sage">
+                    <img src="@cover" class="img-fluid w-100" alt="@Model?.Titulo" />
+                    <div class="image-overlay-sage">
+                        <span class="image-badge-sage">Imagen Principal</span>
+                    </div>
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
+            {
+                <div class="col-lg-4">
+                    <div class="image-wrapper-sage secondary-image-sage">
+                        <img src="@ViewBag.ImagenUnsplash" class="img-fluid w-100" alt="@Model?.Titulo" />
+                        <div class="image-overlay-sage">
+                            <span class="image-badge-sage">
+                                <i class="bi bi-images me-2"></i>Vista Adicional
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
-  </div>
+    
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="content-card-sage mb-4">
+                <div class="card-body p-4 p-lg-5">
+                    <h3 class="section-title-sage mb-4">
+                        <i class="bi bi-file-text-fill me-3"></i>Descripción de la Propiedad
+                    </h3>
+                    <p class="description-text-sage">
+                        @Model?.Descripcion
+                    </p>
+                </div>
+            </div>
 
-  <!-- Solo lectura en feat/public -->
-  <div class="mb-4">
-    <a asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-secondary">
-      ← Volver a propiedades
-    </a>
-  </div>
+            <div class="content-card-sage">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="section-title-sage mb-0">
+                            <i class="bi bi-star-fill me-3"></i>Experiencias de Huéspedes
+                        </h3>
+                        <span class="review-count-badge">@(Model?.Resenas?.Count ?? 0) Reseñas</span>
+                    </div>
+                    
+                    @if (Model?.Resenas == null || !Model.Resenas.Any())
+                    {
+                        <div class="empty-reviews-sage">
+                            <i class="bi bi-chat-dots fs-1 mb-3"></i>
+                            <h5>No hay reseñas aún</h5>
+                            <p>Sé el primero en compartir tu experiencia en esta propiedad.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reviews-list-sage">
+                            @foreach (var r in Model.Resenas.OrderByDescending(x => x.Fecha))
+                            {
+                                <div class="review-card-sage">
+                                    <div class="review-header-sage">
+                                        <div class="review-rating-sage">
+                                            @for (int i = 0; i < r.Puntuacion; i++)
+                                            {
+                                                <i class="bi bi-star-fill"></i>
+                                            }
+                                            @for (int i = r.Puntuacion; i < 5; i++)
+                                            {
+                                                <i class="bi bi-star"></i>
+                                            }
+                                            <span class="rating-number">@r.Puntuacion.0/5.0</span>
+                                        </div>
+                                        <span class="review-date-sage">
+                                            <i class="bi bi-calendar3 me-2"></i>@r.Fecha.ToShortDateString()
+                                        </span>
+                                    </div>
+                                    <p class="review-text-sage">@r.Comentario</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
 
-  <h4>Reseñas (@(Model?.Resenas?.Count ?? 0))</h4>
-  @if (Model?.Resenas == null || !Model.Resenas.Any())
-  {
-    <div class="text-muted">Aún no hay reseñas.</div>
-  }
-  else
-  {
-    @foreach (var r in Model.Resenas.OrderByDescending(x => x.Fecha))
-    {
-      <div class="border-bottom py-2">
-        <div class="small text-muted">@r.Fecha.ToShortDateString() — ⭐ @r.Puntuacion/5</div>
-        <div>@r.Comentario</div>
-      </div>
-    }
-  }
+        <div class="col-lg-4">
+            @if (ViewBag.Temp != null && ViewBag.Clima != null)
+            {
+                <div class="weather-card-sage mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="sidebar-title-sage mb-4">
+                            <i class="bi bi-cloud-sun-fill me-2"></i>Clima Actual
+                        </h5>
+                        <div class="weather-display-sage">
+                            <div class="temperature-sage">@ViewBag.Temp°C</div>
+                            <div class="weather-condition-sage">@ViewBag.Clima</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="location-card-sage">
+                <div class="card-body p-4">
+                    <h5 class="sidebar-title-sage mb-4">
+                        <i class="bi bi-pin-map-fill me-2"></i>Ubicación
+                    </h5>
+                    <div class="coordinates-box-sage mb-4 p-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-geo me-2 fs-5"></i>
+                            <span class="coordinate-text-sage">Coordenadas: @Model?.Lat, @Model?.Lng</span>
+                        </div>
+                    </div>
+                    <div id="map" class="map-sage"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a asp-controller="Propiedad" asp-action="Index" class="btn-back-sage">
+            <i class="bi bi-arrow-left-circle me-2"></i>Volver a Propiedades
+        </a>
+    </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Lato:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root{
+            /* Sage palette */
+            --sage-50:#f5f7f4; 
+            --sage-100:#e9efe6; 
+            --sage-200:#dce6d7; 
+            --sage-300:#c9d7c2;
+            --sage-400:#a3b18a; 
+            --sage-500:#7fa174; 
+            --sage-600:#5e8a63; 
+            --sage-700:#3f6b4f;
+            --sage-800:#2f5b45; 
+            --sage-900:#26453a;
+            --ink:#243036; 
+            --muted:#6c757d; 
+            --card:#ffffff;
+            --shadow: 0 8px 30px rgba(36, 48, 54, .08); 
+            --shadow-lg: 0 10px 40px rgba(36, 48, 54, .12); 
+            --shadow-xl: 0 15px 50px rgba(36, 48, 54, .18); 
+            --shadow-button: 0 6px 20px rgba(63, 107, 79, 0.25);
+            --shadow-button-hover: 0 10px 30px rgba(63, 107, 79, 0.35);
+            --radius: 1.5rem; 
+            --link-color: var(--sage-700);
+            --link-hover: var(--sage-800);
+            --title-color: var(--sage-900);
+            --text-color: var(--ink);
+        }
+
+        body {
+            background-color: var(--sage-50);
+            font-family: 'Lato', sans-serif;
+            color: var(--text-color);
+        }
+
+        /* ========== BREADCRUMB SAGE ========== */
+        .breadcrumb-sage {
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            list-style: none;
+        }
+
+        .breadcrumb-sage .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-sage .breadcrumb-item + .breadcrumb-item::before {
+            content: '›';
+            padding: 0 0.8rem;
+            color: var(--link-color);
+            font-size: 1.3rem;
+        }
+
+        .breadcrumb-sage a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.3px;
+        }
+
+        .breadcrumb-sage a:hover {
+            color: var(--link-hover);
+        }
+
+        .breadcrumb-sage .active {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        /* ========== HEADER PRINCIPAL ========== */
+        .property-header-sage {
+            padding-top: 1rem; /* Ajustado para reducir espacio */
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--sage-200);
+        }
+
+        .property-title-main {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            color: var(--title-color);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+        }
+
+        .property-badges-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .location-badge-sage {
+            background: linear-gradient(135deg, var(--sage-100) 0%, var(--sage-200) 100%);
+            color: var(--sage-800);
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            border-left: 4px solid var(--sage-500);
+            letter-spacing: 0.3px;
+        }
+
+        .price-badge-sage {
+            background: linear-gradient(135deg, var(--sage-800) 0%, var(--sage-900) 100%);
+            color: var(--sage-50);
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(38, 69, 58, 0.25);
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .price-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .hotel-badge-sage {
+            background: linear-gradient(135deg, var(--sage-700) 0%, var(--sage-600) 100%);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .converted-price-sage {
+            background: white;
+            border: 2px solid var(--sage-300);
+            color: var(--sage-800);
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== GALERÍA DE IMÁGENES (Dentro de un content-card) ========== */
+        .image-wrapper-sage {
+            position: relative;
+            border-radius: 1rem; /* Ligeramente más pequeño para el borde interno */
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(36, 48, 54, .1); /* Sombra más suave en el interior */
+            transition: all 0.4s ease;
+        }
+        
+        /* Se quita el hover del wrapper para que no "salte" */
+        .image-wrapper-sage:hover {
+            transform: none;
+            box-shadow: 0 6px 20px rgba(36, 48, 54, .15); 
+        }
+
+        .main-image-sage {
+            height: 480px;
+        }
+
+        .secondary-image-sage {
+            height: 480px;
+        }
+
+        .image-wrapper-sage img {
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .image-wrapper-sage:hover img {
+            transform: scale(1.05); /* Zoom sutil */
+        }
+
+        .image-overlay-sage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+        }
+
+        .image-badge-sage {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--sage-800) 0%, var(--sage-900) 100%);
+            backdrop-filter: blur(10px);
+            color: var(--sage-100);
+            padding: 0.7rem 1.4rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(38, 69, 58, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== CARDS DE CONTENIDO ========== */
+        .content-card-sage {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--sage-200);
+            transition: all 0.3s ease;
+        }
+
+        .content-card-sage:hover {
+            box-shadow: 0 10px 35px rgba(36, 48, 54, 0.1);
+        }
+
+        .section-title-sage {
+            font-family: 'Playfair Display', serif;
+            color: var(--title-color);
+            font-weight: 700;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.3px;
+        }
+        
+        .section-title-sage i {
+            color: var(--sage-700);
+        }
+
+        .description-text-sage {
+            color: var(--text-color);
+            font-size: 1.08rem;
+            line-height: 1.9;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== RESEÑAS ========== */
+        .review-count-badge {
+            background: linear-gradient(135deg, var(--sage-300) 0%, var(--sage-200) 100%);
+            color: var(--sage-900);
+            padding: 0.6rem 1.3rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 3px 10px rgba(63, 107, 79, 0.15);
+        }
+
+        .empty-reviews-sage {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, var(--sage-50) 0%, var(--sage-100) 100%);
+            border-radius: 1.2rem;
+            border: 2px dashed var(--sage-300);
+        }
+
+        .empty-reviews-sage i {
+            color: var(--sage-600);
+        }
+
+        .empty-reviews-sage h5 {
+            font-family: 'Playfair Display', serif;
+            color: var(--title-color);
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .empty-reviews-sage p {
+            color: var(--text-color);
+            font-size: 1.05rem;
+        }
+
+        .reviews-list-sage {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .review-card-sage {
+            padding: 1.8rem;
+            background: var(--sage-50);
+            border-radius: 1.2rem;
+            border: 1px solid var(--sage-200);
+            transition: all 0.3s ease;
+        }
+
+        .review-card-sage:hover {
+            border-color: var(--sage-500);
+            box-shadow: 0 6px 20px rgba(63, 107, 79, 0.12);
+        }
+
+        .review-header-sage {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .review-rating-sage {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .review-rating-sage i {
+            color: var(--sage-500);
+            font-size: 1.1rem;
+        }
+
+        .review-rating-sage .bi-star {
+            color: var(--sage-200);
+        }
+
+        .rating-number {
+            margin-left: 0.8rem;
+            font-weight: 700;
+            color: var(--title-color);
+            font-size: 1.05rem;
+        }
+
+        .review-date-sage {
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .review-text-sage {
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 1.05rem;
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== SIDEBAR CARDS ========== */
+        .weather-card-sage,
+        .location-card-sage {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--sage-200);
+        }
+
+        .sidebar-title-sage {
+            font-family: 'Playfair Display', serif;
+            color: var(--title-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-title-sage i {
+            color: var(--sage-700);
+        }
+
+        .weather-display-sage {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, var(--sage-100) 0%, var(--sage-50) 100%);
+            border-radius: 1.2rem;
+            border: 1px solid var(--sage-200);
+        }
+
+        .temperature-sage {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--title-color);
+            font-family: 'Playfair Display', serif;
+            line-height: 1;
+        }
+
+        .weather-condition-sage {
+            font-size: 1.2rem;
+            color: var(--sage-700);
+            font-weight: 600;
+            margin-top: 0.8rem;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+        }
+
+        /* Coordenadas mejoradas y más visibles */
+        .coordinates-box-sage {
+            padding: 0.8rem;
+            background: var(--sage-100); /* Fondo distintivo */
+            border-radius: 1rem;
+            border: 1px solid var(--sage-300);
+            font-weight: 600;
+            color: var(--sage-800);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(38, 69, 58, 0.1);
+        }
+
+        .coordinate-text-sage {
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .coordinates-box-sage i {
+             color: var(--sage-600);
+        }
+
+        .map-sage {
+            height: 380px;
+            border-radius: 1rem; /* Borde más sutil para el mapa */
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(36, 48, 54, 0.1);
+            border: 3px solid var(--sage-300); /* Borde más grueso y en color de la paleta */
+        }
+
+        /* Ajustes de Leaflet para el borde del mapa */
+        .leaflet-container {
+            border-radius: 1rem;
+        }
+
+        /* ========== BOTÓN VOLVER ========== */
+        .btn-back-sage {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--sage-700) 0%, var(--sage-800) 100%);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: var(--radius);
+            font-weight: 700;
+            font-size: 1.08rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-button);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-back-sage:hover {
+            background: linear-gradient(135deg, var(--sage-600) 0%, var(--sage-700) 100%);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-button-hover);
+            color: white;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @@media (max-width: 991px) {
+            .property-title-main {
+                font-size: 2rem;
+            }
+
+            .main-image-sage,
+            .secondary-image-sage {
+                height: 350px;
+            }
+
+            .map-sage {
+                height: 300px;
+            }
+
+            .temperature-sage {
+                font-size: 3rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .property-badges-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .main-image-sage,
+            .secondary-image-sage {
+                height: 280px;
+            }
+
+            .temperature-sage {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var lat = @((Model?.Lat ?? -12.0464).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var lng = @((Model?.Lng ?? -77.0428).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            var map = L.map('map').setView([lat, lng], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> colaboradores'
+            }).addTo(map);
+
+            // Icono personalizado verde oscuro (darkgreen)
+            var sageIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-darkgreen.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            L.marker([lat, lng], {icon: sageIcon}).addTo(map)
+                .bindPopup("<b>@Model?.Titulo</b><br>@ubic")
+                .openPopup();
+        });
+    </script>
+}
