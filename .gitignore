@@ -73,3 +73,6 @@ Data/*.db
 *.db-shm
 *.db-wal
 
+## Docker y Redis
+redis-data/
+.docker/
