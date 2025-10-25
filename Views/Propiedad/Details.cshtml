@@ -1,5 +1,6 @@
 @model StayGo.Models.Propiedad
 @using System.Globalization
+@using System.Security.Claims
 
 @{
     // Configuración de la vista
@@ -10,6 +11,10 @@
     var ubic = string.Join(", ",
         new[] { Model?.Direccion?.Ciudad, Model?.Direccion?.Pais }
         .Where(s => !string.IsNullOrWhiteSpace(s)));
+    var reseñas = (Model?.Resenas ?? Enumerable.Empty<StayGo.Models.Resena>()).OrderByDescending(r => r.Fecha).ToList();
+    var tieneResenas = reseñas.Any();
+    var promedio = tieneResenas ? reseñas.Average(r => r.Puntuacion) : 0.0;
+    int promedioEntero = (int)Math.Round(promedio);
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
@@ -100,14 +105,56 @@
 
             <div class="content-card-sage">
                 <div class="card-body p-4 p-lg-5">
+                    <!-- MENSAJES DE ÉXITO/ERROR -->
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="section-title-sage mb-0">
                             <i class="bi bi-star-fill me-3"></i>Experiencias de Huéspedes
                         </h3>
                         <span class="review-count-badge">@(Model?.Resenas?.Count ?? 0) Reseñas</span>
                     </div>
-                    
-                    @if (Model?.Resenas == null || !Model.Resenas.Any())
+
+                    <!-- Puntuación promedio -->
+                    @if (tieneResenas)
+                    {
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <span class="text-warning fs-5">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= promedioEntero)
+                                    {
+                                        <i class="bi bi-star-fill"></i>
+                                    }
+                                    else if (i == promedioEntero + 1 && promedio > promedioEntero)
+                                    {
+                                        <i class="bi bi-star-half"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star"></i>
+                                    }
+                                }
+                            </span>
+                            <span class="text-muted ms-2">@promedio.ToString("F1") de 5 (@reseñas.Count @(reseñas.Count == 1 ? "reseña" : "reseñas"))</span>
+                        </div>
+                    }
+
+                    @if (!tieneResenas)
                     {
                         <div class="empty-reviews-sage">
                             <i class="bi bi-chat-dots fs-1 mb-3"></i>
@@ -118,28 +165,98 @@
                     else
                     {
                         <div class="reviews-list-sage">
-                            @foreach (var r in Model.Resenas.OrderByDescending(x => x.Fecha))
+                            @foreach (var r in reseñas)
                             {
                                 <div class="review-card-sage">
                                     <div class="review-header-sage">
-                                        <div class="review-rating-sage">
-                                            @for (int i = 0; i < r.Puntuacion; i++)
-                                            {
-                                                <i class="bi bi-star-fill"></i>
-                                            }
-                                            @for (int i = r.Puntuacion; i < 5; i++)
-                                            {
-                                                <i class="bi bi-star"></i>
-                                            }
-                                            <span class="rating-number">@r.Puntuacion.0/5.0</span>
+                                        <div>
+                                            <div class="review-rating-sage mb-2">
+                                                @for (int i = 0; i < r.Puntuacion; i++)
+                                                {
+                                                    <i class="bi bi-star-fill"></i>
+                                                }
+                                                @for (int i = r.Puntuacion; i < 5; i++)
+                                                {
+                                                    <i class="bi bi-star"></i>
+                                                }
+                                                <span class="rating-number">@r.Puntuacion.0/5.0</span>
+                                            </div>
+                                            <div class="fw-semibold">
+                                                @if (r.Usuario != null)
+                                                {
+                                                    @r.Usuario.UserName
+                                                }
+                                                else
+                                                {
+                                                    @r.UsuarioId
+                                                }
+                                            </div>
+                                            <span class="review-date-sage">
+                                                <i class="bi bi-calendar3 me-2"></i>@r.Fecha.ToLocalTime().ToString("yyyy-MM-dd")
+                                            </span>
                                         </div>
-                                        <span class="review-date-sage">
-                                            <i class="bi bi-calendar3 me-2"></i>@r.Fecha.ToShortDateString()
-                                        </span>
+                                        <div>
+                                            @{
+                                                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                                                var isAuthor = userId != null && userId == r.UsuarioId;
+                                                var isAdmin = User.IsInRole("Admin");
+                                            }
+                                            @if (isAuthor || isAdmin)
+                                            {
+                                                <form asp-controller="Resena" asp-action="Delete" method="post" onsubmit="return confirm('¿Eliminar reseña?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@r.Id" />
+                                                    <button type="submit" class="btn btn-link text-danger btn-sm p-0">
+                                                        <i class="bi bi-trash"></i> Eliminar
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
                                     </div>
-                                    <p class="review-text-sage">@r.Comentario</p>
+                                    <p class="review-text-sage mt-2">@r.Comentario</p>
                                 </div>
                             }
+                        </div>
+                    }
+
+                    <hr class="my-4" />
+
+                    <!-- Formulario para dejar reseña -->
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <div class="mt-4">
+                            <h5 class="mb-3"><i class="bi bi-pencil-square me-2"></i>Dejar una reseña</h5>
+                            <form asp-controller="Resena" asp-action="Create" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="propiedadId" value="@Model?.Id.ToString()" />
+
+                                <div class="mb-3">
+                                    <label class="form-label">Puntuación</label>
+                                    <select name="puntuacion" class="form-select" required>
+                                        <option value="">Selecciona...</option>
+                                        <option value="5">⭐ 5 - Excelente</option>
+                                        <option value="4">⭐ 4 - Muy bueno</option>
+                                        <option value="3">⭐ 3 - Aceptable</option>
+                                        <option value="2">⭐ 2 - Regular</option>
+                                        <option value="1">⭐ 1 - Malo</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Comentario</label>
+                                    <textarea name="comentario" class="form-control" rows="3" maxlength="300" placeholder="Escribe tu opinión..." required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn-reserve-sage">
+                                    <i class="bi bi-send-fill me-2"></i>Enviar reseña
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light mt-4">
+                            <i class="bi bi-lock"></i> <strong>Inicia sesión para dejar una reseña.</strong>
                         </div>
                     }
                 </div>
@@ -147,6 +264,113 @@
         </div>
 
         <div class="col-lg-4">
+            <!-- SECCIÓN DE RESERVA -->
+            <div class="content-card-sage mb-4">
+                <div class="card-body p-4">
+                    <h5 class="sidebar-title-sage mb-4">
+                        <i class="bi bi-calendar-check-fill me-2"></i>Reservar
+                    </h5>
+
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        @if (Model?.Tipo == StayGo.Models.TipoPropiedad.Hotel)
+                        {
+                            <!-- RESERVA PARA HOTEL (por habitación) -->
+                            @if (Model?.Habitaciones?.Any() == true)
+                            {
+                                <div class="hotel-rooms-sage">
+                                    @foreach (var habitacion in Model.Habitaciones)
+                                    {
+                                        <div class="room-card-sage mb-3">
+                                            <h6 class="room-name-sage">@habitacion.Nombre</h6>
+                                            <p class="room-details-sage">
+                                                <i class="bi bi-people"></i> @habitacion.Capacidad personas<br/>
+                                                @if (habitacion.TipoCama.HasValue)
+                                                {
+                                                    <i class="bi bi-bed"></i> <text>@habitacion.TipoCama</text><br/>
+                                                }
+                                                @if (!string.IsNullOrEmpty(habitacion.Numero))
+                                                {
+                                                    <i class="bi bi-hash"></i> <text>N° @habitacion.Numero</text>
+                                                }
+                                            </p>
+                                            <div class="room-price-sage mb-3">
+                                                @habitacion.PrecioPorNoche.ToString("C", pe) <small>/ noche</small>
+                                            </div>
+                                            <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get">
+                                                <input type="hidden" name="propiedadId" value="@Model?.Id" />
+                                                <input type="hidden" name="habitacionId" value="@habitacion.Id" />
+                                                <div class="mb-2">
+                                                    <label class="form-label small">Check-in</label>
+                                                    <input type="date" name="checkin" class="form-control form-control-sm" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small">Check-out</label>
+                                                    <input type="date" name="checkout" class="form-control form-control-sm" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Huéspedes</label>
+                                                    <input type="number" name="huespedes" class="form-control form-control-sm" value="1" min="1" max="@habitacion.Capacidad" />
+                                                </div>
+                                                <button type="submit" class="btn-reserve-sage w-100">
+                                                    <i class="bi bi-credit-card me-2"></i>Reservar Habitación
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> No hay habitaciones disponibles.
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <!-- RESERVA PARA CASA/DEPARTAMENTO (propiedad completa) -->
+                            <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get">
+                                <input type="hidden" name="propiedadId" value="@Model?.Id" />
+                                <div class="mb-3">
+                                    <label class="form-label">Check-in</label>
+                                    <input type="date" name="checkin" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Check-out</label>
+                                    <input type="date" name="checkout" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Huéspedes</label>
+                                    <input type="number" name="huespedes" class="form-control" value="1" min="1" />
+                                </div>
+                                <button type="submit" class="btn-reserve-sage w-100">
+                                    <i class="bi bi-credit-card me-2"></i>Reservar y Pagar
+                                </button>
+                            </form>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Inicia sesión para reservar</strong>
+                            <p class="mb-2 mt-2 small">Para hacer una reserva, necesitas tener una cuenta.</p>
+                            <a asp-area="Identity" asp-page="/Account/Login"
+                               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+                               class="btn btn-sm btn-primary me-2">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                            </a>
+                            <a asp-area="Identity" asp-page="/Account/Register"
+                               asp-route-returnUrl="@($"/Propiedad/Details/{Model?.Id}")"
+                               class="btn btn-sm btn-success">
+                                <i class="bi bi-person-plus"></i> Crear cuenta
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
             @if (ViewBag.Temp != null && ViewBag.Clima != null)
             {
                 <div class="weather-card-sage mb-4">
@@ -607,6 +831,69 @@
         /* Ajustes de Leaflet para el borde del mapa */
         .leaflet-container {
             border-radius: 1rem;
+        }
+
+        /* ========== ESTILOS DE RESERVA ========== */
+        .hotel-rooms-sage {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .room-card-sage {
+            background: var(--sage-50);
+            border: 1px solid var(--sage-200);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .room-card-sage:hover {
+            border-color: var(--sage-400);
+            box-shadow: 0 4px 12px rgba(63, 107, 79, 0.1);
+        }
+
+        .room-name-sage {
+            color: var(--sage-800);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .room-details-sage {
+            color: var(--sage-600);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .room-price-sage {
+            color: var(--sage-700);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .btn-reserve-sage {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--sage-600) 0%, var(--sage-700) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(63, 107, 79, 0.25);
+            letter-spacing: 0.3px;
+            border: none;
+        }
+
+        .btn-reserve-sage:hover {
+            background: linear-gradient(135deg, var(--sage-700) 0%, var(--sage-800) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(63, 107, 79, 0.35);
+            color: white;
         }
 
         /* ========== BOTÓN VOLVER ========== */
