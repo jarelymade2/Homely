@@ -4,322 +4,374 @@
     var isAuth = User?.Identity?.IsAuthenticated == true;
 }
 
-<!-- HERO COMPACTO, CENTRADO Y LIMPIO -->
-<section class="contact-hero-compact">
-  <div class="container text-center">
-    <span class="badge rounded-pill text-bg-light shadow-xxs mb-3">Soporte</span>
-    <h1 class="hero-title">Contáctanos</h1>
-    <p class="hero-sub">Te respondemos normalmente en menos de 24 horas.</p>
-    <a href="#contacto-form" class="btn btn-light btn-lg px-4 lift hero-cta">
-      <i class="bi bi-chat-dots me-2"></i>Escríbenos
-    </a>
-  </div>
+<section class="contact-header-light">
+    <div class="container text-center py-5">
+        <span class="badge contact-badge-pill mb-3">Soporte al Cliente</span>
+        <h1 class="hero-title">Contáctanos</h1>
+        <p class="hero-sub-light">¿Tienes dudas o necesitas ayuda? Nuestro equipo de soporte está listo para asistirte.</p>
+        <a href="#contacto-form" class="btn btn-sage-primary btn-lg px-5 contact-hero-cta lift">
+            <i class="bi bi-send-fill me-2"></i>Enviar un Mensaje
+        </a>
+    </div>
 
-  <!-- wave delgada -->
-  <svg class="wave wave--slim" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0,60 C240,85 480,40 720,60 C960,80 1200,65 1440,80 L1440,120 L0,120 Z"></path>
-  </svg>
+    <div class="header-separator-sage"></div>
 </section>
 
 <div class="container py-5">
-  <!-- Quitado el alert local para evitar duplicado; el global vive en _Layout.cshtml -->
+    <div class="row g-5">
+        <div class="col-12 col-lg-5">
+            <div class="card contact-info-card h-100 border-0">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+                        <div class="icon-pill-sage"><i class="bi bi-chat-text-fill"></i></div>
+                        <h2 class="h4 fw-bold mb-0 text-title-sage">¿Cómo te podemos ayudar?</h2>
+                    </div>
 
-  <div class="row g-4">
-    <!-- INFO / TRUST -->
-    <div class="col-12 col-lg-5">
-      <div class="card glass-card h-100 border-0">
-        <div class="card-body p-4 p-lg-5">
-          <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="icon-pill"><i class="bi bi-chat-dots"></i></div>
-            <h2 class="h5 fw-semibold mb-0">Estamos aquí para ayudarte</h2>
-          </div>
+                    <ul class="list-unstyled d-grid gap-4 mb-5 mt-4">
+                        <li class="d-flex align-items-start gap-3">
+                            <div class="icon-soft-sage flex-shrink-0"><i class="bi bi-lightning-charge-fill"></i></div>
+                            <div>
+                                <div class="fw-semibold text-title-sage">Respuesta Garantizada</div>
+                                <small class="text-muted">Generalmente dentro del mismo día hábil. Respondemos todas las consultas.</small>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <div class="icon-soft-sage flex-shrink-0"><i class="bi bi-shield-check"></i></div>
+                            <div>
+                                <div class="fw-semibold text-title-sage">Datos Protegidos</div>
+                                <small class="text-muted">Tu información es confidencial y segura. Cumplimos con todas las normativas.</small>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <div class="icon-soft-sage flex-shrink-0"><i class="bi bi-envelope-paper-fill"></i></div>
+                            <div>
+                                <div class="fw-semibold text-title-sage">Seguimiento por Email</div>
+                                <small class="text-muted">Recibirás confirmación y te avisaremos inmediatamente sobre cualquier actualización.</small>
+                            </div>
+                        </li>
+                    </ul>
 
-          <ul class="list-unstyled d-grid gap-3 mb-4">
-            <li class="d-flex gap-3">
-              <div class="icon-soft"><i class="bi bi-shield-check"></i></div>
-              <div><div class="fw-semibold">Datos protegidos</div><small class="text-muted">Solo para responder tu solicitud.</small></div>
-            </li>
-            <li class="d-flex gap-3">
-              <div class="icon-soft"><i class="bi bi-lightning-charge"></i></div>
-              <div><div class="fw-semibold">Respuesta rápida</div><small class="text-muted">Generalmente el mismo día hábil.</small></div>
-            </li>
-            <li class="d-flex gap-3">
-              <div class="icon-soft"><i class="bi bi-envelope-paper"></i></div>
-              <div><div class="fw-semibold">Seguimiento por email</div><small class="text-muted">Te avisamos cualquier actualización.</small></div>
-            </li>
-          </ul>
-
-          <div class="small text-muted">
-            <i class="bi bi-info-circle me-1"></i>
-            Al enviar aceptas nuestros
-            <a asp-controller="Home" asp-action="Terminos" class="link-underline-opacity-75">Términos</a>
-            y
-            <a asp-controller="Home" asp-action="Privacidad" class="link-underline-opacity-75">Privacidad</a>.
-          </div>
+                    <div class="text-center pt-3 border-top border-200">
+                        <div class="small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Al enviar aceptas nuestros
+                            <a asp-controller="Home" asp-action="Terminos" class="link-sage-color text-decoration-underline link-underline-opacity-75">Términos</a>
+                            y
+                            <a asp-controller="Home" asp-action="Privacidad" class="link-sage-color text-decoration-underline link-underline-opacity-75">Privacidad</a>.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- FORM (MISMO BACKEND) -->
-    <div class="col-12 col-lg-7">
-      <div class="card shadow-xxs border-0 rounded-4">
-        <div class="card-body p-4 p-lg-5">
-          <form id="contacto-form" asp-action="Index" method="post" class="row g-4" novalidate>
-            <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <div class="col-12 col-lg-7">
+            <div class="card contact-form-card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4 p-lg-5">
+                    <h3 class="h5 fw-bold mb-4 text-center text-lg-start text-title-sage">Completa el Formulario</h3>
+                    <form id="contacto-form" asp-action="Index" method="post" class="row g-4" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
 
-            <!-- Nombre -->
-            <div class="col-12">
-              <div class="form-floating fancy-floating">
-                <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Nombre" />
-                <label asp-for="Nombre">Nombre</label>
-              </div>
-              <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating fancy-floating-sage">
+                                <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Nombre completo" />
+                                <label asp-for="Nombre">Nombre</label>
+                            </div>
+                            <span asp-validation-for="Nombre" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating fancy-floating-sage">
+                                <input asp-for="Email" class="form-control form-control-lg" placeholder="correo@ejemplo.com" type="email" />
+                                <label asp-for="Email">Email</label>
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Mensaje" class="form-label fw-semibold text-title-sage d-flex justify-content-between">
+                                <span>Mensaje / Consulta</span><small class="text-muted"><span id="msgCount">0</span>/500</small>
+                            </label>
+                            <textarea asp-for="Mensaje" rows="6" maxlength="500"
+                                        class="form-control form-control-lg fancy-area-sage"
+                                        placeholder="Describe tu consulta, problema o sugerencia. Por favor, sé claro y conciso."></textarea>
+                            <span asp-validation-for="Mensaje" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        @if (isAuth)
+                        {
+                            <input type="hidden" asp-for="IdentityUserId" />
+                            <input type="hidden" asp-for="UsuarioId" />
+                        }
+
+                        <div class="col-12 d-flex gap-3">
+                            <button class="btn btn-sage-primary btn-lg px-5 lift contact-form-submit" type="submit">
+                                <i class="bi bi-send-fill me-2"></i>Enviar Mensaje
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary-sage btn-lg contact-form-cancel">Volver al Inicio</a>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <!-- Email -->
-            <div class="col-12">
-              <div class="form-floating fancy-floating">
-                <input asp-for="Email" class="form-control form-control-lg" placeholder="correo@ejemplo.com" />
-                <label asp-for="Email">Email</label>
-              </div>
-              <span asp-validation-for="Email" class="text-danger small"></span>
+            <div class="mt-4">
+                <h4 class="h6 fw-bold text-muted text-center text-lg-start mb-3">Preguntas Frecuentes</h4>
+                <div class="accordion shadow-lg rounded-4 contact-faq-accordion" id="faqContact">
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button rounded-top-4 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                <i class="bi bi-question-circle-fill me-3 text-sage"></i>¿En cuánto tiempo responden?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqContact">
+                            <div class="accordion-body">
+                                Nuestro equipo de soporte trabaja de Lunes a Viernes de 9:00 AM a 6:00 PM (hora local de Lima, Perú). Las consultas enviadas fuera de este horario se priorizan al inicio del siguiente día hábil.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-bottom-4 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                <i class="bi bi-question-circle-fill me-3 text-sage"></i>¿Qué debo incluir en el mensaje?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqContact">
+                            <div class="accordion-body">
+                                Para una respuesta rápida, incluye un resumen conciso de tu problema y si aplica, el código de reserva o ID de propiedad.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div></div></div>@@section Styles{
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 
-            <!-- Mensaje -->
-            <div class="col-12">
-              <label asp-for="Mensaje" class="form-label fw-semibold d-flex justify-content-between">
-                <span>Mensaje</span><small class="text-muted"><span id="msgCount">0</span>/500</small>
-              </label>
-              <textarea asp-for="Mensaje" rows="6" maxlength="500"
-                        class="form-control form-control-lg fancy-area"
-                        placeholder="Cuéntanos en qué podemos ayudarte…"></textarea>
-              <span asp-validation-for="Mensaje" class="text-danger small"></span>
-            </div>
+    <style>
+        :root{
+            /* Paleta Sage */
+            --sage-50:#f5f7f4; 
+            --sage-100:#e9efe6; 
+            --sage-200:#dce6d7; 
+            --sage-500:#7fa174; 
+            --sage-700:#3f6b4f; /* Color principal para acento */
+            --sage-800:#2f5b45; 
+            --sage-900:#26453a;
+            
+            /* Colores de texto y fondo */
+            --bg-light: var(--sage-50);
+            --text-ink: #212529;
+            --text-title: var(--sage-900);
+            
+            /* Acento y Sombra de Sage */
+            --primary-sage: var(--sage-700);
+            --ring-sage: rgba(63, 107, 79, 0.35);
+            --shadow-sage-button: 0 8px 25px rgba(63, 107, 79, 0.3);
+            
+            /* Utilidades */
+            --shadow-xxs: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
+            --shadow-lg: 0 16px 40px rgba(0,0,0,.12);
+            --rounded-lg: 1rem;
+        }
 
-            @if (isAuth)
-            {
-              <input type="hidden" asp-for="IdentityUserId" />
-              <input type="hidden" asp-for="UsuarioId" />
-            }
+        body{
+            background-color: var(--bg-light);
+            font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-ink);
+        }
 
-            <div class="col-12 d-flex gap-2">
-              <button class="btn btn-primary btn-lg px-4 lift" type="submit">
-                <i class="bi bi-send me-2"></i>Enviar
-              </button>
-              <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">Volver</a>
-            </div>
-          </form>
-        </div>
-      </div>
+        .text-title-sage { color: var(--text-title); }
+        .text-sage { color: var(--sage-700) !important; }
+        .border-200 { border-color: var(--sage-200) !important; }
 
-      <!-- FAQ compacto -->
-      <div class="mt-4">
-        <div class="accordion shadow-xxs rounded-4" id="faqContact">
-          <div class="accordion-item border-0">
-            <h2 class="accordion-header">
-              <button class="accordion-button rounded-top-4" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                ¿En cuánto tiempo responden?
-              </button>
-            </h2>
-            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqContact">
-              <div class="accordion-body">
-                Usualmente dentro del mismo día hábil. Si la consulta requiere revisión técnica, te avisaremos el tiempo estimado.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item border-0">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed rounded-bottom-4" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                ¿Qué debo incluir en el mensaje?
-              </button>
-            </h2>
-            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqContact">
-              <div class="accordion-body">
-                Un resumen corto del problema y un correo válido para contactarte.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /col form -->
-  </div><!-- /row -->
-</div><!-- /container -->
+        /* Botón Sage Primary */
+        .btn-sage-primary {
+            background-color: var(--primary-sage);
+            border-color: var(--primary-sage);
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-sage-primary:hover {
+            background-color: var(--sage-800);
+            border-color: var(--sage-800);
+            box-shadow: var(--shadow-sage-button);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .btn-sage-primary:focus { box-shadow: 0 0 0 .25rem rgba(63, 107, 79, 0.4); }
 
-@section Styles{
-  <!-- Tipografía Inter para un look más moderno -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+        .btn-outline-secondary-sage {
+            border-color: var(--sage-500);
+            color: var(--sage-700);
+            font-weight: 600;
+        }
+        .btn-outline-secondary-sage:hover {
+            background-color: var(--sage-100);
+            border-color: var(--sage-700);
+            color: var(--sage-800);
+        }
+        
+        .link-sage-color { color: var(--sage-700); }
+        .link-sage-color:hover { color: var(--sage-800); }
 
-  <style>
-    :root{
-      --hero-from:#0f2747;
-      --hero-to:#0b1323;
-      --hero-accent:rgba(32,201,151,.18);
-      --ring: rgba(13,110,253,.35);
-    }
+        /* Utilidades */
+        .lift{ transition: transform .15s ease, box-shadow .15s ease; }
+        .lift:hover{ transform: translateY(-2px); box-shadow: var(--shadow-sage-button); }
+        .rounded-4{ border-radius: var(--rounded-lg); }
 
-    /* utilidades */
-    .shadow-xxs{ box-shadow: 0 10px 30px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06); }
-    .rounded-4{ border-radius: 1rem; }
-    .lift{ transition: transform .15s ease, box-shadow .15s ease; }
-    .lift:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(13,110,253,.15); }
+        /* ---------- HEADER LIMPIO Y LUMINOSO (NUEVO) ---------- */
+        .contact-header-light{
+            position: relative; 
+            padding-bottom: 0;
+            /* Degradado muy sutil de Sage a blanco, para luminosidad */
+            background: linear-gradient(to bottom, var(--sage-50) 0%, white 100%);
+            overflow:hidden;
+        }
+        .contact-header-light .container{ max-width: 860px; }
+        
+        /* Línea separadora final (Sutil y profesional) */
+        .header-separator-sage {
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--sage-700) 0%, var(--sage-500) 50%, var(--sage-700) 100%);
+        }
 
-    /* ---------- HERO COMPACTO, CENTRADO ---------- */
-    .contact-hero-compact{
-      position: relative; color:#fff;
-      padding: 38px 0 46px;
-      background:
-        radial-gradient(700px 280px at 80% -25%, var(--hero-accent), transparent 60%),
-        radial-gradient(800px 300px at 12% -35%, rgba(13,110,253,.20), transparent 60%),
-        linear-gradient(135deg, var(--hero-from), var(--hero-to));
-      overflow:hidden; border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    .contact-hero-compact .container{ max-width: 860px; }
-    .hero-title{
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-weight: 700; letter-spacing: .2px;
-      font-size: clamp(28px, 4vw, 38px); margin-bottom: .35rem;
-    }
-    .hero-sub{
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: rgba(255,255,255,.80);
-      font-size: clamp(14px, 2.2vw, 18px); margin-bottom: 1.1rem;
-    }
-    .hero-cta{ border-radius: 14px; }
-    .wave{ position:absolute; left:0; width:100%; display:block; }
-    .wave--slim{ bottom:-1px; height:76px; }
-    .wave path{ fill:#fff; opacity:.98; }
+        .contact-badge-pill {
+            background: var(--sage-700) !important; /* Sage más fuerte para que destaque */
+            color: white !important;
+            padding: 0.4rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(63, 107, 79, 0.2);
+        }
+        .hero-title{
+            font-family: 'Playfair Display', serif; /* Título elegante */
+            font-weight: 800; letter-spacing: .2px;
+            font-size: clamp(2.5rem, 4vw, 3.5rem); margin-bottom: .35rem;
+            color: var(--text-title);
+        }
+        .hero-sub-light{
+            color: var(--text-ink);
+            font-size: clamp(1rem, 2.2vw, 1.25rem); margin-bottom: 2rem;
+        }
+        
+        /* Eliminamos las olas y el wave path ya no se usan */
 
-    /* Responsive (Razor => @@media) */
-    @@media (min-width: 992px){
-      .contact-hero-compact{ padding: 48px 0 58px; }
-      .hero-sub{ margin-bottom: 1.4rem; }
-    }
+        /* ---------- Cards/info izquierda (Sage Style) ---------- */
+        .contact-info-card{
+            background: white;
+            border-radius: 1.5rem; /* Más redondeado */
+            box-shadow: 0 12px 35px rgba(38, 69, 58, 0.1);
+            border: 1px solid var(--sage-200);
+        }
 
-    /* ---------- Cards/info izquierda ---------- */
-    .glass-card{
-      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.62));
-      backdrop-filter: blur(8px); border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.07);
-    }
-    .icon-pill{
-      width:42px;height:42px;border-radius:999px; display:grid; place-items:center;
-      background: linear-gradient(135deg, rgba(13,110,253,.15), rgba(32,201,151,.15));
-      color:#0d6efd;
-    }
-    .icon-soft{
-      width:36px;height:36px;border-radius:10px; display:grid; place-items:center;
-      background: rgba(13,110,253,.08); color:#0d6efd;
-    }
+        .icon-pill-sage{
+            width:48px;height:48px;border-radius:999px; display:grid; place-items:center;
+            background: linear-gradient(135deg, var(--sage-500) 0%, var(--sage-700) 100%);
+            color:white; font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(63, 107, 79, 0.4);
+        }
+        .icon-soft-sage{
+            width:40px;height:40px;border-radius:12px; display:grid; place-items:center;
+            background: var(--sage-100); color:var(--sage-700); font-size: 1.1rem;
+            border: 1px solid var(--sage-200);
+        }
 
-    /* ---------- Form base ---------- */
-    .fancy-floating .form-control{
-      border-radius: 14px; padding-top: 1.25rem; padding-bottom: .75rem;
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    .fancy-floating label{ color:#6c757d; }
-    .fancy-floating .form-control:focus{
-      box-shadow: 0 0 0 .2rem var(--ring); border-color: rgba(13,110,253,.45);
-    }
-    .fancy-area{ border-radius: 14px; }
-    .fancy-area:focus{
-      box-shadow: 0 0 0 .2rem var(--ring); border-color: rgba(13,110,253,.45);
-    }
+        /* ---------- Form base (Sage Focus) ---------- */
+        .contact-form-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 18px 45px rgba(36, 69, 58, 0.15); 
+        }
+        
+        .fancy-floating-sage .form-control,
+        .fancy-area-sage {
+            border-radius: 1rem;
+            border: 1px solid var(--sage-300, #c9d7c2);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 1.05rem 1rem .9rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .fancy-floating-sage .form-control:focus,
+        .fancy-area-sage:focus {
+            box-shadow: 0 0 0 .2rem var(--ring-sage);
+            border-color: var(--sage-700);
+        }
+        
+        .fancy-floating-sage label { color: #6c757d; }
+        
+        .fancy-floating-sage .form-control:focus + label,
+        .fancy-floating-sage .form-control:not(:placeholder-shown) + label,
+        .fancy-floating-sage .form-control:-webkit-autofill + label{
+            top: 0; transform: translateY(-58%) scale(.92);
+            background: #fff; color: var(--primary-sage); 
+            border-radius: .4rem; box-shadow: 0 0 0 2px #fff;
+        }
 
-    /* ====== FIX AUTOFILL (Chrome/Edge) ====== */
-    input:-webkit-autofill,
-    textarea:-webkit-autofill,
-    select:-webkit-autofill{
-      -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
-      box-shadow: 0 0 0 1000px #fff inset !important;
-      -webkit-text-fill-color: #212529 !important;
-      caret-color: #212529;
-    }
+        /* FIX AUTOFILL */
+        input:-webkit-autofill,
+        textarea:-webkit-autofill,
+        select:-webkit-autofill{
+            -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+            box-shadow: 0 0 0 1000px #fff inset !important;
+            -webkit-text-fill-color: var(--text-ink) !important;
+            caret-color: var(--text-ink);
+        }
+        .fancy-floating-sage .form-control::placeholder{ color: transparent !important; }
+        .fancy-area-sage::placeholder{ color:#9aa0a6; opacity:.75; }
 
-    /* ====== FLOATING LABEL MEJORADO + tamaño de texto cómodo ====== */
-    .fancy-floating{ position: relative; }
-
-    .fancy-floating.form-floating > label{
-      position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
-      height: auto; line-height: 1; padding: 0 .35rem; margin: 0;
-      font-size: .95rem; color: #6c757d; background: transparent;
-      pointer-events: none; transition: all .15s ease;
-    }
-
-    .fancy-floating.form-floating > .form-control{
-      padding: 1.05rem 1rem .9rem 1rem;
-      border: 1px solid #e7eaef; border-radius: 14px;
-      font-size: 1rem; font-weight: 500;
-    }
-
-    .fancy-area{
-      border: 1px solid #e7eaef;
-      font-size: 1rem;
-    }
-
-    .fancy-floating .form-control:focus + label,
-    .fancy-floating .form-control:not(:placeholder-shown) + label,
-    .fancy-floating .form-control:-webkit-autofill + label{
-      top: 0; transform: translateY(-58%) scale(.92);
-      background: #fff; color: #0d6efd;
-      border-radius: .4rem; box-shadow: 0 0 0 2px #fff;
-    }
-
-    /* Oculta placeholder en inputs flotantes; deja textarea suave */
-    .fancy-floating .form-control::placeholder{ color: transparent !important; }
-    .fancy-area::placeholder{ color:#9aa0a6; opacity:.75; }
-
-    /* ===== Accordión: sin azul cuando está activo ===== */
-    #faqContact.accordion{
-      --bs-accordion-active-bg:#fff;
-      --bs-accordion-active-color:inherit;
-      --bs-accordion-btn-bg:#fff;
-      --bs-accordion-btn-color:#212529;
-      --bs-accordion-border-color:#eef1f5;
-      --bs-accordion-btn-focus-box-shadow:0 0 0 .15rem rgba(13,110,253,.12);
-      --bs-accordion-btn-focus-border-color:rgba(13,110,253,.25);
-    }
-    #faqContact .accordion-button:not(.collapsed){
-      background-color:#fff !important; color:#212529; box-shadow:none;
-    }
-    #faqContact .accordion-button:focus{
-      border-color: rgba(13,110,253,.25);
-      box-shadow: 0 0 0 .15rem rgba(13,110,253,.12);
-    }
-    #faqContact .accordion-button:hover{ background:#fafafa; }
-
-    /* ===== Ocultar botón "X" de los alerts SOLO en esta página ===== */
-    .container.mt-3 .alert .btn-close{ display:none !important; }
-    .container.mt-3 .alert{ border-radius:.75rem; }
-  </style>
+        /* ===== Accordión Sage ===== */
+        .contact-faq-accordion.accordion{
+            --bs-accordion-active-bg:var(--sage-50);
+            --bs-accordion-active-color:var(--text-ink);
+            --bs-accordion-btn-bg:#fff;
+            --bs-accordion-btn-color:var(--text-ink);
+            --bs-accordion-border-color:var(--sage-200);
+            --bs-accordion-btn-focus-box-shadow:0 0 0 .15rem rgba(63, 107, 79, 0.15);
+        }
+        .contact-faq-accordion .accordion-item{
+            border: 1px solid var(--sage-200);
+        }
+        .contact-faq-accordion .accordion-button:not(.collapsed){
+            background-color: var(--sage-100) !important;
+            font-weight: 700 !important;
+        }
+        .contact-faq-accordion .accordion-button:hover{ background:var(--sage-100); }
+    </style>
 }
-@section Scripts{
-  <partial name="_ValidationScriptsPartial" />
-  <script>
-    // contador mensaje
-    (function(){
-      const t = document.getElementById("Mensaje");
-      const c = document.getElementById("msgCount");
-      if(t && c){ const u=()=>c.textContent=(t.value||"").length; t.addEventListener("input",u); u(); }
-    })();
 
-    // Auto-cierre de los avisos globales del Layout (sin tocar el Layout)
-    document.addEventListener('DOMContentLoaded', function () {
-      const alerts = document.querySelectorAll('.container.mt-3 .alert');
-      alerts.forEach(function (el) {
-        const delay = el.classList.contains('alert-danger') ? 6000 : 4500; // error tarda más
-        setTimeout(function () {
-          try {
-            const bsAlert = (window.bootstrap && bootstrap.Alert && bootstrap.Alert.getOrCreateInstance)
-              ? bootstrap.Alert.getOrCreateInstance(el) : null;
-            if (bsAlert) { bsAlert.close(); }
-            else { el.classList.remove('show'); el.remove(); }
-          } catch (e) {
-            el.classList.remove('show'); el.remove();
-          }
-        }, delay);
-      });
-    });
-  </script>
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // contador mensaje
+        (function(){
+            const t = document.getElementById("Mensaje");
+            const c = document.getElementById("msgCount");
+            if(t && c){ const u=()=>c.textContent=(t.value||"").length; t.addEventListener("input",u); u(); }
+        })();
+
+        // Auto-cierre de los avisos globales del Layout (sin tocar el Layout)
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.container.mt-3 .alert');
+            alerts.forEach(function (el) {
+                const delay = el.classList.contains('alert-danger') ? 6000 : 4500; // error tarda más
+                setTimeout(function () {
+                    try {
+                        // Usar el método oficial de Bootstrap para cerrar
+                        const bsAlert = (window.bootstrap && bootstrap.Alert && bootstrap.Alert.getOrCreateInstance)
+                            ? bootstrap.Alert.getOrCreateInstance(el) : null;
+                        if (bsAlert) { bsAlert.close(); }
+                        else { el.classList.remove('show'); el.remove(); }
+                    } catch (e) {
+                        el.classList.remove('show'); el.remove();
+                    }
+                }, delay);
+            });
+        });
+    </script>
 }
