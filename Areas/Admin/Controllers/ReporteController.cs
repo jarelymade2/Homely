@@ -121,7 +121,7 @@ public class ReporteController : Controller
                             foreach (var item in topPropiedades)
                             {
                                 table.Cell().Text(item.NombrePropiedad);
-                                table.Cell().AlignRight().Text(item.CantidadReservas);
+                                table.Cell().AlignRight().Text(item.CantidadReservas.ToString());
                             }
                         });
                         
@@ -141,7 +141,7 @@ public class ReporteController : Controller
                             foreach (var item in topUsuarios)
                             {
                                 table.Cell().Text(item.EmailUsuario);
-                                table.Cell().AlignRight().Text(item.CantidadReservas);
+                                table.Cell().AlignRight().Text(item.CantidadReservas.ToString());
                             }
                         });
                     });
