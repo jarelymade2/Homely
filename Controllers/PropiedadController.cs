@@ -5,6 +5,7 @@ using StayGo.Data;
 using StayGo.Models;
 using StayGo.Models.Enums;
 using StayGo.Integration;
+using StayGo.Services;
 
 namespace StayGo.Controllers
 {
@@ -13,16 +14,22 @@ namespace StayGo.Controllers
         private readonly StayGoContext _db;
         private readonly OpenWeatherIntegration _openWeather;
         private readonly UnsplashIntegration _unsplash;
+        private readonly ICacheService _cache;
+        private readonly IConfiguration _configuration;
 
-        // Constructor con inyección del servicio del clima y Unsplash
+        // Constructor con inyección del servicio del clima, Unsplash y caché
         public PropiedadController(
             StayGoContext db,
             OpenWeatherIntegration openWeather,
-            UnsplashIntegration unsplash)
+            UnsplashIntegration unsplash,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _db = db;
             _openWeather = openWeather;
             _unsplash = unsplash;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         // GET: /Propiedad
@@ -109,32 +116,42 @@ namespace StayGo.Controllers
         {
             Console.WriteLine($"Buscando propiedad con ID: {id}");
 
-            Propiedad? prop = null;
+            // Intentar obtener del caché primero
+            var cacheKey = $"propiedad:details:{id}";
+            var cacheExpiration = TimeSpan.FromMinutes(
+                _configuration.GetValue<int>("Redis:CacheExpirationMinutes:PropiedadDetalle", 60));
 
-            // Primero intentar buscar como string (comparando el Id convertido a string)
-            if (!string.IsNullOrEmpty(id))
+            var prop = await _cache.GetOrCreateAsync(cacheKey, async () =>
             {
-                prop = await _db.Propiedades
-                    .Include(p => p.Imagenes)
-                    .Include(p => p.Resenas)
-                    .ThenInclude(r => r.Usuario)
-                    .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Id.ToString() == id);
-            }
+                Propiedad? propiedad = null;
 
-            // Si no se encontró como string, intentar como Guid
-            if (prop == null && Guid.TryParse(id, out Guid idGuid))
-            {
-                Console.WriteLine($"Buscando como Guid: {idGuid}");
-                prop = await _db.Propiedades
-                    .Include(p => p.Imagenes)
-                    .Include(p => p.Resenas)
-                    .ThenInclude(r => r.Usuario)
-                    .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Id == idGuid);
-            }
+                // Primero intentar buscar como string (comparando el Id convertido a string)
+                if (!string.IsNullOrEmpty(id))
+                {
+                    propiedad = await _db.Propiedades
+                        .Include(p => p.Imagenes)
+                        .Include(p => p.Resenas)
+                        .ThenInclude(r => r.Usuario)
+                        .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.Id.ToString() == id);
+                }
+
+                // Si no se encontró como string, intentar como Guid
+                if (propiedad == null && Guid.TryParse(id, out Guid idGuid))
+                {
+                    Console.WriteLine($"Buscando como Guid: {idGuid}");
+                    propiedad = await _db.Propiedades
+                        .Include(p => p.Imagenes)
+                        .Include(p => p.Resenas)
+                        .ThenInclude(r => r.Usuario)
+                        .Include(p => p.Habitaciones) // Incluir habitaciones para hoteles
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.Id == idGuid);
+                }
+
+                return propiedad!;
+            }, cacheExpiration);
 
             Console.WriteLine($"Propiedad encontrada: {prop != null}");
 

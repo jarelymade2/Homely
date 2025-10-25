@@ -1,23 +1,132 @@
-:root{
-  --bg: #f8f9fb;
-  --ink: #121212;
-  --muted: #6b7280;
-  --brand: #111827;   /* negro suave tipo Airbnb */
-  --accent: #ef4444;  /* rojo acento */
-  --surface: #ffffff;
-  --radius: 14px;
-  --sage-50:#f5f7f4; --sage-100:#e9efe6; --sage-200:#dce6d7; --sage-300:#c9d7c2;
-  --sage-400:#a3b18a; --sage-500:#7fa174; --sage-600:#5e8a63; --sage-700:#3f6b4f;
-  --sage-800:#2f5b45; --sage-900:#26453a;
+/*
+ * === TEMA PRINCIPAL (BASADO EN EL DISEÑO "SAGE" DEL ADMIN) ===
+ */
+
+:root {
+    /* Sage palette */
+    --sage-50: #f5f7f4;
+    --sage-100: #e9efe6;
+    --sage-200: #dce6d7;
+    --sage-300: #c9d7c2;
+    --sage-400: #a3b18a;
+    --sage-500: #7fa174;
+    --sage-600: #5e8a63;
+    --sage-700: #3f6b4f;
+    --sage-800: #2f5b45;
+    --sage-900: #26453a;
+    
+    /* Variables semánticas */
+    --bg: var(--sage-50);       /* Fondo de página principal */
+    --ink: #243036;             /* Color de texto principal */
+    --muted: #6c757d;           /* Color de texto secundario */
+    --brand: var(--sage-700);   /* Color de marca principal (verde) */
+    --accent: var(--sage-600);  /* Color de acento */
+    --surface: #ffffff;         /* Fondo de tarjetas, navbar, etc. */
+    --shadow: 0 10px 25px rgba(36,48,54,.08);
+    --radius: 16px;             /* Radio de borde unificado */
+    --ring: rgba(63,107,79,.35); /* Anillo de foco (accesibilidad) */
 }
 
-html, body { height: 100%; }
-body.bg-body { background: var(--bg); color: var(--ink); }
+html, body {
+    height: 100%;
+}
 
-.navbar .nav-link{ color: #4b5563; }
-.navbar .nav-link:hover{ color: var(--ink); }
-.navbar-brand{ letter-spacing:.2px; }
+body {
+    background: var(--bg);
+    color: var(--ink);
+    overflow-x: hidden;
+}
 
+/*
+ * === BARRA DE NAVEGACIÓN (TOPBAR) ===
+ * Estilos para el <header> del _Layout.cshtml
+ */
+
+        .topbar {
+            height: 64px;
+            /* ESTA ES LA LÍNEA NUEVA (degradado horizontal hacia el centro) */
+            background: linear-gradient(90deg, var(--sage-800), #1b2a23 50%, var(--sage-800));
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 1031;
+        }
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
+    letter-spacing: .2px;
+    color: var(--sage-800);
+    text-decoration: none;
+}
+
+.brand .logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,var(--sage-400),var(--sage-700));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    box-shadow: var(--shadow);
+}
+
+/* Botón hamburguesa (móvil) */
+.btn-burger {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    transition: all .2s;
+    color: var(--ink);
+    font-size: 1.25rem;
+    padding: .25rem .6rem;
+}
+
+.btn-burger:hover {
+    background: var(--sage-100);
+    border-color: var(--sage-200);
+}
+
+/* Enlaces de navegación */
+.topbar .navbar-nav .nav-link {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.topbar .navbar-nav .nav-link:hover,
+.topbar .navbar-nav .nav-link:focus {
+    color: var(--brand);
+}
+
+/* Botones de Login/Logout en la barra */
+.topbar .navbar-nav .btn {
+    --bs-btn-color: var(--brand);
+    --bs-btn-border-color: var(--sage-300);
+    --bs-btn-hover-bg: var(--sage-100);
+    --bs-btn-hover-border-color: var(--sage-500);
+    --bs-btn-hover-color: var(--brand);
+    font-weight: 500;
+}
+
+.topbar .navbar-nav .btn-primary {
+    --bs-btn-bg: var(--sage-600);
+    --bs-btn-border-color: var(--sage-600);
+    --bs-btn-hover-bg: var(--sage-700);
+    --bs-btn-hover-border-color: var(--sage-700);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+}
+
+
+/*
+ * === ESTILOS DE PÁGINAS Y COMPONENTES (Portados de tu CSS) ===
+ */
+
+/* Hero (Homepage) */
 .hero {
     background-image: url('/images/staygo-fondo.png');
     background-size: cover;
@@ -35,54 +144,89 @@ body.bg-body { background: var(--bg); color: var(--ink); }
     height: 100%;
 }
 
-.search-card{
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-  padding: 16px;
-  gap: 12px;
-}
-.search-grid{
-  display: grid;
-  grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
-  gap: 8px;
-}
-@media (max-width: 992px){
-  .search-grid{ grid-template-columns: 1fr 1fr; }
-}
-.search-card .form-label{ font-size:.8rem; color: var(--muted); margin-bottom:4px; }
-.search-card .form-control, .search-card .form-select{
-  border-radius: 10px;
+/* Tarjeta de Búsqueda (Homepage) */
+.search-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    padding: 16px;
+    gap: 12px;
 }
 
-.btn-brand{
-  background: var(--brand);
-  color: #fff;
-  border-radius: 12px;
-  padding: .75rem 1.25rem;
-  border: none;
-}
-.btn-brand:hover{ filter: brightness(.92); }
-
-.card-stay{
-  border: none;
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: 0 10px 24px rgba(0,0,0,.06);
-}
-.card-stay img{ aspect-ratio: 4/3; object-fit: cover; }
-.card-stay .price{ font-weight: 700; }
-.badge-soft{
-  background: #00000012; color: #111;
-  border-radius: 999px; padding:.35rem .6rem;
+.search-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
+    gap: 8px;
 }
 
-.alert{ border-radius: 12px; }
+@media (max-width: 992px) {
+    .search-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
 
-.card-img-top, .propiedad-img{
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
+.search-card .form-label {
+    font-size: .8rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.search-card .form-control, .search-card .form-select {
+    border-radius: 10px;
+}
+
+/* Botón de marca (ADAPTADO A SAGE) */
+.btn-brand {
+    background: var(--sage-600); /* Color verde en lugar de negro */
+    color: #fff;
+    border-radius: 12px;
+    padding: .75rem 1.25rem;
+    border: none;
+    transition: background-color .2s;
+}
+
+.btn-brand:hover {
+    background: var(--sage-700); /* Verde más oscuro al pasar el mouse */
+    color: #fff;
+}
+
+/* Tarjeta de Alojamiento (card-stay) */
+.card-stay {
+    border: none;
+    border-radius: var(--radius); /* Usa el radio unificado */
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    background: var(--surface);
+}
+
+.card-stay img {
+    aspect-ratio: 4/3;
+    object-fit: cover;
+}
+
+.card-stay .price {
+    font-weight: 700;
+}
+
+/* Insignia (ADAPTADA A SAGE) */
+.badge-soft {
+    background: #eef5ef; /* Verde pálido */
+    color: var(--sage-700); /* Verde oscuro */
+    border: 1px solid #d9e7da;
+    border-radius: 999px;
+    padding: .35rem .6rem;
+}
+
+/* Alertas (TempData) */
+.alert {
+    border-radius: var(--radius); /* Usa el radio unificado */
+}
+
+/* Imágenes de tarjetas */
+.card-img-top, .propiedad-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
 }
 
 .card img {
@@ -92,18 +236,117 @@ body.bg-body { background: var(--bg); color: var(--ink); }
 .card:hover img {
     transform: scale(1.05);
 }
-.navbar-sage-gradient {
-    /* El degradado que mencionaste, adaptado para la barra superior */
-    background: linear-gradient(90deg, var(--sage-900), #1b2a23 60%, var(--sage-800)) !important; 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Borde sutil */
-    
-    /* Asegura que los enlaces y el texto sean blancos sobre el fondo oscuro */
-    color: #fff !important; 
+
+
+/*
+ * === COMPONENTES ÚTILES (Portados del Admin) ===
+ */
+
+.page-head {
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), #fff;
+    border: 1px solid #edf1ee;
+    box-shadow: 0 10px 24px rgba(36,48,54,.06);
 }
-.navbar-sage-gradient .nav-link,
-.navbar-sage-gradient .navbar-brand {
-    color: #fff !important; 
+
+.btn-sage {
+    --bs-btn-bg: var(--sage-600);
+    --bs-btn-border-color: var(--sage-600);
+    --bs-btn-hover-bg: var(--sage-700);
+    --bs-btn-hover-border-color: var(--sage-700);
 }
-.navbar-sage-gradient .nav-link:hover {
-    color: #c9d7c2 !important; /* Color Sage-300 para el hover */
+
+.btn-outline-sage {
+    --bs-btn-color: var(--sage-700);
+    --bs-btn-border-color: var(--sage-300);
+    --bs-btn-hover-bg: var(--sage-100);
+    --bs-btn-hover-border-color: var(--sage-500);
+}
+
+.filter-card {
+    border-radius: 16px;
+    border: 1px solid #edf1ee;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(36,48,54,.05);
+}
+
+.table thead th {
+    background: linear-gradient(0deg,var(--sage-100),var(--sage-100)) !important;
+    color: #2d3a34;
+    border-bottom: 1px solid #e6eee8;
+    text-transform: uppercase;
+    font-size: .8rem;
+    letter-spacing: .02em;
+}
+
+.thumb {
+    width: 96px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #edf1ee;
+}
+
+.badge-type {
+    background: #eef5ef;
+    color: var(--sage-700);
+    border: 1px solid #d9e7da;
+}
+
+.empty {
+    border: 1px dashed #dfe6df;
+    background: var(--sage-50);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+/*
+ * === FOOTER ===
+ */
+.footer {
+    position: static;
+    width: 100%;
+    line-height: normal;
+    background: var(--surface); /* Fondo blanco */
+    border-top: 1px solid #e9ecef; /* Borde superior */
+    padding: 2.5rem 0;
+    margin-top: 3rem;
+    color: var(--muted);
+}
+
+.footer h5 {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.footer a {
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: var(--brand); /* Color verde al pasar el mouse */
+    text-decoration: underline;
+}
+
+.footer .footer-bottom {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+
+/*
+ * === ACCESIBILIDAD (Focus Ring) ===
+ */
+
+a.btn, button, .btn-burger {
+    outline: none;
+}
+
+a.btn:focus-visible, button:focus-visible, .btn-burger:focus-visible {
+    box-shadow: 0 0 0 4px var(--ring);
 }
