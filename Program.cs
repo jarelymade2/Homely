@@ -8,6 +8,9 @@ using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
 
+// >>> ML Integration
+using StayGo.Services.ML; // Asegúrate que el namespace coincida con la carpeta donde está MLRecommendationService
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,7 +20,6 @@ builder.Services.AddRazorPages();
 // -----------------
 // Connection string
 // -----------------
-// 1.1. Contexto de la Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
@@ -27,7 +29,6 @@ builder.Services.AddDbContext<StayGoContext>(options =>
 // -----------------
 // Identity (with Roles)
 // -----------------
-// 1.2. Configuración de Identity (con ApplicationUser y Roles)
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -42,7 +43,6 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -59,7 +59,6 @@ if (redisEnabled)
     {
         var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
 
-        // Registrar ConnectionMultiplexer como singleton
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<Program>>();
@@ -67,7 +66,7 @@ if (redisEnabled)
             {
                 var configuration = ConfigurationOptions.Parse(redisConfiguration);
                 configuration.AbortOnConnectFail = false;
-                configuration.ConnectTimeout = 5000; // 5 segundos timeout
+                configuration.ConnectTimeout = 5000;
                 var connection = ConnectionMultiplexer.Connect(configuration);
                 logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
                 return connection;
@@ -75,11 +74,10 @@ if (redisEnabled)
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
-                throw; // Lanzar para que use el fallback
+                throw;
             }
         });
 
-        // Configurar caché distribuido con Redis
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConfiguration;
@@ -97,7 +95,6 @@ if (redisEnabled)
 }
 else
 {
-    // Usar caché en memoria si Redis está deshabilitado
     builder.Services.AddDistributedMemoryCache();
     Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
 }
@@ -106,33 +103,37 @@ else
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 // -----------------
-// Session (VERY IMPORTANT)
+// Session
 // -----------------
-// Sesiones (con Redis si está habilitado, o en memoria)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true; // útil si tienes GDPR / consentimiento
-    // options.Cookie.SameSite = SameSiteMode.Lax; // opcional
+    options.Cookie.IsEssential = true;
 });
 
 // -----------------
-// OpenWeatherIntegration registration
+// OpenWeatherIntegration
 // -----------------
-// Registramos como servicio y como HttpClient (typed client)
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
 
 // -----------------
-// UnsplashIntegration registration
+// UnsplashIntegration
 // -----------------
 builder.Services.AddScoped<UnsplashIntegration>();
 
 // -----------------
-// MercadoPagoIntegration registration
+// MercadoPagoIntegration
 // -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
+
+// >>> ML Integration
+// -----------------
+// Registro del servicio de Machine Learning Recommender
+// -----------------
+builder.Services.AddScoped<MLRecommendationService>(); 
+// <<< ML Integration
 
 var app = builder.Build();
 
@@ -142,10 +143,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<StayGoContext>();
-        // Aplicar migraciones pendientes
         context.Database.Migrate();
 
-        // Luego ejecutar el seed
         await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
     }
@@ -174,14 +173,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// IMPORTANTE: Session debe registrarse en la pipeline antes de ejecutar los endpoints.
-// Colocamos UseSession() aquí, después de UseRouting().
 app.UseSession();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-// RUTA PARA ÁREAS (Admin)
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -198,7 +191,6 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Ruta MVC por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
