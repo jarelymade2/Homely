@@ -7,12 +7,26 @@ using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
+using Microsoft.Extensions.Configuration;
+using StayGo.Services.AI;
+using OfficeOpenXml;
 
 // >>> ML Integration
 using StayGo.Services.ML; // Asegúrate que el namespace coincida con la carpeta donde está MLRecommendationService
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -----------------
+// CONFIGURACIÓN GLOBAL
+// -----------------
+var configuration = builder.Configuration;
+
+
+
+
+
+
+// Add services to the container.
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -20,7 +34,7 @@ builder.Services.AddRazorPages();
 // -----------------
 // Connection string
 // -----------------
-var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
+var connectionString = configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
 builder.Services.AddDbContext<StayGoContext>(options =>
@@ -49,25 +63,32 @@ builder.Services.AddAuthorization(options =>
 });
 
 // -----------------
-// Redis Configuration (OPCIONAL)
+// Google reCAPTCHA
 // -----------------
-var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled", false);
+builder.Services.Configure<GoogleReCaptchaSettings>(
+    configuration.GetSection("GoogleReCaptcha")); // ✅ Carga desde appsettings.json
+
+// -----------------
+// Redis Configuration (opcional)
+// -----------------
+var redisEnabled = configuration.GetValue<bool>("Redis:Enabled", false);
 
 if (redisEnabled)
 {
     try
     {
-        var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
+        var redisConfiguration = configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<Program>>();
             try
             {
-                var configuration = ConfigurationOptions.Parse(redisConfiguration);
-                configuration.AbortOnConnectFail = false;
-                configuration.ConnectTimeout = 5000;
-                var connection = ConnectionMultiplexer.Connect(configuration);
+                var redisOptions = ConfigurationOptions.Parse(redisConfiguration);
+                redisOptions.AbortOnConnectFail = false;
+                redisOptions.ConnectTimeout = 5000;
+                var connection = ConnectionMultiplexer.Connect(redisOptions);
+
                 logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
                 return connection;
             }
@@ -81,7 +102,7 @@ if (redisEnabled)
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConfiguration;
-            options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
+            options.InstanceName = configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
         });
 
         Console.WriteLine("🔵 Redis habilitado - Usando caché distribuido");
@@ -99,7 +120,6 @@ else
     Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
 }
 
-// Registrar el servicio de caché personalizado
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 // -----------------
@@ -113,30 +133,28 @@ builder.Services.AddSession(options =>
 });
 
 // -----------------
-// OpenWeatherIntegration
+// Integraciones externas
+// (junto lo de feat/ml-recommendations + develop)
 // -----------------
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
-
-// -----------------
-// UnsplashIntegration
-// -----------------
 builder.Services.AddScoped<UnsplashIntegration>();
-
-// -----------------
-// MercadoPagoIntegration
-// -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
 
-// >>> ML Integration
-// -----------------
-// Registro del servicio de Machine Learning Recommender
-// -----------------
-builder.Services.AddScoped<MLRecommendationService>(); 
-// <<< ML Integration
+// Servicio de chat (rama develop)
+builder.Services.AddScoped<IChatAiService, OllamaChatService>();
+
+// Servicio de recomendaciones ML (rama feat/ml-recommendations)
+builder.Services.AddScoped<MLRecommendationService>();
+
+// EPPlus licencia (rama develop)
+ExcelPackage.License.SetNonCommercialPersonal("Jarel");
 
 var app = builder.Build();
 
+// -----------------
+// SEEDING DATABASE
+// -----------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -148,18 +166,19 @@ using (var scope = app.Services.CreateScope())
         await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
 
+        // Entrenamiento del modelo (rama feat/ml-recommendations)
         var ml = services.GetRequiredService<MLRecommendationService>();
         ml.TrainModel();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogError(ex, "❌ Error al inicializar la base de datos.");
     }
 }
 
 // -----------------
-// Pipeline
+// PIPELINE
 // -----------------
 if (app.Environment.IsDevelopment())
 {
@@ -177,7 +196,6 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -201,3 +219,12 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+// -----------------
+// CLASE PARA RECAPTCHA
+// -----------------
+public class GoogleReCaptchaSettings
+{
+    public string SiteKey { get; set; } = string.Empty;
+    public string SecretKey { get; set; } = string.Empty;
+}
