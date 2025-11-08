@@ -1,100 +1,548 @@
+@using Microsoft.EntityFrameworkCore
+@using StayGo.Data
+@using StayGo.Models
+@using StayGo.Models.Enums
+@inject StayGoContext _context
+
 @{
     ViewData["Title"] = "Panel de Administración";
+    
+    // Obtener datos reales de la base de datos
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var yesterday = today.AddDays(-1);
+    
+    // Total de propiedades
+    var totalPropiedades = await _context.Propiedades.CountAsync();
+    
+    // Reservas de hoy
+    var reservasHoy = await _context.Reservas
+        .Where(r => r.CheckIn == today && r.Estado == EstadoReserva.Confirmada)
+        .CountAsync();
+    var reservasAyer = await _context.Reservas
+        .Where(r => r.CheckIn == yesterday && r.Estado == EstadoReserva.Confirmada)
+        .CountAsync();
+    var tendenciaReservas = reservasAyer > 0 ? 
+        ((reservasHoy - reservasAyer) / (double)reservasAyer * 100) : 0;
 
+    // Usuarios activos
+    var usuariosActivos = await _context.Users.CountAsync();
+
+    // Ingresos de hoy
+    var ingresosHoy = await _context.Reservas
+        .Where(r => r.CheckIn == today && r.Estado == EstadoReserva.Confirmada)
+        .SumAsync(r => r.PrecioTotal);
+    var ingresosAyer = await _context.Reservas
+        .Where(r => r.CheckIn == yesterday && r.Estado == EstadoReserva.Confirmada)
+        .SumAsync(r => r.PrecioTotal);
+    var tendenciaIngresos = ingresosAyer > 0 ? 
+        ((ingresosHoy - ingresosAyer) / ingresosAyer * 100) : 0;
+
+    // Contadores para badges
+    var reservasPendientes = await _context.Reservas
+        .Where(r => r.Estado == EstadoReserva.Pendiente)
+        .CountAsync();
+
+    // Actividades recientes - usando reseñas como proxy de actividad reciente
+    var reseñasRecientes = await _context.Resenas
+        .Include(r => r.Propiedad)
+        .Include(r => r.Usuario)
+        .OrderByDescending(r => r.Fecha)
+        .Take(3)
+        .ToListAsync();
+
+    var reservasRecientes = await _context.Reservas
+        .Include(r => r.Propiedad)
+        .Include(r => r.Usuario)
+        .Where(r => r.Estado == EstadoReserva.Confirmada)
+        .OrderByDescending(r => r.CheckIn)
+        .Take(3)
+        .ToListAsync();
+
+    // Últimos usuarios (sin fecha de registro, tomamos los primeros X)
+    var usuariosRecientes = await _context.Users
+        .Take(3)
+        .ToListAsync();
 }
 
-<section class="hero mb-4">
-    <h1>Panel de administración</h1>
-    <p class="mb-0">Gestiona propiedades, reservas, usuarios y reportes.</p>
-</section>
+<div class="container-fluid py-4">
+    <!-- Header del Dashboard -->
+    <div class="page-head mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2" style="color: var(--sage-800); font-weight: 700; font-family: 'IBM Plex Sans', sans-serif;">Panel de Administración</h1>
+                <p class="mb-0 text-muted" style="font-family: 'IBM Plex Sans', sans-serif;">Gestiona propiedades, reservas, usuarios y reportes del sistema</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge-type px-3 py-2" style="font-family: 'IBM Plex Sans', sans-serif;">
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </span>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar me-1"></i>@DateTime.Now.ToString("dd MMM yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3">
-        <div class="kpi">
-            <div class="label">Propiedades</div>
-            <div class="value">@((ViewBag.TotalPropiedades ?? "—").ToString())</div>
+    <!-- Métricas Principales -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: rgba(127, 161, 116, 0.1);">
+                    <i class="bi bi-house-door" style="color: var(--sage-600);"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" style="color: var(--sage-800);">@totalPropiedades</div>
+                    <div class="metric-label" style="color: var(--sage-600);">Propiedades</div>
+                    <div class="metric-trend text-success">
+                        <i class="bi bi-database"></i> Total activas
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: rgba(63, 107, 79, 0.1);">
+                    <i class="bi bi-calendar-check" style="color: var(--sage-700);"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" style="color: var(--sage-800);">@reservasHoy</div>
+                    <div class="metric-label" style="color: var(--sage-600);">Reservas Hoy</div>
+                    <div class="metric-trend @(tendenciaReservas >= 0 ? "text-success" : "text-warning")">
+                        <i class="bi @(tendenciaReservas >= 0 ? "bi-arrow-up-short" : "bi-dash")"></i> 
+                        @(tendenciaReservas >= 0 ? Math.Abs(tendenciaReservas).ToString("0") + "% vs ayer" : "Similar a ayer")
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: rgba(94, 138, 99, 0.1);">
+                    <i class="bi bi-people" style="color: var(--sage-600);"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" style="color: var(--sage-800);">@usuariosActivos</div>
+                    <div class="metric-label" style="color: var(--sage-600);">Usuarios Activos</div>
+                    <div class="metric-trend text-success">
+                        <i class="bi bi-person-check"></i> Registrados
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-icon" style="background: rgba(47, 91, 69, 0.1);">
+                    <i class="bi bi-currency-dollar" style="color: var(--sage-700);"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" style="color: var(--sage-800);">S/ @ingresosHoy.ToString("N0")</div>
+                    <div class="metric-label" style="color: var(--sage-600);">Ingresos Hoy</div>
+                    <div class="metric-trend @(tendenciaIngresos >= 0 ? "text-success" : "text-danger")">
+                        <i class="bi @(tendenciaIngresos >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short")"></i> 
+                        @Math.Abs(tendenciaIngresos).ToString("0")% vs ayer
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="kpi">
-            <div class="label">Reservas (hoy)</div>
-            <div class="value">@((ViewBag.ReservasHoy ?? "—").ToString())</div>
+
+    <!-- Acciones Rápidas -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600;">Acciones Rápidas</h5>
+                <a href="#" class="text-decoration-none small" style="color: var(--sage-600);">
+                    <i class="bi bi-three-dots"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6 col-xl-3">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon" style="background: linear-gradient(135deg, var(--sage-400), var(--sage-600));">
+                        <i class="bi bi-house-add"></i>
+                    </div>
+                    <div class="action-badge">@totalPropiedades total</div>
+                </div>
+                <div class="action-content">
+                    <h6 style="color: var(--sage-800); font-weight: 600; margin-bottom: 0.5rem;">Propiedades</h6>
+                    <p class="text-muted small" style="line-height: 1.4; margin-bottom: 1.5rem;">
+                        Gestiona el catálogo completo de propiedades y añade nuevos alojamientos.
+                    </p>
+                    <div class="action-buttons">
+                        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Crear" class="btn btn-primary btn-sm d-flex align-items-center gap-2">
+                            <i class="bi bi-plus-circle"></i>Nueva
+                        </a>
+                        <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-outline-sage btn-sm">
+                            Ver todas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6 col-xl-3">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #6B8E23, #8FBC8F);">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="action-badge">@reservasPendientes pendientes</div>
+                </div>
+                <div class="action-content">
+                    <h6 style="color: var(--sage-800); font-weight: 600; margin-bottom: 0.5rem;">Reservas</h6>
+                    <p class="text-muted small" style="line-height: 1.4; margin-bottom: 1.5rem;">
+                        Consulta, aprueba y administra todas las reservas del sistema.
+                    </p>
+                    <div class="action-buttons">
+                        <a asp-area="Admin" asp-controller="Reserva" asp-action="Index" class="btn btn-primary btn-sm d-flex align-items-center gap-2 w-100 justify-content-center">
+                            <i class="bi bi-eye"></i>Gestionar Reservas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6 col-xl-3">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #4682B4, #87CEEB);">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="action-badge">@usuariosActivos usuarios</div>
+                </div>
+                <div class="action-content">
+                    <h6 style="color: var(--sage-800); font-weight: 600; margin-bottom: 0.5rem;">Usuarios</h6>
+                    <p class="text-muted small" style="line-height: 1.4; margin-bottom: 1.5rem;">
+                        Administra cuentas de usuarios, roles y permisos del sistema.
+                    </p>
+                    <div class="action-buttons">
+                        <a asp-area="Admin" asp-controller="Usuario" asp-action="Index" class="btn btn-primary btn-sm d-flex align-items-center gap-2 w-100 justify-content-center">
+                            <i class="bi bi-gear"></i>Administrar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6 col-xl-3">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #D2691E, #F4A460);">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div class="action-badge">S/ @ingresosHoy.ToString("N0") hoy</div>
+                </div>
+                <div class="action-content">
+                    <h6 style="color: var(--sage-800); font-weight: 600; margin-bottom: 0.5rem;">Reportes</h6>
+                    <p class="text-muted small" style="line-height: 1.4; margin-bottom: 1.5rem;">
+                        Métricas detalladas, análisis de desempeño y reportes financieros.
+                    </p>
+                    <div class="action-buttons">
+                        <a asp-area="Admin" asp-controller="Reportes" asp-action="Index" class="btn btn-primary btn-sm d-flex align-items-center gap-2 w-100 justify-content-center">
+                            <i class="bi bi-bar-chart"></i>Ver Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="kpi">
-            <div class="label">Usuarios activos</div>
-            <div class="value">@((ViewBag.UsuariosActivos ?? "—").ToString())</div>
+
+    <!-- Sección adicional para estadísticas rápidas -->
+    <div class="row g-4 mt-2">
+        <div class="col-12 col-lg-8">
+            <div class="filter-card border-0">
+                <div class="card-body p-4">
+                    <h6 style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; margin-bottom: 1.5rem;">
+                        Actividad Reciente
+                    </h6>
+                    <div class="activity-list">
+                        @foreach (var reseña in reseñasRecientes)
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon text-info">
+                                    <i class="bi bi-star"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Nueva reseña: @reseña.Propiedad?.Titulo</div>
+                                    <div class="activity-meta">
+                                        @reseña.Usuario?.UserName • @reseña.Puntuacion/5 • 
+                                        Hace @((DateTime.Now - reseña.Fecha).Hours) horas
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @foreach (var reserva in reservasRecientes)
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon text-success">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Reserva confirmada: @reserva.Propiedad?.Titulo</div>
+                                    <div class="activity-meta">
+                                        @reserva.Usuario?.UserName • 
+                                        @reserva.CheckIn.ToString("dd MMM") • 
+                                        S/ @reserva.PrecioTotal.ToString("N0")
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @foreach (var usuario in usuariosRecientes)
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon text-warning">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Usuario: @usuario.UserName</div>
+                                    <div class="activity-meta">
+                                        @usuario.Email • Usuario activo
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="kpi">
-            <div class="label">Ingresos (S/)</div>
-            <div class="value">@((ViewBag.IngresosHoy ?? "—").ToString())</div>
+        
+        <div class="col-12 col-lg-4">
+            <div class="filter-card border-0">
+                <div class="card-body p-4">
+                    <h6 style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; margin-bottom: 1.5rem;">
+                        Estado del Sistema
+                    </h6>
+                    <div class="system-status">
+                        <div class="status-item">
+                            <div class="status-indicator bg-success"></div>
+                            <span>Base de Datos</span>
+                            <small class="text-muted">@totalPropiedades propiedades</small>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator bg-success"></div>
+                            <span>Reservas Activas</span>
+                            <small class="text-muted">@reservasHoy hoy</small>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator @(reservasPendientes > 0 ? "bg-warning" : "bg-success")"></div>
+                            <span>Reservas Pendientes</span>
+                            <small class="text-muted">@reservasPendientes por revisar</small>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-indicator bg-success"></div>
+                            <span>Usuarios</span>
+                            <small class="text-muted">@usuariosActivos activos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<style>
+    /* Cards de Métricas */
+    .metric-card {
+        background: #fff;
+        border: 1px solid var(--sage-200);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(36, 48, 54, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
 
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(36, 48, 54, 0.1);
+    }
 
-<div class="row g-3">
-    <div class="col-12 col-lg-6">
-        <div class="card-action">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-house-add"></i>
-                <div>
-                    <div class="fw-semibold">Propiedades</div>
-                    <div class="text-muted small">Crea o gestiona alojamientos.</div>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a asp-area="Admin" asp-controller="Propiedad" asp-action="Crear" class="btn btn-sm">Nueva</a>
-                <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="btn btn-sm">Ver todas</a>
-            </div>
-        </div>
-    </div>
+    .metric-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
 
-    <div class="col-12 col-lg-6">
-        <div class="card-action">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-calendar-event"></i>
-                <div>
-                    <div class="fw-semibold">Reservas</div>
-                    <div class="text-muted small">Consulta y administra reservas.</div>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a asp-area="Admin" asp-controller="Reserva" asp-action="Index" class="btn btn-sm">Abrir</a>
-            </div>
-        </div>
-    </div>
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
 
-    <div class="col-12 col-lg-6">
-        <div class="card-action">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-people"></i>
-                <div>
-                    <div class="fw-semibold">Usuarios</div>
-                    <div class="text-muted small">Gestión de cuentas y roles.</div>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a asp-area="Admin" asp-controller="Usuario" asp-action="Index" class="btn btn-sm">Administrar</a>
-            </div>
-        </div>
-    </div>
+    .metric-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
 
-    <div class="col-12 col-lg-6">
-        <div class="card-action">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-graph-up"></i>
-                <div>
-                    <div class="fw-semibold">Reportes</div>
-                    <div class="text-muted small">Métricas y desempeño.</div>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a asp-area="Admin" asp-controller="Reportes" asp-action="Index" class="btn btn-sm">Ver</a>
-            </div>
-        </div>
-    </div>
-</div>
+    .metric-trend {
+        font-size: 0.8rem;
+        font-weight: 500;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    /* Cards de Acción */
+    .action-card {
+        background: #fff;
+        border: 1px solid var(--sage-200);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(36, 48, 54, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(36, 48, 54, 0.15);
+    }
+
+    .action-header {
+        position: relative;
+        padding: 1.5rem 1.5rem 0;
+    }
+
+    .action-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: var(--sage-100);
+        color: var(--sage-700);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .action-content {
+        padding: 0 1.5rem 1.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: var(--sage-600);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: var(--sage-700);
+        transform: translateY(-1px);
+    }
+
+    /* Actividad y Estado */
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--sage-100);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .activity-title {
+        font-weight: 500;
+        color: var(--sage-800);
+        margin-bottom: 0.25rem;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .activity-meta {
+        font-size: 0.875rem;
+        color: var(--sage-600);
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--sage-100);
+    }
+
+    .status-item:last-child {
+        border-bottom: none;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .status-item span {
+        flex: 1;
+        font-weight: 500;
+        color: var(--sage-800);
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .status-item small {
+        font-size: 0.8rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .metric-value {
+            font-size: 1.75rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
