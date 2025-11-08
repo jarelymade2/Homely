@@ -7,6 +7,7 @@ using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
+using StayGo.Services.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -134,6 +135,10 @@ builder.Services.AddScoped<UnsplashIntegration>();
 // -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
 
+builder.Services.AddScoped<IChatAiService, OllamaChatService>();
+
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -184,6 +189,8 @@ app.UseAuthorization();
 // RUTA PARA ÁREAS (Admin)
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
+
 
 // =========================================================
 // 4. RUTAS
