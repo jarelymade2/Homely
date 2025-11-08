@@ -1,164 +1,207 @@
 @model StayGo.Models.ContactoMensaje
 @{
     ViewData["Title"] = "Detalles del Mensaje";
-    // Asumo que tienes Bootstrap Icons disponible (bi)
+
 }
 
-<!-- 
-  Cambiamos 'content' por 'container-fluid py-4' para que
-  ocupe todo el ancho y tenga padding vertical.
--->
+
 <div class="container-fluid py-4">
-    
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <!-- 
-          Quitamos el color en línea para que herede el --ink (negro)
-        -->
-        <h2 class="mb-0" style="font-weight: 600;">@ViewData["Title"]</h2>
-        <div>
-            <!-- 
-              Usamos 'btn-outline-sage' de tu CSS
-            -->
-            <a asp-action="Index" class="btn btn-outline-sage">
-                <i class="bi bi-arrow-left"></i> Volver a la lista
-            </a>
+    <!-- Header Mejorado -->
+    <div class="page-head mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2" style="color: var(--sage-800); font-weight: 700; font-family: 'IBM Plex Sans', sans-serif;">Detalles del Mensaje</h1>
+                <p class="mb-0 text-muted" style="font-family: 'IBM Plex Sans', sans-serif;">Información completa del mensaje de contacto recibido</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-dark border px-3 py-2" style="font-family: 'IBM Plex Sans', sans-serif;">
+                    <i class="bi bi-envelope me-2"></i>Mensaje
+                </span>
+                <a asp-action="Index" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver a la lista</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- 
-      Usamos 'filter-card' de tu CSS para la tarjeta principal
-    -->
+    <!-- Tarjeta Principal -->
     <div class="filter-card border-0">
-        <!-- 
-          Aplicamos un estilo de encabezado personalizado 
-          que usa la paleta 'sage'.
-        -->
-        <div class="card-header sage-header">
-            <!-- 
-              Quitamos el color en línea para que herede el --ink (negro)
-            -->
-            <h5 class="card-title mb-0">
-                <i class="bi bi-envelope-open me-2"></i>Mensaje de @Model.Nombre
-            </h5>
-        </div>
-        <div class="card-body p-4">
-            
-            <!-- Información básica -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <strong><i class="bi bi-person me-2"></i>Nombre:</strong>
-                        <span class="ms-2">@Model.Nombre</span>
+        <div class="card-header" style="background: #f8f9fa; border-bottom: 1px solid #dee2e6; padding: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="message-avatar">
+                        <i class="bi bi-person-circle" style="font-size: 2rem; color: #6c757d;"></i>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <strong><i class="bi bi-envelope me-2"></i>Email:</strong>
-                        <!-- 
-                          Quitamos el color en línea para que herede el --ink (negro)
-                          o el color de enlace por defecto.
-                        -->
-                        <a href="mailto:@Model.Email" class="ms-2">@Model.Email</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fecha y tipo de usuario -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <strong><i class="bi bi-calendar-event me-2"></i>Fecha de envío:</strong>
-                        <span class="ms-2">@Model.FechaLocal.ToString("dd/MM/yyyy 'a las' HH:mm")</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <strong><i class="bi bi-person-badge me-2"></i>Tipo de usuario:</strong>
-                        <span class="ms-2">
+                    <div>
+                        <h5 class="mb-1" style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600;">@Model.Nombre</h5>
+                        <p class="mb-0 text-muted" style="font-family: 'IBM Plex Sans', sans-serif;">
+                            <i class="bi bi-envelope me-1"></i>@Model.Email
                             @if (!string.IsNullOrEmpty(Model.IdentityUserId))
                             {
-                                <!-- 
-                                  Usamos 'badge-type' de tu CSS
-                                -->
-                                <span class="badge badge-type">
-                                    <i class="bi bi-patch-check-fill me-1"></i>Usuario Registrado
+                                <span class="badge bg-sage-light bg-opacity-10 text-white border border-sage-light border-opacity-25 ms-2" style="font-size: 0.7rem;">
+                                    <i class="bi bi-patch-check me-1"></i>Usuario Registrado
                                 </span>
                             }
-                            else
-                            {
-                                <span class="badge" style="background-color: var(--muted); color: var(--card);">
-                                    <i class="bi bi-person me-1"></i>Visitante
-                                </span>
-                            }
-                        </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small" style="font-family: 'IBM Plex Sans', sans-serif;">
+                        <i class="bi bi-clock me-1"></i>@Model.FechaLocal.ToString("dd MMM yyyy 'a las' HH:mm")
+                    </div>
+                    <div class="text-muted small" style="font-family: 'IBM Plex Sans', sans-serif;">
+                        Hace @((DateTime.Now - Model.FechaLocal).Days) días
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <!-- Información en Grid -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="info-icon" style="background: rgba(108, 117, 125, 0.1);">
+                            <i class="bi bi-person" style="color: #6c757d;"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label" style="color: #6c757d; font-family: 'IBM Plex Sans', sans-serif;">Remitente</div>
+                            <div class="info-value" style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;">@Model.Nombre</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="info-icon" style="background: rgba(127, 161, 116, 0.1);">
+                            <i class="bi bi-envelope" style="color: #7fa174;"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label" style="color: #6c757d; font-family: 'IBM Plex Sans', sans-serif;">Email de contacto</div>
+                            <div class="info-value" style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;">
+                                <a href="mailto:@Model.Email" class="text-decoration-none" style="color: #7fa174;">@Model.Email</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="info-icon" style="background: rgba(111, 66, 193, 0.1);">
+                            <i class="bi bi-calendar" style="color: #6f42c1;"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label" style="color: #6c757d; font-family: 'IBM Plex Sans', sans-serif;">Fecha de envío</div>
+                            <div class="info-value" style="color: #243a36; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;">
+                                @Model.FechaLocal.ToString("dd MMMM yyyy")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="info-icon" style="background: rgba(32, 201, 151, 0.1);">
+                            <i class="bi bi-person-badge" style="color: #20c997;"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label" style="color: #6c757d; font-family: 'IBM Plex Sans', sans-serif;">Tipo de usuario</div>
+                            <div class="info-value">
+                                @if (!string.IsNullOrEmpty(Model.IdentityUserId))
+                                {
+                                    <span class="badge bg-sage-light bg-opacity-10 text-white border border-sage-light border-opacity-25 px-3 py-2" style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;">
+                                        <i class="bi bi-patch-check me-1"></i>Usuario Registrado
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2" style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;">
+                                        <i class="bi bi-person me-1"></i>Visitante
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ID del mensaje (para referencia) -->
+            <!-- ID del Mensaje -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <div class="info-item">
-                        <strong><i class="bi bi-fingerprint me-2"></i>ID del mensaje:</strong>
-                        <!-- 
-                          Cambiamos el color del texto a uno más oscuro
-                        -->
-                        <code class="ms-2 small" style="background: var(--sage-100); color: var(--sage-800); padding: 2px 5px; border-radius: 4px;">@Model.Id</code>
+                    <div class="info-card">
+                        <div class="info-icon" style="background: rgba(127, 161, 116, 0.1);">
+                            <i class="bi bi-fingerprint" style="color: #7fa174;"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label" style="color: #6c757d; font-family: 'IBM Plex Sans', sans-serif;">ID del mensaje</div>
+                            <div class="info-value">
+                                <code class="small px-3 py-2 rounded-2" style="background: #f8f9fa; color: #243a36; border: 1px solid #dee2e6; font-family: 'IBM Plex Sans', sans-serif;">
+                                    @Model.Id
+                                </code>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Mensaje completo -->
-            <div class="mb-3">
-                <strong><i class="bi bi-chat-text me-2"></i>Mensaje:</strong>
-                <div class="border rounded p-3 mt-2 message-content">
-                    @Html.Raw(Model.Mensaje.Replace("\n", "<br/>"))
+            <!-- Mensaje Completo -->
+            <div class="message-section">
+                <h6 style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; margin-bottom: 1rem;">
+                    <i class="bi bi-chat-text me-2"></i>Contenido del Mensaje
+                </h6>
+                <div class="message-content p-4 rounded-3">
+                    <div style="font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; color: #243a36; white-space: pre-wrap;">
+                        @Model.Mensaje
+                    </div>
                 </div>
             </div>
 
-            <!-- Información adicional si es usuario registrado -->
+            <!-- Información Adicional para Usuarios Registrados -->
             @if (!string.IsNullOrEmpty(Model.IdentityUserId))
             {
-                <!-- 
-                  Cambiamos 'alert-sage' por 'alert-light' para 
-                  reducir el color verde.
-                -->
-                <div class="alert alert-light mt-3" style="border-color: var(--sage-200);">
-                    <h6 class="mb-1"><i class="bi bi-info-circle-fill me-2"></i>Información adicional</h6>
-                    <p class="mb-0 small">
-                        Este mensaje fue enviado por un usuario registrado. 
-                        ID de usuario: <code style="background: var(--sage-200); color: var(--sage-800); padding: 2px 5px; border-radius: 4px;">@Model.IdentityUserId</code>
-                    </p>
+                <div class="alert alert-light mt-4" style="border: 1px solid #dee2e6; background: #f8f9fa; border-radius: 12px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="alert-icon">
+                            <i class="bi bi-info-circle" style="color: #7fa174; font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <h6 style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; margin-bottom: 0.5rem;">
+                                Información del Usuario Registrado
+                            </h6>
+                            <p class="mb-0 small" style="color: var(--sage-800); font-family: 'IBM Plex Sans', sans-serif;">
+                                Este mensaje fue enviado por un usuario registrado en la plataforma.
+                                ID de usuario: <code style="background: #e9ecef; color: #243a36; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">@Model.IdentityUserId</code>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
         
-        <!-- 
-          Footer con acciones: quitamos el fondo verde claro
-          y usamos 'bg-light' de Bootstrap.
-        -->
-        <div class="card-footer bg-light" style="border-top: 1px solid #e9ecef;">
+        <!-- Footer con Acciones -->
+        <div class="card-footer" style="background: #f8f9fa; border-top: 1px solid #dee2e6; padding: 1.5rem;">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <small class="text-muted">
-                        Recibido hace @((DateTime.UtcNow - Model.FechaUtc).Days) días
-                    </small>
+                <div class="text-muted small" style="font-family: 'IBM Plex Sans', sans-serif;">
+                    <i class="bi bi-clock-history me-1"></i>Mensaje recibido el @Model.FechaLocal.ToString("dd/MM/yyyy")
                 </div>
-                <div class="btn-group">
-                    <!-- 
-                      Cambiamos 'btn-sage' (sólido) por 'btn-outline-sage' 
-                      para reducir el color verde.
-                    -->
-                    <a href="mailto:@Model.Email?subject=Respuesta a tu mensaje de contacto&body=Hola @Model.Nombre,%0A%0AEn respuesta a tu mensaje:%0A%0A@Uri.EscapeDataString(Model.Mensaje)" 
-                       class="btn btn-outline-sage btn-sm">
-                        <i class="bi bi-reply-fill me-1"></i> Responder
+                <div class="d-flex gap-3">
+                    <a href="mailto:@Model.Email?subject=Respuesta a tu mensaje en StayGo&body=Hola @Model.Nombre,%0A%0AEn respuesta a tu mensaje:%0A%0A@Uri.EscapeDataString(Model.Mensaje)" 
+                       class="btn btn-sage d-flex align-items-center gap-2 px-4">
+                        <i class="bi bi-reply-fill"></i>
+                        <span>Responder</span>
                     </a>
                     <form asp-action="Eliminar" method="post" class="d-inline">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="btn btn-outline-danger btn-sm ms-2" 
-                                onclick="return confirm('¿Estás seguro de que quieres eliminar este mensaje? Esta acción no se puede deshacer.')">
-                            <i class="bi bi-trash-fill me-1"></i> Eliminar
+                        <button type="submit" class="btn btn-outline-danger d-flex align-items-center gap-2 px-4"
+                                onclick="return confirm('¿Está seguro de que desea eliminar este mensaje? Esta acción no se puede deshacer.')">
+                            <i class="bi bi-trash"></i>
+                            <span>Eliminar</span>
                         </button>
                     </form>
                 </div>
@@ -170,35 +213,150 @@
 </div>
 
 <style>
-    .info-item {
-        padding: 10px 0;
-        border-bottom: 1px solid var(--sage-100);
-        font-size: 0.95rem;
+    /* Tarjetas de información */
+    .info-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        transition: all 0.3s ease;
     }
-    /* Quitamos la regla de color para 'strong' 
-      para que herede el --ink (negro).
-    */
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* Contenido del mensaje */
+    .message-section {
+        margin-top: 2rem;
+    }
 
     .message-content {
-        white-space: pre-wrap;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        /* Cambiamos el fondo a uno neutral 'bg-light' 
-          y un borde estándar.
-        */
-        background: #f8f9fa !important;
-        border-color: #e9ecef !important;
-        color: var(--ink);
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        min-height: 150px;
     }
 
-    .sage-header {
-        background: linear-gradient(0deg,var(--sage-100),var(--sage-100));
-        border-bottom: 1px solid var(--sage-200);
-        padding: 1rem 1.5rem;
-        border-radius: var(--radius) var(--radius) 0 0 !important;
+    /* Avatar del mensaje */
+    .message-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
     }
-    
-    /* Eliminamos la clase 'alert-sage' ya que 
-      la reemplazamos por 'alert-light'
-    */
+
+    /* Icono de alerta */
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: rgba(127, 161, 116, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Botón sage personalizado */
+    .btn-sage {
+        background-color: #7fa174;
+        border-color: #7fa174;
+        color: white;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-sage:hover {
+        background-color: #6d8a63;
+        border-color: #6d8a63;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(127, 161, 116, 0.3);
+    }
+
+    /* Colores sage más claros para textos y badges */
+    .bg-sage-light {
+        background-color: #7fa174 !important;
+    }
+
+    .text-sage-medium {
+        color: #7fa174 !important;
+    }
+
+    .border-sage-light {
+        border-color: #7fa174 !important;
+    }
+
+    .btn-outline-danger {
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-head .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+        }
+        
+        .card-header .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+        }
+        
+        .card-footer .d-flex {
+            flex-direction: column;
+            gap: 1rem !important;
+            align-items: flex-start !important;
+        }
+        
+        .info-card {
+            padding: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
+

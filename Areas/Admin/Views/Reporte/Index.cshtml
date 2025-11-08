@@ -4,84 +4,138 @@
     ViewData["Title"] = "Panel de Reportes";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-chart-line"></i> Panel de Reportes</h1>
-        
+<div class="report-wrapper container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <a asp-action="ExportarExcel" class="btn btn-success">
-                <i class="fas fa-file-excel"></i> Exportar a Excel
+            <p class="text-muted mb-1 small text-uppercase fw-semibold">
+                <i class="fas fa-chart-line me-1"></i> Panel de reportes
+            </p>
+            <h1 class="h3 mb-0 fw-bold">Analítica y desempeño</h1>
+            <p class="text-muted mb-0">Visualiza el comportamiento de reservas, propiedades y usuarios.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportarExcel" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="fas fa-file-excel"></i> <span>Exportar Excel</span>
             </a>
-            <a asp-action="ExportarPdf" class="btn btn-danger">
-                <i class="fas fa-file-pdf"></i> Exportar a PDF
+            <a asp-action="ExportarPdf" class="btn btn-outline-danger d-flex align-items-center gap-2">
+                <i class="fas fa-file-pdf"></i> <span>Exportar PDF</span>
             </a>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Reservas por Mes (Confirmadas/Completadas)</h5>
+    <!-- Card del gráfico -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center px-4 pt-4">
+            <div>
+                <h5 class="mb-1 fw-semibold">Reservas por mes</h5>
+                <small class="text-muted">Sólo reservas confirmadas / completadas</small>
+            </div>
+            <span class="badge bg-light text-secondary">Vista mensual</span>
         </div>
-        <div class="card-body">
-            <canvas id="reservasChart"></canvas>
+        <div class="card-body px-4 pb-4">
+            <div class="chart-container">
+                <canvas id="reservasChart" height="120"></canvas>
+            </div>
         </div>
     </div>
 
-    <div class="row">
+    <!-- Tablas -->
+    <div class="row g-4">
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">Propiedades Más Reservadas</h5>
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="fas fa-home me-2 text-primary"></i>Propiedades más reservadas
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary-emphasis">
+                        Top @Model.TopPropiedades.Count()
+                    </span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Propiedad</th>
-                                <th>Cantidad de Reservas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var (item, index) in Model.TopPropiedades.Select((value, i) => (value, i)))
-                            {
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover custom-table">
+                            <thead class="bg-light">
                                 <tr>
-                                    <td>@(index + 1)</td>
-                                    <td>@item.NombrePropiedad</td>
-                                    <td><span class="badge bg-primary rounded-pill">@item.CantidadReservas</span></td>
+                                    <th class="ps-4" style="width:65px;">#</th>
+                                    <th>Propiedad</th>
+                                    <th class="text-center">Reservas</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var (item, index) in Model.TopPropiedades.Select((value, i) => (value, i)))
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="rank-circle">@((index + 1).ToString())</span>
+                                        </td>
+                                        <td>@item.NombrePropiedad</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary rounded-pill">@item.CantidadReservas</span>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.TopPropiedades.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4">No hay datos disponibles.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 text-end small text-muted py-3 px-4">
+                    Datos generados a partir de reservas confirmadas.
                 </div>
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">Usuarios Más Activos</h5>
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="fas fa-users me-2 text-info"></i>Usuarios más activos
+                    </h5>
+                    <span class="badge bg-info-subtle text-info-emphasis">
+                        Top @Model.TopUsuarios.Count()
+                    </span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Email del Usuario</th>
-                                <th>Cantidad de Reservas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var (item, index) in Model.TopUsuarios.Select((value, i) => (value, i)))
-                            {
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover custom-table">
+                            <thead class="bg-light">
                                 <tr>
-                                    <td>@(index + 1)</td>
-                                    <td>@item.EmailUsuario</td>
-                                    <td><span class="badge bg-info rounded-pill">@item.CantidadReservas</span></td>
+                                    <th class="ps-4" style="width:65px;">#</th>
+                                    <th>Usuario</th>
+                                    <th class="text-center">Reservas</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var (item, index) in Model.TopUsuarios.Select((value, i) => (value, i)))
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="rank-circle">@((index + 1).ToString())</span>
+                                        </td>
+                                        <td>@item.EmailUsuario</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info rounded-pill">@item.CantidadReservas</span>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.TopUsuarios.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4">No hay datos disponibles.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 text-end small text-muted py-3 px-4">
+                    Actividad medida por número de reservas.
                 </div>
             </div>
         </div>
@@ -89,37 +143,59 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Obtenemos los datos del Modelo de C# y los pasamos a JavaScript
+        document.addEventListener("DOMContentLoaded", function () {
             const labels = @Json.Serialize(Model.ReservasPorMes.Select(r => r.MesAno));
             const data = @Json.Serialize(Model.ReservasPorMes.Select(r => r.Cantidad));
 
             const ctx = document.getElementById('reservasChart').getContext('2d');
+
             const reservasChart = new Chart(ctx, {
-                type: 'bar', // Tipo de gráfico: barras
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '# de Reservas',
+                        label: 'Reservas',
                         data: data,
-                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                        borderColor: 'rgba(0, 123, 255, 1)',
-                        borderWidth: 1
+                        backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        maxBarThickness: 45
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.03)'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
                         }
                     },
-                    responsive: true,
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#fff',
+                            titleColor: '#000',
+                            bodyColor: '#000',
+                            borderColor: 'rgba(0,0,0,0.05)',
+                            borderWidth: 1
                         }
                     }
                 }
@@ -127,3 +203,55 @@
         });
     </script>
 }
+
+<style>
+    .report-wrapper {
+        background: #f5f6f7;
+    }
+
+    .chart-container {
+        position: relative;
+        min-height: 280px;
+    }
+
+    .custom-table thead th {
+        font-size: .7rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .custom-table tbody td {
+        vertical-align: middle;
+    }
+
+    .rank-circle {
+        width: 32px;
+        height: 32px;
+        background: #edf3ff;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.08);
+    }
+
+    .rounded-4 {
+        border-radius: 1.25rem !important;
+    }
+
+    @@media (max-width: 768px) {
+        .report-wrapper .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
