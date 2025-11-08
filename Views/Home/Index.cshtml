@@ -23,7 +23,14 @@
 }
 
 @section Hero{
-    <section class="hero">
+    <section class="hero" id="heroSlider">
+        <!-- Slider de imágenes -->
+        <div class="hero-slider">
+            <img src="/images/staygo-fondo.png" alt="StayGo Fondo" class="slider-image active" />
+            <img src="/images/depa1.jpg" alt="Departamento 1" class="slider-image" />
+            <img src="/images/depa2.jpg" alt="Departamento 2" class="slider-image" />
+            <img src="/images/depa3.jpg" alt="Departamento 3" class="slider-image" />
+        </div>
         <div class="overlay">
             <div class="container">
                 
@@ -214,6 +221,52 @@
 
 @section Scripts{
     <script>
-        
+        // Slider de imágenes - Cambiar cada 4 segundos
+        let currentImageIndex = 0;
+        const sliderImages = document.querySelectorAll('.slider-image');
+        const totalImages = sliderImages.length;
+
+        function showNextImage() {
+            // Remover clase active de la imagen actual
+            sliderImages[currentImageIndex].classList.remove('active');
+
+            // Pasar a la siguiente imagen
+            currentImageIndex = (currentImageIndex + 1) % totalImages;
+
+            // Agregar clase active a la nueva imagen
+            sliderImages[currentImageIndex].classList.add('active');
+        }
+
+        // Cambiar imagen cada 4 segundos (4000ms) para un efecto más profesional
+        setInterval(showNextImage, 4000);
     </script>
+}
+
+@section Styles{
+    <style>
+        /* Estilos para el slider */
+        .hero-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .slider-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .slider-image.active {
+            opacity: 1;
+        }
+    </style>
 }
