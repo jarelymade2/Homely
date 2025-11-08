@@ -48,119 +48,261 @@ public class ReporteController : Controller
 
     // --- ACCIONES DE EXPORTACIÓN ---
 
-    public async Task<IActionResult> ExportarExcel()
+ 
+public async Task<IActionResult> ExportarExcel()
+{
+    var topPropiedades = await GetTopPropiedadesAsync(take: 50);
+    var topUsuarios = await GetTopUsuariosAsync(take: 50);
+
+    using (var package = new ExcelPackage())
     {
-        // 1. Obtenemos los datos (¡reutilizando los métodos!)
-        var topPropiedades = await GetTopPropiedadesAsync(take: 50); // Podemos incluso tomar más para Excel
-        var topUsuarios = await GetTopUsuariosAsync(take: 50);
-        
-        ExcelPackage.License.SetNonCommercialPersonal("YourName");
-        using (var package = new ExcelPackage())
+
+        var brandHeader = System.Drawing.Color.FromArgb(28, 64, 52);    // verde Homely oscuro
+        var accentColor = System.Drawing.Color.FromArgb(212, 175, 55);  // dorado elegante
+        var headerBg    = System.Drawing.Color.FromArgb(245, 245, 245); // gris claro
+
+        // ===================== HOJA 1: PROPIEDADES =====================
+        var ws1 = package.Workbook.Worksheets.Add("Top Propiedades");
+
+        // ENCABEZADO PRINCIPAL
+        ws1.Cells["A1:C1"].Merge = true;
+        ws1.Cells["A1"].Value = "HOMELY - Reporte de Propiedades";
+        ws1.Cells["A1"].Style.Font.Bold = true;
+        ws1.Cells["A1"].Style.Font.Size = 18;
+        ws1.Cells["A1"].Style.Font.Color.SetColor(accentColor);
+        ws1.Cells["A1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.CenterContinuous;
+        ws1.Cells["A1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+        ws1.Cells["A1"].Style.Fill.BackgroundColor.SetColor(brandHeader);
+        ws1.Row(1).Height = 28;
+
+        // FECHA DE GENERACIÓN
+        ws1.Cells["A2"].Value = $"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}";
+        ws1.Cells["A2"].Style.Font.Italic = true;
+        ws1.Cells["A2"].Style.Font.Size = 10;
+        ws1.Cells["A2"].Style.Font.Color.SetColor(System.Drawing.Color.Gray);
+
+        // SUBTÍTULO
+        ws1.Cells["A3"].Value = "Propiedades más reservadas";
+        ws1.Cells["A3"].Style.Font.Bold = true;
+        ws1.Cells["A3"].Style.Font.Size = 13;
+
+        // DATOS
+        ws1.Cells["A5"].LoadFromCollection(topPropiedades, true);
+        ws1.Cells["A5"].Value = "ID Propiedad";
+        ws1.Cells["B5"].Value = "Nombre de la propiedad";
+        ws1.Cells["C5"].Value = "Cantidad de reservas";
+
+        // CABECERAS
+        using (var range = ws1.Cells["A5:C5"])
         {
-            // Hoja 1: Top Propiedades
-            var worksheet1 = package.Workbook.Worksheets.Add("Top Propiedades");
-            // Usamos los DTOs, que funciona perfecto con LoadFromCollection
-            worksheet1.Cells["A1"].LoadFromCollection(topPropiedades, true); 
-            worksheet1.Cells.AutoFitColumns();
-
-            // Hoja 2: Top Usuarios
-            var worksheet2 = package.Workbook.Worksheets.Add("Top Usuarios");
-            worksheet2.Cells["A1"].LoadFromCollection(topUsuarios, true);
-            worksheet2.Cells.AutoFitColumns();
-
-            // 3. Devolvemos el archivo
-            var stream = new MemoryStream();
-            await package.SaveAsAsync(stream);
-            stream.Position = 0;
-            
-            string excelName = $"ReporteStayGo-{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+            range.Style.Font.Bold = true;
+            range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(headerBg);
+            range.Style.Font.Color.SetColor(System.Drawing.Color.FromArgb(64, 64, 64));
+            range.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.LightGray);
         }
-    }
 
-    public async Task<IActionResult> ExportarPdf()
-    {
-        // 1. Obtenemos los datos (¡reutilizando de nuevo!)
-        var topPropiedades = await GetTopPropiedadesAsync();
-        var topUsuarios = await GetTopUsuariosAsync();
+        // TABLA
+        var lastRow1 = 5 + topPropiedades.Count;
+        var tableRange1 = ws1.Cells[$"A5:C{lastRow1}"];
+        var table1 = ws1.Tables.Add(tableRange1, "TablaPropiedades");
+        table1.TableStyle = OfficeOpenXml.Table.TableStyles.Medium15; // gris moderno
 
-        // 2. Configura QuestPDF
-        // 2. Configura QuestPDF
-        QuestPDF.Settings.License = LicenseType.Community; // This is the correct setting
+        ws1.Cells[ws1.Dimension.Address].AutoFitColumns();
+        ws1.View.FreezePanes(6, 1);
 
-        // 3. Genera el documento PDF (tu código de PDF es perfecto, no cambia)
-        var document = Document.Create(container =>
+        // ===================== HOJA 2: USUARIOS =====================
+        var ws2 = package.Workbook.Worksheets.Add("Top Usuarios");
+
+        ws2.Cells["A1:C1"].Merge = true;
+        ws2.Cells["A1"].Value = "HOMELY - Reporte de Usuarios";
+        ws2.Cells["A1"].Style.Font.Bold = true;
+        ws2.Cells["A1"].Style.Font.Size = 18;
+        ws2.Cells["A1"].Style.Font.Color.SetColor(accentColor);
+        ws2.Cells["A1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.CenterContinuous;
+        ws2.Cells["A1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+        ws2.Cells["A1"].Style.Fill.BackgroundColor.SetColor(brandHeader);
+        ws2.Row(1).Height = 28;
+
+        ws2.Cells["A2"].Value = $"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}";
+        ws2.Cells["A2"].Style.Font.Italic = true;
+        ws2.Cells["A2"].Style.Font.Size = 10;
+        ws2.Cells["A2"].Style.Font.Color.SetColor(System.Drawing.Color.Gray);
+
+        ws2.Cells["A3"].Value = "Usuarios con más reservas";
+        ws2.Cells["A3"].Style.Font.Bold = true;
+        ws2.Cells["A3"].Style.Font.Size = 13;
+
+        ws2.Cells["A5"].LoadFromCollection(topUsuarios, true);
+        ws2.Cells["A5"].Value = "ID Usuario";
+        ws2.Cells["B5"].Value = "Email";
+        ws2.Cells["C5"].Value = "Cantidad de reservas";
+
+        using (var range = ws2.Cells["A5:C5"])
         {
-            container.Page(page =>
+            range.Style.Font.Bold = true;
+            range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(headerBg);
+            range.Style.Font.Color.SetColor(System.Drawing.Color.FromArgb(64, 64, 64));
+            range.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.LightGray);
+        }
+
+        var lastRow2 = 5 + topUsuarios.Count;
+        var tableRange2 = ws2.Cells[$"A5:C{lastRow2}"];
+        var table2 = ws2.Tables.Add(tableRange2, "TablaUsuarios");
+        table2.TableStyle = OfficeOpenXml.Table.TableStyles.Medium15;
+
+        ws2.Cells[ws2.Dimension.Address].AutoFitColumns();
+        ws2.View.FreezePanes(6, 1);
+
+        // ===================== DEVOLVER =====================
+        var stream = new MemoryStream();
+        await package.SaveAsAsync(stream);
+        stream.Position = 0;
+
+        string excelName = $"Homely-Reporte-{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+        return File(stream,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            excelName);
+    }
+}
+
+
+
+public async Task<IActionResult> ExportarPdf()
+{
+    var topPropiedades = await GetTopPropiedadesAsync();
+    var topUsuarios = await GetTopUsuariosAsync();
+
+    // totales para poner en el resumen
+    var totalReservasProp = topPropiedades.Sum(x => x.CantidadReservas);
+    var totalReservasUsuarios = topUsuarios.Sum(x => x.CantidadReservas);
+
+    QuestPDF.Settings.License = LicenseType.Community;
+
+    var document = Document.Create(container =>
+    {
+        container.Page(page =>
+        {
+            page.Size(PageSizes.A4);
+            page.Margin(30);
+            page.DefaultTextStyle(x => x.FontSize(11));
+
+            // ===== HEADER =====
+            page.Header().Row(row =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(2, Unit.Centimetre);
-                page.DefaultTextStyle(x => x.FontSize(12));
+                row.RelativeItem().Column(col =>
+                {
+                    col.Item().Text("HOMELY - Reporte de Actividad")
+                        .SemiBold().FontSize(18).FontColor(Colors.Green.Darken2);
+                    col.Item().Text($"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}")
+                        .FontSize(10).FontColor(Colors.Grey.Darken1);
+                });
 
-                page.Header()
-                    .Text($"Reporte StayGo - {DateTime.Now:g}")
-                    .SemiBold().FontSize(16).FontColor(Colors.Blue.Medium);
-
-                page.Content()
-                    .Column(col =>
-                    {
-                        col.Spacing(20);
-                        col.Item().Text("Propiedades Más Reservadas").Bold().FontSize(14);
-                        col.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn();
-                                columns.ConstantColumn(100);
-                            });
-                            table.Header(header =>
-                            {
-                                header.Cell().Text("Propiedad");
-                                header.Cell().AlignRight().Text("Reservas");
-                            });
-                            foreach (var item in topPropiedades)
-                            {
-                                table.Cell().Text(item.NombrePropiedad);
-                                table.Cell().AlignRight().Text(item.CantidadReservas);
-                            }
-                        });
-                        
-                        col.Item().Text("Usuarios Más Activos").Bold().FontSize(14);
-                        col.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn();
-                                columns.ConstantColumn(100);
-                            });
-                            table.Header(header =>
-                            {
-                                header.Cell().Text("Email Usuario");
-                                header.Cell().AlignRight().Text("Reservas");
-                            });
-                            foreach (var item in topUsuarios)
-                            {
-                                table.Cell().Text(item.EmailUsuario);
-                                table.Cell().AlignRight().Text(item.CantidadReservas);
-                            }
-                        });
-                    });
-
-                page.Footer()
-                    .AlignCenter()
-                    .Text(x =>
-                    {
-                        x.Span("Página ");
-                        x.CurrentPageNumber();
-                    });
+                row.ConstantItem(80).AlignRight().Text(text =>
+                {
+                    text.Span("Estado").SemiBold();
+                    text.Line("Administración").FontSize(10);
+                });
             });
+
+            // ===== CONTENIDO =====
+            page.Content().Column(col =>
+            {
+                col.Spacing(20);
+
+                // ---------- bloque de resumen ----------
+                col.Item().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(10).Background(Colors.Grey.Lighten5).Column(box =>
+                {
+                    box.Spacing(5);
+                    box.Item().Text("Resumen").SemiBold();
+                    box.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text($"Propiedades listadas en el top: {topPropiedades.Count}");
+                        r.RelativeItem().Text($"Reservas totales (propiedades): {totalReservasProp}");
+                    });
+                    box.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text($"Usuarios en el top: {topUsuarios.Count}");
+                        r.RelativeItem().Text($"Reservas totales (usuarios): {totalReservasUsuarios}");
+                    });
+                });
+
+                // ---------- tabla de propiedades ----------
+                col.Item().Text("Propiedades Más Reservadas")
+                    .SemiBold().FontSize(13);
+
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(3);   // nombre propiedad
+                        columns.RelativeColumn(1);   // reservas
+                    });
+
+                    // cabecera
+                    table.Header(header =>
+                    {
+                        header.Cell().Background(Colors.Green.Lighten4).Padding(5)
+                            .Text("Propiedad").SemiBold();
+                        header.Cell().Background(Colors.Green.Lighten4).Padding(5)
+                            .AlignRight().Text("Reservas").SemiBold();
+                    });
+
+                    foreach (var item in topPropiedades)
+                    {
+                        table.Cell().Padding(5).Text(item.NombrePropiedad);
+                        table.Cell().Padding(5).AlignRight().Text(item.CantidadReservas.ToString());
+                    }
+                });
+
+                // ---------- tabla de usuarios ----------
+                col.Item().PaddingTop(10).Text("Usuarios Más Activos")
+                    .SemiBold().FontSize(13);
+
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(3);  // email
+                        columns.RelativeColumn(1);  // reservas
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Background(Colors.Green.Lighten4).Padding(5)
+                            .Text("Email Usuario").SemiBold();
+                        header.Cell().Background(Colors.Green.Lighten4).Padding(5)
+                            .AlignRight().Text("Reservas").SemiBold();
+                    });
+
+                    foreach (var item in topUsuarios)
+                    {
+                        table.Cell().Padding(5).Text(item.EmailUsuario);
+                        table.Cell().Padding(5).AlignRight().Text(item.CantidadReservas.ToString());
+                    }
+                });
+            });
+
+            // ===== FOOTER =====
+        page.Footer().AlignCenter().Text(x =>
+        {
+            x.DefaultTextStyle(s => s.FontSize(10).FontColor(Colors.Grey.Darken1));
+            x.Span("Página ");
+            x.CurrentPageNumber();
+            x.Span(" de ");
+            x.TotalPages();
         });
 
-        // 4. Devuelve el archivo PDF
-        byte[] pdfBytes = document.GeneratePdf();
-        string pdfName = $"ReporteStayGo-{DateTime.Now:yyyyMMddHHmmss}.pdf";
-        return File(pdfBytes, "application/pdf", pdfName);
-    }
+        });
+    });
+
+    var pdfBytes = document.GeneratePdf();
+    var pdfName = $"Homely-Reporte-{DateTime.Now:yyyyMMddHHmmss}.pdf";
+    return File(pdfBytes, "application/pdf", pdfName);
+}
 
 
     // --- MÉTODOS PRIVADOS DE DATOS (REFACTORIZACIÓN) ---

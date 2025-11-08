@@ -7,8 +7,11 @@ using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -133,6 +136,8 @@ builder.Services.AddScoped<UnsplashIntegration>();
 // MercadoPagoIntegration registration
 // -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
+
+ExcelPackage.License.SetNonCommercialPersonal("Jarel");
 
 var app = builder.Build();
 
