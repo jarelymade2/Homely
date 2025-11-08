@@ -10,26 +10,20 @@ namespace StayGo.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Id",
-                table: "Favoritos",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: 0);
-
+            // Add the search history columns to AspNetUsers
             migrationBuilder.AddColumn<string>(
                 name: "PropiedadSearchHistoryJson",
                 table: "AspNetUsers",
                 type: "TEXT",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "[]");
 
             migrationBuilder.AddColumn<string>(
                 name: "SearchHistoryJson",
                 table: "AspNetUsers",
                 type: "TEXT",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "[]");
         }
 
         /// <inheritdoc />

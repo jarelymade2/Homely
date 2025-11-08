@@ -10,6 +10,9 @@ namespace StayGo.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // SQLite doesn't support some operations in transactions
+            migrationBuilder.Sql("PRAGMA foreign_keys = OFF;", suppressTransaction: true);
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Contactos_Usuario_UsuarioId",
                 table: "Contactos");
@@ -80,6 +83,8 @@ namespace StayGo.Migrations
                 principalTable: "AspNetUsers",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.Sql("PRAGMA foreign_keys = ON;", suppressTransaction: true);
         }
 
         /// <inheritdoc />
