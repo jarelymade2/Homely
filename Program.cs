@@ -7,17 +7,19 @@ using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
+using StayGo.Services.AI; // Chatbot (IChatAiService, OllamaChatService)
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// -----------------
+// MVC / Razor
+// -----------------
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 // -----------------
 // Connection string
 // -----------------
-// 1.1. Contexto de la Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
@@ -25,9 +27,8 @@ builder.Services.AddDbContext<StayGoContext>(options =>
     options.UseSqlite(connectionString));
 
 // -----------------
-// Identity (with Roles)
+// Identity (con Roles)
 // -----------------
-// 1.2. Configuración de Identity (con ApplicationUser y Roles)
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -42,14 +43,37 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
 // -----------------
-// Redis Configuration (OPCIONAL)
+// Google OAuth (login con Google) — validación para evitar warnings
+// -----------------
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+if (string.IsNullOrWhiteSpace(googleClientId) || string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    throw new InvalidOperationException(
+        "Faltan claves de Google. Define Authentication:Google:ClientId y Authentication:Google:ClientSecret " +
+        "en user-secrets o variables de entorno."
+    );
+}
+
+builder.Services
+    .AddAuthentication()
+    .AddGoogle(o =>
+    {
+        o.ClientId = googleClientId;
+        o.ClientSecret = googleClientSecret;
+        // o.Scope.Add("email");
+        // o.Scope.Add("profile");
+    });
+
+// -----------------
+// Redis (opcional)
 // -----------------
 var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled", false);
 
@@ -59,7 +83,6 @@ if (redisEnabled)
     {
         var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
 
-        // Registrar ConnectionMultiplexer como singleton
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<Program>>();
@@ -67,7 +90,7 @@ if (redisEnabled)
             {
                 var configuration = ConfigurationOptions.Parse(redisConfiguration);
                 configuration.AbortOnConnectFail = false;
-                configuration.ConnectTimeout = 5000; // 5 segundos timeout
+                configuration.ConnectTimeout = 5000; // 5s
                 var connection = ConnectionMultiplexer.Connect(configuration);
                 logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
                 return connection;
@@ -75,11 +98,10 @@ if (redisEnabled)
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
-                throw; // Lanzar para que use el fallback
+                throw;
             }
         });
 
-        // Configurar caché distribuido con Redis
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConfiguration;
@@ -97,55 +119,51 @@ if (redisEnabled)
 }
 else
 {
-    // Usar caché en memoria si Redis está deshabilitado
     builder.Services.AddDistributedMemoryCache();
     Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
 }
 
-// Registrar el servicio de caché personalizado
+// -----------------
+// Cache service propio
+// -----------------
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 // -----------------
-// Session (VERY IMPORTANT)
+// Session
 // -----------------
-// Sesiones (con Redis si está habilitado, o en memoria)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true; // útil si tienes GDPR / consentimiento
-    // options.Cookie.SameSite = SameSiteMode.Lax; // opcional
+    options.Cookie.IsEssential = true;
 });
 
 // -----------------
-// OpenWeatherIntegration registration
+// Integraciones HTTP
 // -----------------
-// Registramos como servicio y como HttpClient (typed client)
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
-
-// -----------------
-// UnsplashIntegration registration
-// -----------------
 builder.Services.AddScoped<UnsplashIntegration>();
+builder.Services.AddScoped<MercadoPagoIntegration>();
 
 // -----------------
-// MercadoPagoIntegration registration
+// Chatbot (Ollama) - Servicio de IA
 // -----------------
-builder.Services.AddScoped<MercadoPagoIntegration>();
+builder.Services.AddScoped<IChatAiService, OllamaChatService>();
 
 var app = builder.Build();
 
+// -----------------
+// Migraciones + Seed
+// -----------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<StayGoContext>();
-        // Aplicar migraciones pendientes
         context.Database.Migrate();
 
-        // Luego ejecutar el seed
         await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
     }
@@ -174,21 +192,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// IMPORTANTE: Session debe registrarse en la pipeline antes de ejecutar los endpoints.
-// Colocamos UseSession() aquí, después de UseRouting().
 app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// RUTA PARA ÁREAS (Admin)
-app.UseAuthentication();
-app.UseAuthorization();
+// 👇 Necesario para controladores con rutas por atributo (p.ej. /api/ChatApi)
+app.MapControllers();
 
-// =========================================================
-// 4. RUTAS
-// =========================================================
-
+// Áreas (Admin)
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",

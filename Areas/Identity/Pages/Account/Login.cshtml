@@ -1,44 +1,61 @@
 @page
 @model StayGo.Areas.Identity.Pages.Account.LoginModel
-
 @{
     ViewData["Title"] = "Iniciar sesión";
     Layout = "/Views/Shared/_Layout.cshtml";
 }
 
 @section Hero {
-    <section class="hero">
-        <div class="overlay">
-            <div class="container d-flex align-items-center justify-content-center h-100">
-                <div class="form-container">
-                    <h2 class="text-white">Iniciar sesión</h2>
-                    <form id="account" method="post" class="needs-validation" novalidate>
-                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                        <div class="mb-3">
-                            <label asp-for="Input.Email" class="form-label text-white">Correo electrónico</label>
-                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" required />
-                            <span asp-validation-for="Input.Email" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Input.Password" class="form-label text-white">Contraseña</label>
-                            <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Tu contraseña" required />
-                            <span asp-validation-for="Input.Password" class="text-danger"></span>
-                        </div>                        
-                        <div class="mb-3 form-check">
-                            <input asp-for="Input.RememberMe" class="form-check-input" type="checkbox" />
-                            <label asp-for="Input.RememberMe" class="form-check-label text-white">Recordarme</label>
-                        </div>
-                        <button type="submit" class="w-100 btn btn-brand">Iniciar sesión</button>
-                        <div class="mt-3 text-center">
-                            <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="btn btn-link text-white">¿Olvidaste tu contraseña?</a>
-                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-link text-white">Regístrate</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
+    <h3 class="mb-3">Inicia sesión con Homely</h3>
 }
+
+<div class="row">
+    <div class="col-md-6">
+        <section>
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-check-label" asp-for="Input.RememberMe"></label>
+                </div>
+
+                <button id="login-submit" type="submit" class="btn btn-sage">Entrar</button>
+                <input type="hidden" asp-for="ReturnUrl" />
+            </form>
+        </section>
+
+        <hr class="my-4" />
+
+        <!-- Botones de proveedores externos (usa Model.ExternalLogins) -->
+        <section>
+            <h5 class="mb-3">O inicia sesión con</h5>
+            @await Html.PartialAsync("_ExternalLoginsPartial", Model.ExternalLogins)
+        </section>
+    </div>
+
+    <div class="col-md-6">
+        <section class="ms-md-4">
+            <h5>¿No tienes cuenta?</h5>
+            <p>Puedes registrarte para reservar, pagar y dejar reseñas.</p>
+            <a class="btn btn-outline-sage" asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">
+                Crear cuenta
+            </a>
+        </section>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

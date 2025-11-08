@@ -1,0 +1,28 @@
+@using Microsoft.AspNetCore.Authentication
+@model IEnumerable<AuthenticationScheme>
+
+@if (Model?.Any() != true)
+{
+    <div class="alert alert-warning">
+        No hay proveedores externos configurados.
+    </div>
+}
+else
+{
+    <form asp-area="Identity"
+          asp-page="/Account/ExternalLogin"
+          asp-route-returnUrl="@(Context.Request.Query["returnUrl"].FirstOrDefault() ?? Url.Content("~/"))"
+          method="post" class="d-flex gap-2 flex-wrap">
+        @foreach (var provider in Model)
+        {
+            // Mostrará "Google" cuando AddGoogle esté configurado en Program.cs
+            <button type="submit"
+                    class="btn btn-outline-danger"
+                    name="provider"
+                    value="@provider.Name"
+                    title="Iniciar sesión con @provider.DisplayName">
+                <i class="bi bi-google"></i> @provider.DisplayName
+            </button>
+        }
+    </form>
+}

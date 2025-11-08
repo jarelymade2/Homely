@@ -1,89 +1,103 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging; // Añadir si no está
-using System.ComponentModel.DataAnnotations;
-using StayGo.Models; // Necesario para ApplicationUser
+using StayGo.Models;
 
 namespace StayGo.Areas.Identity.Pages.Account
 {
+    [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        // Campos de Identity necesarios
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager; // <-- AÑADIDO: Para verificación de rol
-        private readonly ILogger<LoginModel> _logger; // Opcional pero recomendado para logs
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<LoginModel> _logger;
 
-        // Constructor modificado para inyectar UserManager
         public LoginModel(
             SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager, // <-- AÑADIDO
-            ILogger<LoginModel> logger) // Opcional
+            UserManager<ApplicationUser> userManager,
+            ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
-            _userManager = userManager; // <-- Asignación
+            _userManager = userManager;
             _logger = logger;
         }
 
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
+        // Necesaria para el parcial _ExternalLoginsPartial
+        public IList<AuthenticationScheme> ExternalLogins { get; set; } = new List<AuthenticationScheme>();
+
         public string? ReturnUrl { get; set; }
+
+        [TempData]
+        public string? ErrorMessage { get; set; }
 
         public class InputModel
         {
-            [Required(ErrorMessage = "El email es obligatorio.")]
-            [EmailAddress(ErrorMessage = "El email no es válido.")]
-            public string Email { get; set; } = "";
+            [Required]
+            [EmailAddress]
+            [Display(Name = "Correo electrónico")]
+            public string Email { get; set; } = string.Empty;
 
-            [Required(ErrorMessage = "La contraseña es obligatoria.")]
+            [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; } = "";
+            [Display(Name = "Contraseña")]
+            public string Password { get; set; } = string.Empty;
 
+            [Display(Name = "Recordarme")]
             public bool RememberMe { get; set; }
         }
 
-        public void OnGet(string? returnUrl = null)
+        public async Task OnGetAsync(string? returnUrl = null)
         {
+            if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                ModelState.AddModelError(string.Empty, ErrorMessage);
+            }
+
+            returnUrl ??= Url.Content("~/");
             ReturnUrl = returnUrl;
+
+            // Limpia cualquier cookie externa existente
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            // Carga proveedores externos (Google, etc.)
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            ReturnUrl = returnUrl ?? Url.Content("~/");
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
+            returnUrl ??= Url.Content("~/");
+            ReturnUrl = returnUrl;
 
-            // Intenta iniciar sesión con el email y la contraseña
-            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            // también disponible en Post
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            if (!ModelState.IsValid)
+                return Page();
+
+            var result = await _signInManager.PasswordSignInAsync(
+                Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
-                // ----------------------------------------------------
-                // LÓGICA DE REDIRECCIÓN CONDICIONAL BASADA EN ROL
-                // ----------------------------------------------------
-
-                // 1. Encontrar al usuario
-                var user = await _userManager.FindByEmailAsync(Input.Email);
-
-                // 2. Verificar el rol "Admin"
-                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    _logger.LogInformation("Usuario Admin ha iniciado sesión.");
-                    // Redirigir al área de Administración
-                    return LocalRedirect("/Admin/Admin/Index"); 
-                }
-                
-                // Si el usuario no es Admin, o si es un usuario normal
-                _logger.LogInformation("Usuario ha iniciado sesión.");
-                return LocalRedirect(ReturnUrl);
+                _logger.LogInformation("User logged in.");
+                return LocalRedirect(returnUrl);
             }
-
-            // Si falla el inicio de sesión
-            ModelState.AddModelError(string.Empty, "Intento de inicio de sesión no válido.");
-            return Page();
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out.");
+                return RedirectToPage("./Lockout");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Intento de inicio de sesión inválido.");
+                return Page();
+            }
         }
     }
 }
