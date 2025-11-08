@@ -8,6 +8,7 @@ using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
 using Microsoft.Extensions.Configuration;
+using StayGo.Services.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,6 +129,10 @@ builder.Services.AddScoped<OpenWeatherIntegration>();
 builder.Services.AddScoped<UnsplashIntegration>();
 builder.Services.AddScoped<MercadoPagoIntegration>();
 
+builder.Services.AddScoped<IChatAiService, OllamaChatService>();
+
+
+
 var app = builder.Build();
 
 // -----------------
@@ -172,6 +177,16 @@ app.UseAuthorization();
 // -----------------
 // RUTAS
 // -----------------
+// RUTA PARA ÁREAS (Admin)
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+
+// =========================================================
+// 4. RUTAS
+// =========================================================
+
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
