@@ -432,9 +432,183 @@
         a.btn:focus-visible, button:focus-visible, .navbar-toggler:focus-visible {
             box-shadow: 0 0 0 4px var(--ring);
         }
+
+
+        #sg-chat-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--sage-700);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        width: 54px;
+        height: 54px;
+        font-size: 22px;
+        cursor: pointer;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+    #sg-chat-btn:hover {
+        background: var(--sage-800);
+    }
+    #sg-chat-box {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 340px;
+        height: 430px;
+        background: #fff;
+        border: 1px solid rgba(47,91,69,.12);
+        border-radius: 16px;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 9999;
+        box-shadow: 0 12px 32px rgba(0,0,0,.12);
+    }
+    #sg-chat-header {
+        background: linear-gradient(90deg, var(--sage-700), var(--sage-800));
+        color: #fff;
+        padding: 10px 14px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: .9rem;
+    }
+    #sg-chat-messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        background: #f6f9f7;
+        scroll-behavior: smooth;
+    }
+    .sg-msg-user,
+    .sg-msg-bot {
+        margin-bottom: 8px;
+        max-width: 90%;
+        font-size: .8rem;
+        line-height: 1.3;
+    }
+    .sg-msg-user {
+        margin-left: auto;
+        background: #e2f0ea;
+        padding: 6px 10px;
+        border-radius: 12px 12px 2px 12px;
+    }
+    .sg-msg-bot {
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 12px 12px 12px 2px;
+        border: 1px solid rgba(47,91,69,.08);
+    }
+    #sg-chat-input {
+        display: flex;
+        border-top: 1px solid rgba(0,0,0,.05);
+        background: #fff;
+    }
+    #sg-chat-input input {
+        flex: 1;
+        border: none;
+        padding: 8px;
+        font-size: .85rem;
+        outline: none;
+    }
+    #sg-chat-input button {
+        border: none;
+        background: var(--sage-700);
+        color: #fff;
+        padding: 0 14px;
+        font-weight: 500;
+    }
+
     </style>
 
     @RenderSection("Styles", required: false)
+
+    
+<button id="sg-chat-btn" aria-label="Abrir chat con asistente">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<div id="sg-chat-box" aria-label="Chat asistente StayGo">
+    <div id="sg-chat-header">
+        <span>Asistente Homely</span>
+        <button type="button" style="background:none;border:none;color:#fff;font-size:1rem;" id="sg-chat-close">&times;</button>
+    </div>
+    <div id="sg-chat-messages">
+        <div class="sg-msg-bot">
+            ¡Hola! 👋 Soy el asistente de Homely. ¿Te ayudo a encontrar una propiedad o te explico cómo reservar?
+        </div>
+    </div>
+    <div id="sg-chat-input">
+        <input id="sg-chat-text" type="text" placeholder="Escribe tu pregunta..." autocomplete="off" />
+        <button id="sg-chat-send"><i class="bi bi-send-fill"></i></button>
+    </div>
+</div>
+<script>
+    (function() {
+        const btn = document.getElementById('sg-chat-btn');
+        const box = document.getElementById('sg-chat-box');
+        const close = document.getElementById('sg-chat-close');
+        const messages = document.getElementById('sg-chat-messages');
+        const input = document.getElementById('sg-chat-text');
+        const sendBtn = document.getElementById('sg-chat-send');
+
+        function toggleChat(show) {
+            box.style.display = show ? 'flex' : (box.style.display === 'flex' ? 'none' : 'flex');
+        }
+
+        btn.addEventListener('click', () => toggleChat(true));
+        close.addEventListener('click', () => toggleChat(false));
+
+        function appendMessage(text, cls) {
+            const div = document.createElement('div');
+            div.className = cls;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage(text, 'sg-msg-user');
+            input.value = '';
+
+            // mensaje temporal
+            const loading = document.createElement('div');
+            loading.className = 'sg-msg-bot';
+            loading.textContent = 'Escribiendo...';
+            messages.appendChild(loading);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch('/api/ChatApi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                loading.remove();
+                appendMessage(data.reply || 'No pude responder ahora 😅', 'sg-msg-bot');
+            } catch (err) {
+                loading.remove();
+                appendMessage('Ocurrió un error hablando con el asistente.', 'sg-msg-bot');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    })();
+</script>
 </head>
 <body class="bg-body">
     
