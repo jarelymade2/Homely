@@ -1,0 +1,17 @@
+@model IEnumerable<StayGo.Models.Propiedad>
+
+<h2>Recomendaciones</h2>
+
+@if (ViewBag.Mensaje != null)
+{
+    <p>@ViewBag.Mensaje</p>
+}
+else
+{
+    <ul>
+        @foreach (var p in Model)
+        {
+            <li>@p.Titulo (@p.Id)</li>
+        }
+    </ul>
+}
