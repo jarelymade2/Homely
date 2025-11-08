@@ -356,6 +356,35 @@
         color: #fff;
     }
 
+    /* Hero section - debe estar debajo del topbar */
+    section.hero {
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        min-height: 100vh;
+        height: 100vh;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        overflow: hidden;
+    }
+
+    section.hero .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.4) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+    }
+
     /* Páginas de Identity (Login/Register) */
     .identity-page {
         min-height: 80vh;
@@ -542,6 +571,337 @@ body {
     overflow-x: hidden;
 }
 
+/* ======== ESTILOS DEL FORMULARIO DE LOGIN/REGISTER ======== */
+
+/* Contenedor de formularios (Login, Register) */
+.form-container {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 24px;
+    padding: 3.5rem 3rem;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.3);
+    max-width: 550px;
+    width: 90%;
+    position: relative;
+    z-index: 15;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    animation: slideUp 0.6s ease-out;
+    backdrop-filter: blur(10px);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-container h2 {
+    font-weight: 800;
+    margin-bottom: 2rem;
+    margin-top: 0;
+    padding-top: 0;
+    color: var(--sage-800);
+    text-align: center;
+    font-size: 2.2rem;
+    letter-spacing: -0.8px;
+    line-height: 1.1;
+    word-spacing: 0.1em;
+}
+
+.form-container .form-label {
+    font-weight: 700;
+    color: var(--sage-800);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+}
+
+.form-container .form-control {
+    border-radius: 12px;
+    border: 2px solid #e0e7e1;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.9rem;
+    background: linear-gradient(135deg, #fafbfa 0%, #f5f8f6 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.form-container .form-control::placeholder {
+    color: #a8b5aa;
+    font-weight: 400;
+}
+
+.form-container .form-control:focus {
+    border-color: var(--sage-600);
+    box-shadow: 0 0 0 5px rgba(94, 138, 99, 0.12), 0 8px 20px rgba(94, 138, 99, 0.15);
+    background: #fff;
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.form-container .form-check {
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+}
+
+.form-container .form-check-input {
+    border-radius: 8px;
+    border: 2px solid #e0e7e1;
+    width: 1.3rem;
+    height: 1.3rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.3rem;
+}
+
+.form-container .form-check-input:checked {
+    background-color: var(--sage-600);
+    border-color: var(--sage-600);
+    box-shadow: 0 0 0 4px rgba(94, 138, 99, 0.15);
+}
+
+.form-container .form-check-label {
+    color: var(--sage-700);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+/* Reducir espaciado en campos de formulario */
+.form-container .mb-4 {
+    margin-bottom: 1rem !important;
+}
+
+/* Scroll personalizado para el formulario */
+.form-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.form-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.form-container::-webkit-scrollbar-thumb {
+    background: rgba(94, 138, 99, 0.3);
+    border-radius: 3px;
+}
+
+.form-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(94, 138, 99, 0.5);
+}
+
+.form-container .btn-brand {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--sage-600) 0%, var(--sage-700) 100%);
+    color: #fff;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 8px 25px rgba(94, 138, 99, 0.25);
+}
+
+.form-container .btn-brand::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.form-container .btn-brand:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(94, 138, 99, 0.35);
+    background: linear-gradient(135deg, var(--sage-700) 0%, var(--sage-800) 100%);
+}
+
+.form-container .btn-brand:hover::before {
+    left: 100%;
+}
+
+.form-container .btn-brand:active {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(94, 138, 99, 0.25);
+}
+
+.form-container .text-center {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e8ede8;
+}
+
+.form-container .text-muted {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #6b7a6f;
+    margin-bottom: 0.5rem;
+}
+
+.form-container .text-muted:last-child {
+    margin-bottom: 0;
+}
+
+.form-container a {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    position: relative;
+    color: var(--sage-600);
+    text-decoration: none;
+}
+
+.form-container a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--sage-600);
+    transition: width 0.3s ease;
+}
+
+.form-container a:hover {
+    color: var(--sage-700) !important;
+}
+
+.form-container a:hover::after {
+    width: 100%;
+}
+
+/* Mensajes de validación */
+.form-container .text-danger {
+    color: #d32f2f !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.form-container [role="alert"] {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%) !important;
+    border: 1px solid #ef5350 !important;
+    border-radius: 12px;
+    padding: 1rem !important;
+    margin-bottom: 1.5rem;
+    color: #c62828 !important;
+    font-weight: 500;
+}
+
+/* Responsividad para tablets */
+@@media (max-width: 768px) {
+    .form-container {
+        padding: 3rem 2.5rem;
+        max-width: 95%;
+        margin: 0 auto;
+    }
+
+    .form-container h2 {
+        font-size: 2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-container .form-label {
+        font-size: 0.9rem;
+    }
+
+    .form-container .form-control {
+        padding: 1rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .form-container .btn-brand {
+        padding: 1.1rem 1.5rem;
+        font-size: 1rem;
+        margin-top: 1.8rem;
+    }
+
+    .form-container .text-center {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
+}
+
+/* Responsividad para móviles */
+@@media (max-width: 480px) {
+    .form-container {
+        padding: 2.5rem 2rem;
+        border-radius: 18px;
+        width: 95%;
+    }
+
+    .form-container h2 {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .form-container .form-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.7rem;
+    }
+
+    .form-container .form-control {
+        padding: 0.95rem 1.1rem;
+        font-size: 0.9rem;
+        border-radius: 12px;
+    }
+
+    .form-container .mb-4 {
+        margin-bottom: 1.2rem !important;
+    }
+
+    .form-container .btn-brand {
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        margin-top: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .form-container .text-center {
+        margin-top: 1.8rem;
+        padding-top: 1.5rem;
+    }
+
+    .form-container .text-muted {
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    .form-container a {
+        font-size: 0.85rem;
+    }
+
+    .form-container .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
+    .form-container .form-check-label {
+        font-size: 0.9rem;
+    }
+}
+
 </style>
 
     @RenderSection("Styles", required: false)
@@ -647,6 +1007,17 @@ body {
                         <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a></li>
                         <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Propiedad" asp-action="Index">Propiedades</a></li>
                         <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Contacto" asp-action="Index">Contacto</a></li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="Index">Panel</a></li>
+                            }
+                            else
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Reserva" asp-action="History">Mis Reservas</a></li>
+                            }
+                        }
                     </ul>
 
                     <ul class="navbar-nav align-items-lg-center">

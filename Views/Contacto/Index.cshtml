@@ -17,7 +17,7 @@
     <div class="header-separator-sage"></div>
 </section>
 
-<div class="container py-5">
+<div class="container py-5 mt-6">
     <div class="row g-5">
         <div class="col-12 col-lg-5">
             <div class="card contact-info-card h-100 border-0">
@@ -66,7 +66,7 @@
 
         <div class="col-12 col-lg-7">
             <div class="card contact-form-card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4 p-lg-5">
+                <div class="card-body p-5 p-lg-6">
                     <h3 class="h5 fw-bold mb-4 text-center text-lg-start text-title-sage">Completa el Formulario</h3>
                     <form id="contacto-form" asp-action="Index" method="post" class="row g-4" novalidate>
                         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
@@ -344,6 +344,42 @@
             font-weight: 700 !important;
         }
         .contact-faq-accordion .accordion-button:hover{ background:var(--sage-100); }
+
+        /* Mejorar espaciado del formulario */
+        .contact-form-card {
+            margin-top: 2rem;
+            padding-top: 2rem !important;
+        }
+
+        .contact-form-card .card-body {
+            padding-top: 3rem !important;
+        }
+
+        .contact-form-card h3 {
+            margin-top: 0;
+            margin-bottom: 2rem;
+            padding-top: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .fancy-floating-sage .form-control,
+        .fancy-area-sage {
+            min-height: 3rem;
+        }
+
+        .form-floating > label {
+            padding: 1.25rem 0.75rem;
+        }
+
+        /* Asegurar que los inputs no se tapen */
+        .col-12 {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-floating {
+            margin-bottom: 0.75rem;
+        }
     </style>
 
 @section Scripts{

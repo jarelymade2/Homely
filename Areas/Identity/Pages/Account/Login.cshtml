@@ -9,32 +9,39 @@
 @section Hero {
     <section class="hero">
         <div class="overlay">
-            <div class="container d-flex align-items-center justify-content-center h-100">
-                <div class="form-container">
-                    <h2 class="text-white">Iniciar sesión</h2>
-                    <form id="account" method="post" class="needs-validation" novalidate>
-                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                        <div class="mb-3">
-                            <label asp-for="Input.Email" class="form-label text-white">Correo electrónico</label>
-                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" required />
-                            <span asp-validation-for="Input.Email" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Input.Password" class="form-label text-white">Contraseña</label>
-                            <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Tu contraseña" required />
-                            <span asp-validation-for="Input.Password" class="text-danger"></span>
-                        </div>                        
-                        <div class="mb-3 form-check">
-                            <input asp-for="Input.RememberMe" class="form-check-input" type="checkbox" />
-                            <label asp-for="Input.RememberMe" class="form-check-label text-white">Recordarme</label>
-                        </div>
-                        <button type="submit" class="w-100 btn btn-brand">Iniciar sesión</button>
-                        <div class="mt-3 text-center">
-                            <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="btn btn-link text-white">¿Olvidaste tu contraseña?</a>
-                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-link text-white">Regístrate</a>
-                        </div>
-                    </form>
-                </div>
+            <div class="form-container">
+                <h2>Iniciar sesión</h2>
+                <form id="account" method="post" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-4 p-3 rounded" role="alert" style="background-color: #fee; border: 1px solid #fcc;"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.Email" class="form-label">Correo electrónico</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" required />
+                        <span asp-validation-for="Input.Email" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.Password" class="form-label">Contraseña</label>
+                        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Tu contraseña" required />
+                        <span asp-validation-for="Input.Password" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input asp-for="Input.RememberMe" class="form-check-input" type="checkbox" id="rememberMe" />
+                        <label asp-for="Input.RememberMe" class="form-check-label" for="rememberMe">Recordarme en este dispositivo</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-brand">Iniciar sesión</button>
+
+                    <div class="text-center">
+                        <p class="text-muted mb-2">
+                            <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                        </p>
+                        <p class="text-muted">
+                            ¿No tienes cuenta? <a asp-area="Identity" asp-page="/Account/Register" class="text-decoration-none fw-semibold">Regístrate aquí</a>
+                        </p>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
