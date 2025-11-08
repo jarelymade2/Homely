@@ -66,32 +66,84 @@
     <div class="content-card-sage mb-5 p-4 p-lg-5">
         <div class="row g-4">
             <div class="col-lg-8">
-                <div class="image-wrapper-sage main-image-sage">
+                <div class="image-wrapper-sage main-image-sage cursor-pointer" onclick="openGalleryModal(0)">
                     <img src="@cover" class="img-fluid w-100" alt="@Model?.Titulo" />
                     <div class="image-overlay-sage">
-                        <span class="image-badge-sage">Imagen Principal</span>
+                        <span class="image-badge-sage">
+                            <i class="bi bi-zoom-in me-2"></i>Haz click para ver galería
+                        </span>
                     </div>
                 </div>
             </div>
-            
-            @if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
-            {
-                <div class="col-lg-4">
-                    <div class="image-wrapper-sage secondary-image-sage">
-                        <img src="@ViewBag.ImagenUnsplash" class="img-fluid w-100" alt="@Model?.Titulo" />
-                        <div class="image-overlay-sage">
-                            <span class="image-badge-sage">
-                                <i class="bi bi-images me-2"></i>Vista Adicional
-                            </span>
-                        </div>
-                    </div>
+
+            <div class="col-lg-4">
+                <div class="gallery-thumbnails">
+                    @{
+                        var imagenesList = Model?.Imagenes?.ToList() ?? new List<StayGo.Models.ImagenPropiedad>();
+                        var allImages = new List<string>();
+
+                        // Agregar imágenes de la propiedad
+                        foreach (var img in imagenesList)
+                        {
+                            allImages.Add(img.Url);
+                        }
+
+                        // Agregar imagen de Unsplash si existe
+                        if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
+                        {
+                            allImages.Add(ViewBag.ImagenUnsplash);
+                        }
+                    }
+
+                    @if (allImages.Any())
+                    {
+                        foreach (var img in allImages.Take(4))
+                        {
+                            var index = allImages.IndexOf(img);
+                            <div class="thumbnail-wrapper cursor-pointer" onclick="openGalleryModal(@index)">
+                                <img src="@img" class="img-fluid" alt="Thumbnail" />
+                                <div class="thumbnail-overlay">
+                                    <i class="bi bi-zoom-in"></i>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
-            }
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Galería -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="gallery-modal-content">
+            <button class="gallery-close-btn" onclick="closeGalleryModal()">&times;</button>
+
+            <div class="gallery-main-image">
+                <img id="galleryMainImage" src="" alt="Galería" />
+            </div>
+
+            <div class="gallery-controls">
+                <button class="gallery-nav-btn prev" onclick="prevImage()">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span class="gallery-counter"><span id="currentImageNum">1</span> / <span id="totalImageNum">1</span></span>
+                <button class="gallery-nav-btn next" onclick="nextImage()">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="gallery-thumbnails-modal" id="galleryThumbnailsContainer">
+                <!-- Las miniaturas se generarán dinámicamente con JavaScript -->
+            </div>
         </div>
     </div>
     
+    @{
+        bool esHotelConHabitaciones = Model?.Tipo == StayGo.Models.TipoPropiedad.Hotel && Model?.Habitaciones?.Any() == true;
+    }
+
     <div class="row g-4 mb-5">
-        <div class="col-lg-8">
+        <div class="@(esHotelConHabitaciones ? "col-lg-8" : "col-lg-8")">
             <div class="content-card-sage mb-4">
                 <div class="card-body p-4 p-lg-5">
                     <h3 class="section-title-sage mb-4">
@@ -282,22 +334,29 @@
                                     @foreach (var habitacion in Model.Habitaciones)
                                     {
                                         <div class="room-card-sage mb-3">
-                                            <h6 class="room-name-sage">@habitacion.Nombre</h6>
-                                            <p class="room-details-sage">
-                                                <i class="bi bi-people"></i> @habitacion.Capacidad personas<br/>
-                                                @if (habitacion.TipoCama.HasValue)
-                                                {
-                                                    <i class="bi bi-bed"></i> <text>@habitacion.TipoCama</text><br/>
-                                                }
-                                                @if (!string.IsNullOrEmpty(habitacion.Numero))
-                                                {
-                                                    <i class="bi bi-hash"></i> <text>N° @habitacion.Numero</text>
-                                                }
-                                            </p>
-                                            <div class="room-price-sage mb-3">
+                                            <div class="room-header-sage">
+                                                <div>
+                                                    <h6 class="room-name-sage">@habitacion.Nombre</h6>
+                                                    <p class="room-details-sage">
+                                                        <i class="bi bi-people"></i> @habitacion.Capacidad personas<br/>
+                                                        @if (habitacion.TipoCama.HasValue)
+                                                        {
+                                                            <i class="bi bi-bed"></i> <text>@habitacion.TipoCama</text><br/>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(habitacion.Numero))
+                                                        {
+                                                            <i class="bi bi-hash"></i> <text>N° @habitacion.Numero</text>
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <button type="button" class="btn-gallery-icon-sage" onclick="openRoomGallery('@habitacion.Id')" title="Ver imágenes">
+                                                    <i class="bi bi-images"></i>
+                                                </button>
+                                            </div>
+                                            <div class="room-price-sage mb-2">
                                                 @habitacion.PrecioPorNoche.ToString("C", pe) <small>/ noche</small>
                                             </div>
-                                            <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get">
+                                            <form asp-area="" asp-controller="Pago" asp-action="Confirmar" method="get" class="mb-0">
                                                 <input type="hidden" name="propiedadId" value="@Model?.Id" />
                                                 <input type="hidden" name="habitacionId" value="@habitacion.Id" />
                                                 <div class="mb-2">
@@ -835,41 +894,101 @@
 
         /* ========== ESTILOS DE RESERVA ========== */
         .hotel-rooms-sage {
-            max-height: 600px;
+            max-height: 700px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .hotel-rooms-sage::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .hotel-rooms-sage::-webkit-scrollbar-track {
+            background: var(--sage-100);
+            border-radius: 10px;
+        }
+
+        .hotel-rooms-sage::-webkit-scrollbar-thumb {
+            background: var(--sage-400);
+            border-radius: 10px;
+        }
+
+        .hotel-rooms-sage::-webkit-scrollbar-thumb:hover {
+            background: var(--sage-500);
         }
 
         .room-card-sage {
-            background: var(--sage-50);
+            background: linear-gradient(135deg, #ffffff 0%, #f8faf9 100%);
             border: 1px solid var(--sage-200);
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 1rem;
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .room-card-sage:hover {
             border-color: var(--sage-400);
-            box-shadow: 0 4px 12px rgba(63, 107, 79, 0.1);
+            box-shadow: 0 6px 16px rgba(63, 107, 79, 0.15);
+            transform: translateY(-2px);
         }
 
         .room-name-sage {
             color: var(--sage-800);
             font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
         }
 
         .room-details-sage {
             color: var(--sage-600);
-            font-size: 0.9rem;
-            margin-bottom: 0.75rem;
-            line-height: 1.6;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
         }
 
         .room-price-sage {
             color: var(--sage-700);
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .room-header-sage {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-gallery-icon-sage {
+            background: var(--sage-100);
+            border: 1px solid var(--sage-200);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--sage-600);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .btn-gallery-icon-sage:hover {
+            background: var(--sage-200);
+            color: var(--sage-700);
+            border-color: var(--sage-300);
+        }
+
+        .btn-gallery-icon-sage i {
+            font-size: 1.1rem;
         }
 
         .btn-reserve-sage {
@@ -954,6 +1073,319 @@
                 font-size: 2.5rem;
             }
         }
+
+        /* ========== HABITACIONES ========== */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .room-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--sage-900);
+            margin: 0;
+        }
+
+        .room-capacity {
+            background: var(--sage-100);
+            color: var(--sage-700);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .room-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--sage-600);
+        }
+
+        .room-detail-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .room-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--sage-700);
+            margin-top: 0.5rem;
+        }
+
+        .btn-room-sage {
+            background: linear-gradient(135deg, var(--sage-500) 0%, var(--sage-600) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: auto;
+        }
+
+        .btn-room-sage:hover {
+            background: linear-gradient(135deg, var(--sage-600) 0%, var(--sage-700) 100%);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        /* ========== GALERÍA DE IMÁGENES ========== */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .gallery-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .thumbnail-wrapper {
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(36, 48, 54, 0.1);
+            transition: all 0.3s ease;
+            height: 120px;
+        }
+
+        .thumbnail-wrapper:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(36, 48, 54, 0.15);
+        }
+
+        .thumbnail-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .thumbnail-wrapper:hover .thumbnail-overlay {
+            opacity: 1;
+        }
+
+        .thumbnail-overlay i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* ========== MODAL DE GALERÍA ========== */
+        .gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .gallery-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .gallery-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .gallery-close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 10000;
+        }
+
+        .gallery-close-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .gallery-main-image {
+            position: relative;
+            width: 100%;
+            max-height: 80vh;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .gallery-main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: slideIn 0.3s ease;
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .gallery-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            color: white;
+        }
+
+        .gallery-nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        .gallery-counter {
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .gallery-thumbnails-modal {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .gallery-thumb-modal {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .gallery-thumb-modal:hover {
+            opacity: 1;
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .gallery-thumb-modal.active {
+            border-color: var(--sage-400);
+            opacity: 1;
+        }
+
+        @@media (max-width: 768px) {
+            .gallery-modal-content {
+                width: 95%;
+            }
+
+            .gallery-main-image {
+                max-height: 400px;
+            }
+
+            .gallery-close-btn {
+                top: -35px;
+                font-size: 2rem;
+            }
+
+            .gallery-nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .gallery-thumb-modal {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        /* Estilos para centrar la sección de reserva en hoteles con habitaciones */
+        .row.g-4.mb-5 > .col-lg-12 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .row.g-4.mb-5 > .col-lg-12 > .content-card-sage:last-child {
+            align-self: center;
+            width: 100%;
+        }
+
+        @@media (max-width: 992px) {
+            .row.g-4.mb-5 > .col-lg-12 > .content-card-sage:last-child {
+                align-self: auto;
+                width: 100%;
+            }
+        }
     </style>
 }
 
@@ -961,6 +1393,173 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // ========== GALERÍA DE IMÁGENES ==========
+        let currentGalleryIndex = 0;
+        let galleryImages = [];
+        let currentRoomId = null;
+
+        function initGallery() {
+            // Inicializar galería vacía - se llenará cuando se abra una galería de habitación
+            galleryImages = [];
+        }
+
+        function openGalleryModal(index, isRoomGallery = false) {
+            currentGalleryIndex = index;
+            // Solo cargar imágenes de la propiedad si no es galería de habitación
+            if (!isRoomGallery) {
+                currentRoomId = null;
+                galleryImages = window.propertyImages || [];
+                // Generar miniaturas de la propiedad
+                generateThumbnails(galleryImages);
+            }
+            const modal = document.getElementById('galleryModal');
+            modal.classList.add('active');
+            updateGalleryImage();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openRoomGallery(roomId) {
+            currentRoomId = roomId;
+            // Filtrar imágenes de la habitación específica
+            const roomImages = window.roomImagesMap[roomId] || [];
+            if (roomImages.length > 0) {
+                galleryImages = roomImages;
+                // Generar miniaturas dinámicamente
+                generateThumbnails(roomImages);
+                openGalleryModal(0, true); // true indica que es galería de habitación
+            } else {
+                alert('Esta habitación no tiene imágenes disponibles');
+            }
+        }
+
+        function generateThumbnails(images) {
+            const container = document.getElementById('galleryThumbnailsContainer');
+            container.innerHTML = ''; // Limpiar miniaturas anteriores
+
+            images.forEach((imgUrl, idx) => {
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.className = 'gallery-thumb-modal cursor-pointer';
+                img.alt = 'Thumbnail';
+                img.onclick = () => goToImage(idx);
+                if (idx === 0) {
+                    img.classList.add('active');
+                }
+                container.appendChild(img);
+            });
+        }
+
+        function closeGalleryModal() {
+            const modal = document.getElementById('galleryModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            currentRoomId = null;
+        }
+
+        function updateGalleryImage() {
+            const mainImage = document.getElementById('galleryMainImage');
+            const currentNum = document.getElementById('currentImageNum');
+            const totalNum = document.getElementById('totalImageNum');
+
+            mainImage.src = galleryImages[currentGalleryIndex];
+            currentNum.textContent = currentGalleryIndex + 1;
+            totalNum.textContent = galleryImages.length;
+
+            // Actualizar thumbnail activo
+            const thumbs = document.querySelectorAll('.gallery-thumb-modal');
+            thumbs.forEach((thumb, idx) => {
+                thumb.classList.remove('active');
+                if (idx === currentGalleryIndex) {
+                    thumb.classList.add('active');
+                }
+            });
+        }
+
+        function nextImage() {
+            currentGalleryIndex = (currentGalleryIndex + 1) % galleryImages.length;
+            updateGalleryImage();
+        }
+
+        function prevImage() {
+            currentGalleryIndex = (currentGalleryIndex - 1 + galleryImages.length) % galleryImages.length;
+            updateGalleryImage();
+        }
+
+        function goToImage(index) {
+            currentGalleryIndex = index;
+            updateGalleryImage();
+        }
+
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeGalleryModal();
+            }
+        });
+
+        // Navegar con flechas del teclado
+        document.addEventListener('keydown', function(event) {
+            const modal = document.getElementById('galleryModal');
+            if (modal.classList.contains('active')) {
+                if (event.key === 'ArrowRight') {
+                    nextImage();
+                } else if (event.key === 'ArrowLeft') {
+                    prevImage();
+                }
+            }
+        });
+
+        // Mapeo de imágenes de habitaciones
+        window.roomImagesMap = {};
+
+        // Imágenes de la propiedad
+        window.propertyImages = [
+            @{
+                var imagenesList = Model?.Imagenes?.ToList() ?? new List<StayGo.Models.ImagenPropiedad>();
+                var allPropImages = new List<string>();
+                foreach (var img in imagenesList)
+                {
+                    allPropImages.Add(img.Url);
+                }
+                if (!string.IsNullOrEmpty(ViewBag.ImagenUnsplash))
+                {
+                    allPropImages.Add(ViewBag.ImagenUnsplash);
+                }
+                for (int i = 0; i < allPropImages.Count; i++)
+                {
+                    <text>'@allPropImages[i]'@(i < allPropImages.Count - 1 ? "," : "")</text>
+                }
+            }
+        ];
+
+        // Inicializar galería cuando carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initGallery();
+
+            // Construir mapa de imágenes de habitaciones
+            @if (Model?.Habitaciones?.Any() == true)
+            {
+                @foreach (var room in Model.Habitaciones)
+                {
+                    @if (room.Imagenes?.Any() == true)
+                    {
+                        <text>
+                        window.roomImagesMap['@room.Id'] = [
+                            @{
+                                var roomImages = room.Imagenes.ToList();
+                                for (int i = 0; i < roomImages.Count; i++)
+                                {
+                                    <text>'@roomImages[i].Url'@(i < roomImages.Count - 1 ? "," : "")</text>
+                                }
+                            }
+                        ];
+                        </text>
+                    }
+                }
+            }
+        });
+
+        // ========== MAPA ==========
         document.addEventListener("DOMContentLoaded", function () {
             var lat = @((Model?.Lat ?? -12.0464).ToString(System.Globalization.CultureInfo.InvariantCulture));
             var lng = @((Model?.Lng ?? -77.0428).ToString(System.Globalization.CultureInfo.InvariantCulture));

@@ -34,6 +34,19 @@ public class HabitacionController : Controller
         }
 
         hab.Id = Guid.NewGuid();
+
+        // Procesar imágenes
+        var imagenes = (hab.Imagenes ?? new List<ImagenHabitacion>())
+            .Where(i => i != null && !string.IsNullOrWhiteSpace(i.Url))
+            .Select(i => { i.Url = i.Url.Trim(); i.Id = Guid.NewGuid(); i.HabitacionId = hab.Id; return i; })
+            .ToList();
+
+        // Si ninguna está marcada como principal, marca la primera
+        if (imagenes.Count > 0 && !imagenes.Any(i => i.EsPrincipal))
+            imagenes[0].EsPrincipal = true;
+
+        hab.Imagenes = imagenes;
+
         _db.Habitaciones.Add(hab);
         await _db.SaveChangesAsync();
 
@@ -44,7 +57,10 @@ public class HabitacionController : Controller
     [HttpGet]
     public async Task<IActionResult> Editar(Guid propiedadId, Guid id)
     {
-        var hab = await _db.Habitaciones.AsNoTracking().FirstOrDefaultAsync(h => h.Id == id && h.PropiedadId == propiedadId);
+        var hab = await _db.Habitaciones
+            .Include(h => h.Imagenes)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(h => h.Id == id && h.PropiedadId == propiedadId);
         if (hab == null) return NotFound();
 
         ViewBag.Propiedad = await _db.Propiedades.AsNoTracking().FirstOrDefaultAsync(p => p.Id == propiedadId);
@@ -64,7 +80,38 @@ public class HabitacionController : Controller
             return View(hab);
         }
 
-        _db.Habitaciones.Update(hab);
+        var entity = await _db.Habitaciones.FirstOrDefaultAsync(h => h.Id == id);
+        if (entity == null) return NotFound();
+
+        // Actualizar campos básicos
+        entity.Nombre = hab.Nombre;
+        entity.Capacidad = hab.Capacidad;
+        entity.PrecioPorNoche = hab.PrecioPorNoche;
+        entity.Piso = hab.Piso;
+        entity.Numero = hab.Numero;
+        entity.TipoCama = hab.TipoCama;
+
+        // Procesar imágenes
+        var nuevasImagenes = (hab.Imagenes ?? new List<ImagenHabitacion>())
+            .Where(i => i != null && !string.IsNullOrWhiteSpace(i.Url))
+            .Select(i => new ImagenHabitacion
+            {
+                Id = Guid.NewGuid(),
+                Url = i.Url.Trim(),
+                HabitacionId = id,
+                EsPrincipal = i.EsPrincipal
+            })
+            .ToList();
+
+        // Si ninguna está marcada como principal, marca la primera
+        if (nuevasImagenes.Count > 0 && !nuevasImagenes.Any(i => i.EsPrincipal))
+            nuevasImagenes[0].EsPrincipal = true;
+
+        // Eliminar imágenes antiguas de la BD
+        await _db.ImagenesHabitacion.Where(i => i.HabitacionId == id).ExecuteDeleteAsync();
+
+        // Agregar nuevas imágenes
+        await _db.ImagenesHabitacion.AddRangeAsync(nuevasImagenes);
         await _db.SaveChangesAsync();
 
         TempData["ok"] = "Habitación actualizada.";

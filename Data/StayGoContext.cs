@@ -13,6 +13,7 @@ public class StayGoContext : IdentityDbContext<ApplicationUser>
     public DbSet<Propiedad> Propiedades => Set<Propiedad>();
     public DbSet<Habitacion> Habitaciones => Set<Habitacion>();
     public DbSet<ImagenPropiedad> ImagenesPropiedad => Set<ImagenPropiedad>();
+    public DbSet<ImagenHabitacion> ImagenesHabitacion => Set<ImagenHabitacion>();
     public DbSet<Amenidad> Amenidades => Set<Amenidad>();
     public DbSet<PropiedadAmenidad> PropiedadAmenidades => Set<PropiedadAmenidad>();
     public DbSet<Disponibilidad> Disponibilidades => Set<Disponibilidad>();
@@ -61,6 +62,11 @@ public class StayGoContext : IdentityDbContext<ApplicationUser>
             .HasOne(ip => ip.Propiedad)
             .WithMany(p => p.Imagenes)
             .HasForeignKey(ip => ip.PropiedadId);
+
+        mb.Entity<ImagenHabitacion>()
+            .HasOne(ih => ih.Habitacion)
+            .WithMany(h => h.Imagenes)
+            .HasForeignKey(ih => ih.HabitacionId);
 
         mb.Entity<Disponibilidad>()
             .HasOne(d => d.Propiedad)
