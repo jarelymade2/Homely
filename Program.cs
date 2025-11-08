@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using StayGo.Services.AI;
 using OfficeOpenXml;
 
+// >>> ML Integration
+using StayGo.Services.ML; // Asegúrate que el namespace coincida con la carpeta donde está MLRecommendationService
+
 var builder = WebApplication.CreateBuilder(args);
 
 // -----------------
@@ -23,6 +26,7 @@ var configuration = builder.Configuration;
 
 
 
+// Add services to the container.
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -84,6 +88,7 @@ if (redisEnabled)
                 redisOptions.AbortOnConnectFail = false;
                 redisOptions.ConnectTimeout = 5000;
                 var connection = ConnectionMultiplexer.Connect(redisOptions);
+
                 logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
                 return connection;
             }
@@ -129,17 +134,21 @@ builder.Services.AddSession(options =>
 
 // -----------------
 // Integraciones externas
+// (junto lo de feat/ml-recommendations + develop)
 // -----------------
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
 builder.Services.AddScoped<UnsplashIntegration>();
 builder.Services.AddScoped<MercadoPagoIntegration>();
 
+// Servicio de chat (rama develop)
 builder.Services.AddScoped<IChatAiService, OllamaChatService>();
 
+// Servicio de recomendaciones ML (rama feat/ml-recommendations)
+builder.Services.AddScoped<MLRecommendationService>();
 
+// EPPlus licencia (rama develop)
 ExcelPackage.License.SetNonCommercialPersonal("Jarel");
-
 
 var app = builder.Build();
 
@@ -153,7 +162,13 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<StayGoContext>();
         context.Database.Migrate();
+
         await Seed.SeedAsync(services);
+        await StayGo.Data.Seed.SeedAsync(services);
+
+        // Entrenamiento del modelo (rama feat/ml-recommendations)
+        var ml = services.GetRequiredService<MLRecommendationService>();
+        ml.TrainModel();
     }
     catch (Exception ex)
     {
@@ -177,19 +192,12 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-
-// -----------------
-// RUTAS
-// -----------------
-// RUTA PARA ÁREAS (Admin)
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-
 
 // =========================================================
 // 4. RUTAS
