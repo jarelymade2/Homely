@@ -8,6 +8,8 @@ using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
 using StayGo.Services.AI; // Chatbot (IChatAiService, OllamaChatService)
+using Microsoft.AspNetCore.Identity.UI.Services;
+using StayGo.Services.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,8 @@ var builder = WebApplication.CreateBuilder(args);
 // -----------------
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-
+builder.Services.Configure<SendGridOptions>(builder.Configuration.GetSection("SendGrid"));
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 // -----------------
 // Connection string
 // -----------------

@@ -44,6 +44,9 @@
             <h5 class="mb-3">O inicia sesión con</h5>
             @await Html.PartialAsync("_ExternalLoginsPartial", Model.ExternalLogins)
         </section>
+        <p class="mt-2">
+            <a asp-page="./ForgotPassword">¿Olvidaste tu contraseña?</a>
+        </p>
     </div>
 
     <div class="col-md-6">
@@ -56,6 +59,7 @@
         </section>
     </div>
 </div>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
