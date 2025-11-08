@@ -1,5 +1,5 @@
-﻿@* /Views/Shared/_Layout.cshtml (Con degradado en la barra superior al estilo Admin Sidebar) *@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
+@using StayGo.Areas.Identity.Data
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 <!DOCTYPE html>
@@ -8,32 +8,42 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] Homely</title>
+    
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-
-    <link rel="stylesheet" href="~/StayGo.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="~/StayGo.site.css" asp-append-version="true" />
 
     <style>
+        /* * ----------------------------------------
+         * 1. VARIABLES CSS (Paleta Sage)
+         * ----------------------------------------
+         */
         :root {
-            /* Sage palette (Mantenemos los mismos del Admin) */
+            /* Paleta Sage */
             --sage-50: #f5f7f4; --sage-100: #e9efe6; --sage-200: #dce6d7; --sage-300: #c9d7c2;
             --sage-400: #a3b18a; --sage-500: #7fa174; --sage-600: #5e8a63; --sage-700: #3f6b4f;
             --sage-800: #2f5b45; --sage-900: #26453a;
             
-            /* Variables semánticas ajustadas al nuevo look */
-            --bg: var(--sage-50);       /* Fondo de página principal (igual que Admin) */
-            --ink: #243036;             /* Color de texto principal */
-            --muted: #cfe3d9;           /* Color de texto para el header (más claro) */
-            --brand: #e9f3ef;           /* Color de marca para links en el header (más claro) */
-            --accent: #fff;             /* Color de acento para el header (blanco) */
-            --surface: #ffffff;         /* Fondo de tarjetas, etc. */
+            /* Variables semánticas */
+            --bg: var(--sage-50); 
+            --ink: #243036; 
+            --muted: #cfe3d9; 
+            --brand-link-color: #e9f3ef;
+            --accent: #fff; 
+            --surface: #ffffff; 
             --shadow: 0 10px 25px rgba(36,48,54,.08);
-            --radius: 16px;             /* Radio de borde unificado */
-            --ring: rgba(63,107,79,.35); /* Anillo de foco (accesibilidad) */
+            --radius: 16px; 
+            --ring: rgba(63,107,79,.35); 
         }
 
+        /* ----------------------------------------
+         * 2. ESTRUCTURA BÁSICA
+         * ----------------------------------------
+         */
         html, body {
             height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
         }
 
         body {
@@ -42,13 +52,13 @@
             overflow-x: hidden;
         }
 
-        /*
-         * === BARRA DE NAVEGACIÓN (TOPBAR) - AHORA CON DEGRADADO ===
+        /* ----------------------------------------
+         * 3. BARRA DE NAVEGACIÓN (TOPBAR)
+         * ----------------------------------------
          */
-
         .topbar {
             height: 64px;
-            /* ESTA ES LA LÍNEA NUEVA (degradado horizontal hacia el centro) */
+            /* Degradado horizontal oscuro de la marca */
             background: linear-gradient(90deg, var(--sage-800), #1b2a23 50%, var(--sage-800));
             border-bottom: 1px solid rgba(255,255,255,.06);
             display: flex;
@@ -63,304 +73,540 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: .5rem;
+            gap: .5rem; /* El texto y la imagen estarán separados por 0.5rem */
             font-weight: 700;
+            font-size: 1.5rem;
             letter-spacing: .2px;
-            color: #e9f3ef; /* Blanco suave para el texto del logo */
+            color: var(--brand-link-color); 
             text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .brand .custom-logo {
+            width: 80px; /* Define el ancho de la imagen */
+            height: 80px; /* Define la altura de la imagen */
+            object-fit: contain; /* Asegura que la imagen se ajuste sin recortar */
+            margin-right: 4px; /* Espacio a la derecha de la imagen */
+        }
+        .brand:hover {
+            color: #fff;
+            opacity: 0.9;
         }
 
         .brand .logo {
-            width: 34px;
-            height: 34px;
+            width: 40px; 
+            height: 40px; 
             border-radius: 10px;
             background: linear-gradient(135deg,var(--sage-400),var(--sage-700));
             display: grid;
             place-items: center;
             color: #fff;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-size: 1.25rem;
         }
 
         /* Botón hamburguesa (móvil) */
         .navbar-toggler {
-            border: 1px solid rgba(255,255,255,.2); /* Borde más sutil */
-            background: transparent; /* Fondo transparente */
+            border: 1px solid rgba(255,255,255,.2);
+            background: transparent;
             transition: all .2s;
-            color: #cfe3d9; /* Color claro para el icono */
+            color: var(--muted);
             font-size: 1.25rem;
             padding: .25rem .6rem;
+            border-radius: 8px;
         }
 
         .navbar-toggler:hover {
-            background: rgba(255,255,255,.08); /* Fondo sutil al pasar el mouse */
+            background: rgba(255,255,255,.08);
             border-color: rgba(255,255,255,.3);
             color: #fff;
         }
         .navbar-toggler:focus {
-             box-shadow: 0 0 0 4px rgba(255,255,255,.3) !important; /* Anillo de foco claro */
+             box-shadow: 0 0 0 4px rgba(255,255,255,.3) !important; 
         }
 
         /* Enlaces de navegación */
         .topbar .navbar-nav .nav-link {
-            color: #cfe3d9; /* Texto claro para los enlaces */
+            color: var(--muted); 
             font-weight: 500;
+            transition: color 0.2s;
         }
 
         .topbar .navbar-nav .nav-link:hover,
         .topbar .navbar-nav .nav-link:focus {
-            color: #fff; /* Texto blanco al pasar el mouse */
+            color: #fff;
         }
-        
+
         /* Botones de Login/Logout en la barra */
         .topbar .navbar-nav .btn {
-            --bs-btn-color: #cfe3d9; /* Color claro para los botones */
-            --bs-btn-border-color: rgba(255,255,255,.3); /* Borde claro */
-            --bs-btn-hover-bg: rgba(255,255,255,.1); /* Fondo sutil al pasar el mouse */
+            --bs-btn-color: var(--muted);
+            --bs-btn-border-color: rgba(255,255,255,.3);
+            --bs-btn-hover-bg: rgba(255,255,255,.1);
             --bs-btn-hover-border-color: rgba(255,255,255,.4);
             --bs-btn-hover-color: #fff;
             font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
         /* Botón de "Registrarse" */
         .topbar .navbar-nav .btn-primary {
-            --bs-btn-bg: var(--sage-600); /* Color verde original del admin */
+            --bs-btn-bg: var(--sage-600); 
             --bs-btn-border-color: var(--sage-600);
             --bs-btn-hover-bg: var(--sage-700);
             --bs-btn-hover-border-color: var(--sage-700);
             --bs-btn-color: #fff;
             --bs-btn-hover-color: #fff;
         }
+        
+        /* ----------------------------------------
+         * 4. ESTILOS DE GESTIÓN (MANAGE)
+         * ----------------------------------------
+         */
+        
+        /* Contenedor del panel lateral (ManageNav) */
+        .manage-panel-gradient {
+            background: linear-gradient(150deg, var(--sage-800) 0%, var(--sage-900) 100%) !important;
+            color: var(--sage-50); 
+            border-radius: var(--radius); /* Asegura esquinas redondeadas */
+            padding: 1rem 0;
+        }
 
+        /* Estilo para los enlaces de navegación */
+        .manage-panel-gradient .nav-link {
+            color: var(--sage-100) !important;
+            padding: 10px 15px; 
+            transition: background-color 0.2s, color 0.2s, transform 0.1s;
+            border-radius: 8px; 
+            display: flex;
+            align-items: center;
+        }
 
-        /*
-         * === ESTILOS DE PÁGINAS Y COMPONENTES (Portados de tu CSS) ===
+        /* Estilo al pasar el ratón */
+        .manage-panel-gradient .nav-link:hover {
+            background-color: var(--sage-600) !important; /* Usar un color sólido oscuro de la marca */
+            color: #fff !important; 
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Estilo para el ENLACE ACTIVO */
+        .manage-panel-gradient .nav-link.active {
+            background: linear-gradient(90deg, var(--sage-700), var(--sage-800)) !important;
+            color: #fff !important; 
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* ----------------------------------------
+         * 5. BOTONES Y COMPONENTES DE MARCA
+         * ----------------------------------------
          */
 
+        /* Botón de marca (Usado en el botón "Ver mis reservas") */
+        .btn-brand {
+            background: linear-gradient(135deg, var(--sage-700), var(--sage-900)) !important;
+            color: #fff;
+            border-radius: 12px;
+            padding: .75rem 1.25rem;
+            border: none;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-brand:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); 
+            color: #fff;
+        }
+
+        /* Botones específicos de sage */
+        .btn-sage {
+            --bs-btn-bg: var(--sage-600);
+            --bs-btn-border-color: var(--sage-600);
+            --bs-btn-hover-bg: var(--sage-700);
+            --bs-btn-hover-border-color: var(--sage-700);
+            --bs-btn-focus-shadow-rgb: 94, 138, 99;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .btn-outline-sage {
+            --bs-btn-color: var(--sage-700);
+            --bs-btn-border-color: var(--sage-400);
+            --bs-btn-hover-bg: var(--sage-100);
+            --bs-btn-hover-border-color: var(--sage-500);
+            --bs-btn-focus-shadow-rgb: 163, 177, 138;
+            border-radius: 8px;
+        }
+
+        /* ----------------------------------------
+         * 6. ESTILOS DE PÁGINA Y COMPONENTES
+         * ----------------------------------------
+         */
+         
         /* Hero (Homepage) */
         .hero {
-            background-image: url('/images/staygo-fondo.png');
-            background-size: cover;
-            background-position: center;
             height: 60vh;
+            min-height: 400px;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            overflow: hidden;
         }
 
         .hero .overlay {
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: rgba(0, 0, 0, 0.45);
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
 
+        .hero > * {
+            z-index: 2;
+        }
+        
         /* Tarjeta de Búsqueda (Homepage) */
         .search-card {
             background: var(--surface);
-            border-radius: var(--radius); /* Usa el radio unificado */
-            box-shadow: var(--shadow); /* Usa la sombra unificada */
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
             padding: 16px;
             gap: 12px;
         }
 
         .search-grid {
             display: grid;
-            grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
+            grid-template-columns: repeat(6, 1fr); 
             gap: 8px;
         }
 
-
+        .media (max-width: 992px) {
+            .search-grid {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .search-grid .col-auto {
+                grid-column: span 2;
+            }
+        }
+        .media (max-width: 576px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-grid .col-auto {
+                grid-column: span 1; 
+            }
         }
 
         .search-card .form-label {
             font-size: .8rem;
-            color: var(--muted); /* Usa color muted */
+            color: var(black); 
+            font-weight: 600;
             margin-bottom: 4px;
         }
 
         .search-card .form-control, .search-card .form-select {
             border-radius: 10px;
+            border-color: var(black);
+            padding: 0.5rem 0.75rem;
         }
-
-        /* Botón de marca */
-        .btn-brand {
-            background: var(--sage-600); /* Color verde de la paleta Sage */
-            color: #fff;
-            border-radius: 12px;
-            padding: .75rem 1.25rem;
-            border: none;
-            transition: background-color .2s;
-        }
-
-        .btn-brand:hover {
-            background: var(--sage-700); /* Verde más oscuro al pasar el mouse */
-            color: #fff;
-        }
-
+        
         /* Tarjeta de Alojamiento (card-stay) */
         .card-stay {
             border: none;
-            border-radius: var(--radius); /* Usa el radio unificado */
+            border-radius: var(--radius); 
             overflow: hidden;
-            box-shadow: var(--shadow); /* Usa la sombra unificada */
+            box-shadow: var(--shadow); 
             background: var(--surface);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-stay:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(36,48,54,.15);
         }
 
         .card-stay img {
             aspect-ratio: 4/3;
             object-fit: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card-stay:hover img {
+            transform: scale(1.05);
         }
 
         .card-stay .price {
             font-weight: 700;
+            color: var(--sage-800);
+            font-size: 1.25rem;
         }
 
         /* Insignia */
         .badge-soft {
-            background: #eef5ef; /* Verde pálido */
-            color: var(--sage-700); /* Verde oscuro */
-            border: 1px solid #d9e7da;
+            background: var(--sage-100); 
+            color: var(black); 
+            border: 1px solid var(--sage-300);
             border-radius: 999px;
-            padding: .35rem .6rem;
+            padding: .35rem .7rem;
+            font-weight: 500;
+            font-size: 0.85rem;
         }
 
         /* Alertas (TempData) */
         .alert {
-            border-radius: var(--radius); /* Usa el radio unificado */
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
         }
-
-        /* Imágenes de tarjetas */
-        .card-img-top, .propiedad-img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-        }
-
-        .card img {
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .card:hover img {
-            transform: scale(1.05);
-        }
-
-
-        /*
-         * === COMPONENTES ÚTILES (Portados del Admin) ===
-         */
-
+        
         .page-head {
             border-radius: 18px;
-            padding: 16px 18px;
-            margin-bottom: 14px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
             background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), #fff;
-            border: 1px solid #edf1ee;
+            border: 1px solid var(--sage-100);
             box-shadow: 0 10px 24px rgba(36,48,54,.06);
         }
-
-        .btn-sage {
-            --bs-btn-bg: var(--sage-600);
-            --bs-btn-border-color: var(--sage-600);
-            --bs-btn-hover-bg: var(--sage-700);
-            --bs-btn-hover-border-color: var(--sage-700);
-        }
-
-        .btn-outline-sage {
-            --bs-btn-color: var(--sage-700);
-            --bs-btn-border-color: var(--sage-300);
-            --bs-btn-hover-bg: var(--sage-100);
-            --bs-btn-hover-border-color: var(--sage-500);
-        }
-
-        .filter-card {
-            border-radius: 16px;
-            border: 1px solid #edf1ee;
-            background: #fff;
-            box-shadow: 0 8px 20px rgba(36,48,54,.05);
-        }
-
-        .table thead th {
-            background: linear-gradient(0deg,var(--sage-100),var(--sage-100)) !important;
-            color: #2d3a34;
-            border-bottom: 1px solid #e6eee8;
-            text-transform: uppercase;
-            font-size: .8rem;
-            letter-spacing: .02em;
-        }
-
-        .thumb {
-            width: 96px;
-            height: 64px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid #edf1ee;
-        }
-
-        .badge-type {
-            background: #eef5ef;
-            color: var(--sage-700);
-            border: 1px solid #d9e7da;
-        }
-
-        .empty {
-            border: 1px dashed #dfe6df;
-            background: var(--sage-50);
-            border-radius: 16px;
-            padding: 24px;
-        }
-
-
-        /*
-         * === FOOTER ===
+        
+        /* ----------------------------------------
+         * 7. FOOTER
+         * ----------------------------------------
          */
         .footer {
             position: static;
             width: 100%;
-            line-height: normal;
-            background: var(--surface); /* Fondo blanco */
-            border-top: 1px solid #e9ecef; /* Borde superior */
-            padding: 2.5rem 0;
+            line-height: 1.8;
+            background: linear-gradient(90deg, var(--sage-800), #1b2a23 50%, var(--sage-800));
+            color: var(--sage-100); /* Color claro para el texto */
+            border-top: 1px solid rgba(255,255,255,.06); /* Borde sutil */
+            padding: 3rem 0;
             margin-top: 3rem;
-            color: var(--muted);
+            color: var(--sage-600);
         }
 
         .footer h5 {
-            color: var(--ink);
+            color: #fff; /* Títulos en blanco para mejor contraste */
             font-weight: 600;
+            margin-bottom: 1rem;
         }
 
         .footer a {
-            color: var(--muted);
+            color: var(--sage-300); /* Enlaces en color sage claro */
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .footer a:hover {
-            color: var(--sage-700); /* Color verde al pasar el mouse */
-            text-decoration: underline;
+            color: #fff; /* Enlaces en blanco al pasar el ratón */
+            text-decoration: none;
         }
 
         .footer .footer-bottom {
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid rgba(255,255,255,.1);
             padding-top: 1rem;
-            margin-top: 1rem;
+            margin-top: 2rem;
             text-align: center;
+            color: var(--sage-400);
+            font-size: 0.85rem;
         }
 
+        .footer .list-unstyled li {
+            margin-bottom: 0.5rem;
+        }
 
-        /*
-         * === ACCESIBILIDAD (Focus Ring) ===
+        /* ----------------------------------------
+         * 8. ACCESIBILIDAD (Focus Ring)
+         * ----------------------------------------
          */
-
-        a.btn, button, .navbar-toggler { /* Cambiado de .btn-burger a .navbar-toggler */
+        a.btn, button, .navbar-toggler, input:focus, select:focus, textarea:focus {
             outline: none;
         }
 
         a.btn:focus-visible, button:focus-visible, .navbar-toggler:focus-visible {
             box-shadow: 0 0 0 4px var(--ring);
         }
+
+
+        #sg-chat-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--sage-700);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        width: 54px;
+        height: 54px;
+        font-size: 22px;
+        cursor: pointer;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+    #sg-chat-btn:hover {
+        background: var(--sage-800);
+    }
+    #sg-chat-box {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 340px;
+        height: 430px;
+        background: #fff;
+        border: 1px solid rgba(47,91,69,.12);
+        border-radius: 16px;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 9999;
+        box-shadow: 0 12px 32px rgba(0,0,0,.12);
+    }
+    #sg-chat-header {
+        background: linear-gradient(90deg, var(--sage-700), var(--sage-800));
+        color: #fff;
+        padding: 10px 14px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: .9rem;
+    }
+    #sg-chat-messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        background: #f6f9f7;
+        scroll-behavior: smooth;
+    }
+    .sg-msg-user,
+    .sg-msg-bot {
+        margin-bottom: 8px;
+        max-width: 90%;
+        font-size: .8rem;
+        line-height: 1.3;
+    }
+    .sg-msg-user {
+        margin-left: auto;
+        background: #e2f0ea;
+        padding: 6px 10px;
+        border-radius: 12px 12px 2px 12px;
+    }
+    .sg-msg-bot {
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 12px 12px 12px 2px;
+        border: 1px solid rgba(47,91,69,.08);
+    }
+    #sg-chat-input {
+        display: flex;
+        border-top: 1px solid rgba(0,0,0,.05);
+        background: #fff;
+    }
+    #sg-chat-input input {
+        flex: 1;
+        border: none;
+        padding: 8px;
+        font-size: .85rem;
+        outline: none;
+    }
+    #sg-chat-input button {
+        border: none;
+        background: var(--sage-700);
+        color: #fff;
+        padding: 0 14px;
+        font-weight: 500;
+    }
+
     </style>
 
     @RenderSection("Styles", required: false)
+
+    
+<button id="sg-chat-btn" aria-label="Abrir chat con asistente">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<div id="sg-chat-box" aria-label="Chat asistente StayGo">
+    <div id="sg-chat-header">
+        <span>Asistente Homely</span>
+        <button type="button" style="background:none;border:none;color:#fff;font-size:1rem;" id="sg-chat-close">&times;</button>
+    </div>
+    <div id="sg-chat-messages">
+        <div class="sg-msg-bot">
+            ¡Hola! 👋 Soy el asistente de Homely. ¿Te ayudo a encontrar una propiedad o te explico cómo reservar?
+        </div>
+    </div>
+    <div id="sg-chat-input">
+        <input id="sg-chat-text" type="text" placeholder="Escribe tu pregunta..." autocomplete="off" />
+        <button id="sg-chat-send"><i class="bi bi-send-fill"></i></button>
+    </div>
+</div>
+<script>
+    (function() {
+        const btn = document.getElementById('sg-chat-btn');
+        const box = document.getElementById('sg-chat-box');
+        const close = document.getElementById('sg-chat-close');
+        const messages = document.getElementById('sg-chat-messages');
+        const input = document.getElementById('sg-chat-text');
+        const sendBtn = document.getElementById('sg-chat-send');
+
+        function toggleChat(show) {
+            box.style.display = show ? 'flex' : (box.style.display === 'flex' ? 'none' : 'flex');
+        }
+
+        btn.addEventListener('click', () => toggleChat(true));
+        close.addEventListener('click', () => toggleChat(false));
+
+        function appendMessage(text, cls) {
+            const div = document.createElement('div');
+            div.className = cls;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage(text, 'sg-msg-user');
+            input.value = '';
+
+            // mensaje temporal
+            const loading = document.createElement('div');
+            loading.className = 'sg-msg-bot';
+            loading.textContent = 'Escribiendo...';
+            messages.appendChild(loading);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch('/api/ChatApi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                loading.remove();
+                appendMessage(data.reply || 'No pude responder ahora 😅', 'sg-msg-bot');
+            } catch (err) {
+                loading.remove();
+                appendMessage('Ocurrió un error hablando con el asistente.', 'sg-msg-bot');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    })();
+</script>
 </head>
 <body class="bg-body">
     
@@ -368,8 +614,8 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg w-100 p-0">
                 
-                <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <div class="logo"><i class="bi bi-house-heart"></i></div>
+                <a class="brand brand-image" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/HomeLy-logo.png" alt="Logo Homely" class="custom-logo" />
                     <span>Homely</span>
                 </a>
 
@@ -439,9 +685,12 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-4 mb-4">
-                    <h5><i class="bi bi-house-heart me-2"></i>StayGo</h5>
-                    <p>Encuentra tu lugar perfecto entre nuestra selección exclusiva de propiedades.</p>
+                <div class="col-md-4 mb-4 d-flex flex-column align-items-start">
+                    <a href="/" class="d-flex align-items-center mb-2" style="text-decoration: none;">
+                        <img src="~/images/HomeLy-logo.png" alt="Logo HomeLy" style="width: 40px; height: 40px; object-fit: contain; margin-right: 8px;" />
+                        <h5 class="mb-0" style="color: #fff; font-weight: 600;">HomeLy</h5>
+                    </a>
+                    <p class="mt-2">Encuentra tu lugar perfecto entre nuestra selección exclusiva de propiedades.</p>
                 </div>
                 <div class="col-md-2 mb-4">
                     <h5>Enlaces</h5>
@@ -462,21 +711,21 @@
                 <div class="col-md-3 mb-4">
                     <h5>Contacto</h5>
                     <ul class="list-unstyled">
-                        <li><i class="bi bi-envelope me-2"></i> info@staygo.com</li>
+                        <li><i class="bi bi-envelope me-2"></i> info@HomeLy.com</li>
                         <li><i class="bi bi-telephone me-2"></i> +51 123 456 789</li>
                         <li><i class="bi bi-geo-alt me-2"></i> Lima, Perú</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 StayGo. Todos los derechos reservados.</p>
+                <p>&copy; 2024 HomeLy. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
     
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @* Si tenías un site.js, asegúrate de que no tenga conflictos o lo necesites aquí *@
+    @* El archivo site.js está comentado ya que el CSS fue movido * @
     @* <script src="~/js/site.js" asp-append-version="true"></script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>

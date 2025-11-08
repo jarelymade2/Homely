@@ -1,0 +1,69 @@
+@using StayGo.Models
+@using Microsoft.AspNetCore.Identity
+@using StayGo.Areas.Identity.Data 
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    // Usa el modelo de la clase ManageNavPages (definido abajo)
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="nav flex-column gap-1">
+    
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" 
+           id="profile" asp-page="./Index">
+            <i class="bi bi-person-fill me-2"></i>Perfil
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" 
+           id="email" asp-page="./Email">
+            <i class="bi bi-envelope-fill me-2"></i>Email
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" 
+           id="change-password" asp-page="./ChangePassword">
+            <i class="bi bi-lock-fill me-2"></i>Cambiar contraseña
+        </a>
+    </li>
+    
+    @if (hasExternalLogins)
+    {
+        <li id="external-logins" class="nav-item">
+            <a id="external-logins-link" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">
+                <i class="bi bi-box-arrow-in-right me-2"></i>External logins
+            </a>
+        </li>
+    }
+    
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" 
+           id="two-factor" asp-page="./TwoFactorAuthentication">
+            <i class="bi bi-shield-fill-check me-2"></i>Autenticación de dos factores
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)"
+           id="personal-data" asp-page="./PersonalData">
+            <i class="bi bi-file-earmark-person-fill me-2"></i>Datos personales
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.FavoritosNavClass(ViewContext)"
+           id="favoritos" asp-page="./Favoritos">
+            <i class="bi bi-heart-fill me-2"></i>Mis Favoritos
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link"
+           id="reservas" asp-area="" asp-controller="Reserva" asp-action="History">
+            <i class="bi bi-journal-check me-2"></i>Mis Reservas
+        </a>
+    </li>
+</ul>

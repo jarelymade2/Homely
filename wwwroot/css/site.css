@@ -1,34 +1,33 @@
-/*
- * === TEMA PRINCIPAL (BASADO EN EL DISEÑO "SAGE" DEL ADMIN) ===
+/* * ----------------------------------------
+ * 1. VARIABLES CSS (Paleta Sage)
+ * ----------------------------------------
+ * Define la paleta de colores y variables globales para la aplicación.
  */
-
 :root {
-    /* Sage palette */
-    --sage-50: #f5f7f4;
-    --sage-100: #e9efe6;
-    --sage-200: #dce6d7;
-    --sage-300: #c9d7c2;
-    --sage-400: #a3b18a;
-    --sage-500: #7fa174;
-    --sage-600: #5e8a63;
-    --sage-700: #3f6b4f;
-    --sage-800: #2f5b45;
-    --sage-900: #26453a;
+    /* Paleta Sage */
+    --sage-50: #f5f7f4; --sage-100: #e9efe6; --sage-200: #dce6d7; --sage-300: #c9d7c2;
+    --sage-400: #a3b18a; --sage-500: #7fa174; --sage-600: #5e8a63; --sage-700: #3f6b4f;
+    --sage-800: #2f5b45; --sage-900: #26453a;
     
     /* Variables semánticas */
-    --bg: var(--sage-50);       /* Fondo de página principal */
-    --ink: #243036;             /* Color de texto principal */
-    --muted: #6c757d;           /* Color de texto secundario */
-    --brand: var(--sage-700);   /* Color de marca principal (verde) */
-    --accent: var(--sage-600);  /* Color de acento */
-    --surface: #ffffff;         /* Fondo de tarjetas, navbar, etc. */
+    --bg: var(--sage-50); 
+    --ink: #243036; 
+    --muted: #cfe3d9; 
+    --brand: #e9f3ef; 
+    --accent: #fff; 
+    --surface: #ffffff; 
     --shadow: 0 10px 25px rgba(36,48,54,.08);
-    --radius: 16px;             /* Radio de borde unificado */
-    --ring: rgba(63,107,79,.35); /* Anillo de foco (accesibilidad) */
+    --radius: 16px; 
+    --ring: rgba(63,107,79,.35); 
 }
 
+/* ----------------------------------------
+ * 2. ESTRUCTURA BÁSICA
+ * ----------------------------------------
+ */
 html, body {
     height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 body {
@@ -37,83 +36,108 @@ body {
     overflow-x: hidden;
 }
 
-/*
- * === BARRA DE NAVEGACIÓN (TOPBAR) ===
- * Estilos para el <header> del _Layout.cshtml
+/* Contenido principal para dejar espacio al footer */
+.main-content {
+    min-height: calc(100vh - 64px - 100px); /* 100vh - alto_header - alto_aprox_footer */
+}
+
+
+/* ----------------------------------------
+ * 3. BARRA DE NAVEGACIÓN (TOPBAR)
+ * ----------------------------------------
  */
 
-        .topbar {
-            height: 64px;
-            /* ESTA ES LA LÍNEA NUEVA (degradado horizontal hacia el centro) */
-            background: linear-gradient(90deg, var(--sage-800), #1b2a23 50%, var(--sage-800));
-            border-bottom: 1px solid rgba(255,255,255,.06);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            position: sticky;
-            top: 0;
-            z-index: 1031;
-        }
+.topbar {
+    height: 64px;
+    /* Degradado horizontal oscuro de la marca */
+    background: linear-gradient(90deg, var(--sage-800), #1b2a23 50%, var(--sage-800));
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1031;
+}
 
+/* Brand (Logo de StayGo en la cabecera) */
 .brand {
     display: flex;
     align-items: center;
     gap: .5rem;
     font-weight: 700;
+    font-size: 1.5rem;
     letter-spacing: .2px;
-    color: var(--sage-800);
+    color: #e9f3ef; 
     text-decoration: none;
+    transition: opacity 0.2s;
 }
 
+.brand:hover {
+    color: #fff;
+    opacity: 0.9;
+}
+
+/* CLASE CORREGIDA: LOGO COMO CAJA DE 40px */
 .brand .logo {
-    width: 34px;
-    height: 34px;
+    width: 40px; 
+    height: 40px; 
     border-radius: 10px;
     background: linear-gradient(135deg,var(--sage-400),var(--sage-700));
     display: grid;
     place-items: center;
     color: #fff;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    font-size: 1.25rem;
 }
 
 /* Botón hamburguesa (móvil) */
-.btn-burger {
-    border: 1px solid #e5e7eb;
-    background: #fff;
+.navbar-toggler {
+    border: 1px solid rgba(255,255,255,.2);
+    background: transparent;
     transition: all .2s;
-    color: var(--ink);
+    color: #cfe3d9;
     font-size: 1.25rem;
     padding: .25rem .6rem;
+    border-radius: 8px;
 }
 
-.btn-burger:hover {
-    background: var(--sage-100);
-    border-color: var(--sage-200);
+.navbar-toggler:hover {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.3);
+    color: #fff;
+}
+.navbar-toggler:focus {
+     box-shadow: 0 0 0 4px rgba(255,255,255,.3) !important; 
 }
 
 /* Enlaces de navegación */
 .topbar .navbar-nav .nav-link {
-    color: var(--ink);
+    color: #cfe3d9; 
     font-weight: 500;
+    transition: color 0.2s;
 }
 
 .topbar .navbar-nav .nav-link:hover,
 .topbar .navbar-nav .nav-link:focus {
-    color: var(--brand);
+    color: #fff;
 }
 
 /* Botones de Login/Logout en la barra */
 .topbar .navbar-nav .btn {
-    --bs-btn-color: var(--brand);
-    --bs-btn-border-color: var(--sage-300);
-    --bs-btn-hover-bg: var(--sage-100);
-    --bs-btn-hover-border-color: var(--sage-500);
-    --bs-btn-hover-color: var(--brand);
+    --bs-btn-color: #cfe3d9;
+    --bs-btn-border-color: rgba(255,255,255,.3);
+    --bs-btn-hover-bg: rgba(255,255,255,.1);
+    --bs-btn-hover-border-color: rgba(255,255,255,.4);
+    --bs-btn-hover-color: #fff;
     font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
 }
 
+/* Botón de "Registrarse" */
 .topbar .navbar-nav .btn-primary {
-    --bs-btn-bg: var(--sage-600);
+    --bs-btn-bg: var(--sage-600); 
     --bs-btn-border-color: var(--sage-600);
     --bs-btn-hover-bg: var(--sage-700);
     --bs-btn-hover-border-color: var(--sage-700);
@@ -121,133 +145,227 @@ body {
     --bs-btn-hover-color: #fff;
 }
 
+.manage-panel-gradient + div .btn-primary, 
+.card .btn-primary {
+    /* Usar el mismo estilo que tu .btn-brand */
+    background: linear-gradient(135deg, var(--sage-700), var(--sage-900)) !important;
+    color: #fff !important;
+    border: none !important;
+    /* Opcional: Ajustar el radio si es necesario */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
 
-/*
- * === ESTILOS DE PÁGINAS Y COMPONENTES (Portados de tu CSS) ===
+.manage-panel-gradient + div .btn-primary:hover,
+.card .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); 
+    color: #fff;
+}
+/* ----------------------------------------
+ * 4. PÁGINA PRINCIPAL (HOME)
+ * ----------------------------------------
  */
 
 /* Hero (Homepage) */
 .hero {
-    background-image: url('/images/staygo-fondo.png');
+    background-image: url('/images/staygo-fondo.png'); /* Usar una imagen de placeholder si no tienes la tuya */
     background-size: cover;
     background-position: center;
     height: 60vh;
+    min-height: 400px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
 }
 
 .hero .overlay {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.45);
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 1;
+}
+
+.hero > * {
+    z-index: 2; /* Asegura que el contenido esté sobre el overlay */
 }
 
 /* Tarjeta de Búsqueda (Homepage) */
 .search-card {
     background: var(--surface);
     border-radius: var(--radius);
-    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    box-shadow: var(--shadow);
     padding: 16px;
     gap: 12px;
 }
 
 .search-grid {
     display: grid;
-    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
+    /* Ajuste para pantallas grandes: 5 columnas + botón */
+    grid-template-columns: repeat(6, 1fr); 
     gap: 8px;
-}
-
-@media (max-width: 992px) {
-    .search-grid {
-        grid-template-columns: 1fr 1fr;
-    }
 }
 
 .search-card .form-label {
     font-size: .8rem;
-    color: var(--muted);
+    color: var(black); 
+    font-weight: 600;
     margin-bottom: 4px;
 }
 
 .search-card .form-control, .search-card .form-select {
     border-radius: 10px;
+    border-color: var(--sage-300);
+    padding: 0.5rem 0.75rem;
 }
 
-/* Botón de marca (ADAPTADO A SAGE) */
-.btn-brand {
-    background: var(--sage-600); /* Color verde en lugar de negro */
-    color: #fff;
-    border-radius: 12px;
-    padding: .75rem 1.25rem;
-    border: none;
-    transition: background-color .2s;
+.search-card .form-control:focus, .search-card .form-select:focus {
+    border-color: var(--sage-600);
+    box-shadow: 0 0 0 0.25rem var(--sage-100);
 }
 
-.btn-brand:hover {
-    background: var(--sage-700); /* Verde más oscuro al pasar el mouse */
-    color: #fff;
+/* Responsive Search Grid */
+@media (max-width: 992px) {
+    .search-grid {
+        /* En tablets, 2 columnas */
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    .search-grid .col-auto {
+        grid-column: span 2; /* Botón ocupa todo el ancho */
+    }
+}
+@media (max-width: 576px) {
+    .search-grid {
+        /* En móviles, 1 columna */
+        grid-template-columns: 1fr;
+    }
+    .search-grid .col-auto {
+        grid-column: span 1; 
+    }
 }
 
 /* Tarjeta de Alojamiento (card-stay) */
 .card-stay {
     border: none;
-    border-radius: var(--radius); /* Usa el radio unificado */
+    border-radius: var(--radius); 
     overflow: hidden;
-    box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    box-shadow: var(--shadow); 
     background: var(--surface);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-stay:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(36,48,54,.15);
 }
 
 .card-stay img {
     aspect-ratio: 4/3;
     object-fit: cover;
+    transition: transform 0.3s ease-in-out;
+}
+
+.card-stay:hover img {
+    transform: scale(1.05);
 }
 
 .card-stay .price {
     font-weight: 700;
+    color: var(--sage-800);
+    font-size: 1.25rem;
 }
 
-/* Insignia (ADAPTADA A SAGE) */
+/* Insignia */
 .badge-soft {
-    background: #eef5ef; /* Verde pálido */
-    color: var(--sage-700); /* Verde oscuro */
-    border: 1px solid #d9e7da;
+    background: var(--sage-100); 
+    color: var(--sage-700); 
+    border: 1px solid var(--sage-300);
     border-radius: 999px;
-    padding: .35rem .6rem;
+    padding: .35rem .7rem;
+    font-weight: 500;
+    font-size: 0.85rem;
 }
 
 /* Alertas (TempData) */
 .alert {
-    border-radius: var(--radius); /* Usa el radio unificado */
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
 }
 
-/* Imágenes de tarjetas */
-.card-img-top, .propiedad-img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-}
-
-.card img {
-    transition: transform 0.3s ease-in-out;
-}
-
-.card:hover img {
-    transform: scale(1.05);
-}
-
-
-/*
- * === COMPONENTES ÚTILES (Portados del Admin) ===
+/* ----------------------------------------
+ * 5. ESTILOS DE GESTIÓN (MANAGE) Y BOTONES BRAND
+ * ----------------------------------------
  */
 
+/* Botón de marca con degradado Sage (Aplicado a los botones de Account/Manage) */
+.btn-brand {
+    background: linear-gradient(135deg, var(--sage-700), var(--sage-900)) !important;
+    color: #fff;
+    border-radius: 12px;
+    padding: .75rem 1.25rem;
+    border: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-brand:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); 
+    color: #fff;
+}
+
+/* PANEL DE GESTIÓN LATERAL (ManageNav) */
+.manage-panel-gradient {
+    /* Degradado oscuro para el fondo del sidebar */
+    background: linear-gradient(150deg, var(--sage-800) 0%, var(--sage-900) 100%) !important;
+    color: var(--sage-50); 
+}
+
+/* Estilo para los enlaces de navegación */
+.manage-panel-gradient .nav-link {
+    color: var(--sage-100) !important;
+    padding: 10px 15px; 
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    border-radius: 8px; 
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo al pasar el ratón */
+.manage-panel-gradient .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important; 
+    color: #fff !important; 
+    transform: translateX(2px);
+}
+
+/* Estilo para el ENLACE ACTIVO */
+.manage-panel-gradient .nav-link.active {
+    background-color: var(--sage-600) !important; 
+    color: #fff !important; 
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+
+/* ----------------------------------------
+ * 6. COMPONENTES ÚTILES
+ * ----------------------------------------
+ */
 .page-head {
     border-radius: 18px;
-    padding: 16px 18px;
-    margin-bottom: 14px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    /* Fondo con gradiente sutil y sombra */
     background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), #fff;
-    border: 1px solid #edf1ee;
+    border: 1px solid var(--sage-100);
     box-shadow: 0 10px 24px rgba(36,48,54,.06);
 }
 
@@ -256,97 +374,75 @@ body {
     --bs-btn-border-color: var(--sage-600);
     --bs-btn-hover-bg: var(--sage-700);
     --bs-btn-hover-border-color: var(--sage-700);
+    --bs-btn-focus-shadow-rgb: 94, 138, 99;
+    color: #fff;
+    border-radius: 8px;
 }
 
 .btn-outline-sage {
     --bs-btn-color: var(--sage-700);
-    --bs-btn-border-color: var(--sage-300);
+    --bs-btn-border-color: var(--sage-400);
     --bs-btn-hover-bg: var(--sage-100);
     --bs-btn-hover-border-color: var(--sage-500);
+    --bs-btn-focus-shadow-rgb: 163, 177, 138;
+    border-radius: 8px;
 }
 
-.filter-card {
-    border-radius: 16px;
-    border: 1px solid #edf1ee;
-    background: #fff;
-    box-shadow: 0 8px 20px rgba(36,48,54,.05);
-}
 
-.table thead th {
-    background: linear-gradient(0deg,var(--sage-100),var(--sage-100)) !important;
-    color: #2d3a34;
-    border-bottom: 1px solid #e6eee8;
-    text-transform: uppercase;
-    font-size: .8rem;
-    letter-spacing: .02em;
-}
-
-.thumb {
-    width: 96px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 10px;
-    border: 1px solid #edf1ee;
-}
-
-.badge-type {
-    background: #eef5ef;
-    color: var(--sage-700);
-    border: 1px solid #d9e7da;
-}
-
-.empty {
-    border: 1px dashed #dfe6df;
-    background: var(--sage-50);
-    border-radius: 16px;
-    padding: 24px;
-}
-
-/*
- * === FOOTER ===
+/* ----------------------------------------
+ * 7. FOOTER
+ * ----------------------------------------
  */
 .footer {
     position: static;
     width: 100%;
-    line-height: normal;
-    background: var(--surface); /* Fondo blanco */
-    border-top: 1px solid #e9ecef; /* Borde superior */
-    padding: 2.5rem 0;
+    line-height: 1.8;
+    background: var(--surface);
+    border-top: 1px solid #e9ecef;
+    padding: 3rem 0;
     margin-top: 3rem;
-    color: var(--muted);
+    color: var(--sage-600); /* Color del texto general del footer */
 }
 
 .footer h5 {
     color: var(--ink);
     font-weight: 600;
+    margin-bottom: 1rem;
 }
 
 .footer a {
-    color: var(--muted);
+    color: var(--sage-700);
     text-decoration: none;
+    transition: color 0.2s;
 }
 
 .footer a:hover {
-    color: var(--brand); /* Color verde al pasar el mouse */
+    color: var(--sage-900);
     text-decoration: underline;
 }
 
 .footer .footer-bottom {
     border-top: 1px solid #e9ecef;
     padding-top: 1rem;
-    margin-top: 1rem;
+    margin-top: 2rem;
     text-align: center;
+    color: var(--sage-400);
+    font-size: 0.85rem;
+}
+
+.footer .list-unstyled li {
+    margin-bottom: 0.5rem;
 }
 
 
-/*
- * === ACCESIBILIDAD (Focus Ring) ===
+/* ----------------------------------------
+ * 8. ACCESIBILIDAD (Focus Ring)
+ * ----------------------------------------
  */
-
-a.btn, button, .btn-burger {
+a.btn, button, .navbar-toggler, input:focus, select:focus, textarea:focus {
     outline: none;
 }
 
-a.btn:focus-visible, button:focus-visible, .btn-burger:focus-visible {
+a.btn:focus-visible, button:focus-visible, .navbar-toggler:focus-visible {
     box-shadow: 0 0 0 4px var(--ring);
 }

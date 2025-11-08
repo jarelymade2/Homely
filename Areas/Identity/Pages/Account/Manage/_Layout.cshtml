@@ -1,0 +1,30 @@
+@{
+    // 🛑 IMPORTANTE: Esto asegura que el layout principal, que carga el site.css, se use.
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-xl py-4">
+    <h2 class="fw-bold mb-4">Administrar tu cuenta</h2>
+    <div class="row">
+        
+        @* Panel de navegación lateral *@
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm manage-panel-gradient h-100"> 
+                <div class="card-body p-3">
+                    <partial name="_ManageNav" />
+                </div>
+            </div>
+        </div>
+
+        @* Contenido de la página actual *@
+        <div class="col-md-9">
+            <div class="card shadow-sm p-4 h-100">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}

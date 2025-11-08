@@ -7,9 +7,19 @@ using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
 using StackExchange.Redis;
+using Microsoft.Extensions.Configuration;
+using StayGo.Services.AI;
 using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// -----------------
+// CONFIGURACIÓN GLOBAL
+// -----------------
+var configuration = builder.Configuration;
+
+
+
 
 
 
@@ -20,8 +30,7 @@ builder.Services.AddRazorPages();
 // -----------------
 // Connection string
 // -----------------
-// 1.1. Contexto de la Base de Datos
-var connectionString = builder.Configuration.GetConnectionString("StayGoContext")
+var connectionString = configuration.GetConnectionString("StayGoContext")
     ?? throw new InvalidOperationException("Connection string 'StayGoContext' not found.");
 
 builder.Services.AddDbContext<StayGoContext>(options =>
@@ -30,7 +39,6 @@ builder.Services.AddDbContext<StayGoContext>(options =>
 // -----------------
 // Identity (with Roles)
 // -----------------
-// 1.2. Configuración de Identity (con ApplicationUser y Roles)
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
@@ -45,48 +53,51 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StayGoContext>();
 
-// 1.3. Autorización
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
 // -----------------
-// Redis Configuration (OPCIONAL)
+// Google reCAPTCHA
 // -----------------
-var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled", false);
+builder.Services.Configure<GoogleReCaptchaSettings>(
+    configuration.GetSection("GoogleReCaptcha")); // ✅ Carga desde appsettings.json
+
+// -----------------
+// Redis Configuration (opcional)
+// -----------------
+var redisEnabled = configuration.GetValue<bool>("Redis:Enabled", false);
 
 if (redisEnabled)
 {
     try
     {
-        var redisConfiguration = builder.Configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
+        var redisConfiguration = configuration.GetValue<string>("Redis:Configuration") ?? "localhost:6379";
 
-        // Registrar ConnectionMultiplexer como singleton
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<Program>>();
             try
             {
-                var configuration = ConfigurationOptions.Parse(redisConfiguration);
-                configuration.AbortOnConnectFail = false;
-                configuration.ConnectTimeout = 5000; // 5 segundos timeout
-                var connection = ConnectionMultiplexer.Connect(configuration);
+                var redisOptions = ConfigurationOptions.Parse(redisConfiguration);
+                redisOptions.AbortOnConnectFail = false;
+                redisOptions.ConnectTimeout = 5000;
+                var connection = ConnectionMultiplexer.Connect(redisOptions);
                 logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
                 return connection;
             }
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
-                throw; // Lanzar para que use el fallback
+                throw;
             }
         });
 
-        // Configurar caché distribuido con Redis
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConfiguration;
-            options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
+            options.InstanceName = configuration.GetValue<string>("Redis:InstanceName") ?? "StayGo:";
         });
 
         Console.WriteLine("🔵 Redis habilitado - Usando caché distribuido");
@@ -100,69 +111,59 @@ if (redisEnabled)
 }
 else
 {
-    // Usar caché en memoria si Redis está deshabilitado
     builder.Services.AddDistributedMemoryCache();
     Console.WriteLine("📦 Redis deshabilitado - Usando caché en memoria");
 }
 
-// Registrar el servicio de caché personalizado
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 // -----------------
-// Session (VERY IMPORTANT)
+// Session
 // -----------------
-// Sesiones (con Redis si está habilitado, o en memoria)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true; // útil si tienes GDPR / consentimiento
-    // options.Cookie.SameSite = SameSiteMode.Lax; // opcional
+    options.Cookie.IsEssential = true;
 });
 
 // -----------------
-// OpenWeatherIntegration registration
+// Integraciones externas
 // -----------------
-// Registramos como servicio y como HttpClient (typed client)
 builder.Services.AddHttpClient<OpenWeatherIntegration>();
 builder.Services.AddScoped<OpenWeatherIntegration>();
-
-// -----------------
-// UnsplashIntegration registration
-// -----------------
 builder.Services.AddScoped<UnsplashIntegration>();
-
-// -----------------
-// MercadoPagoIntegration registration
-// -----------------
 builder.Services.AddScoped<MercadoPagoIntegration>();
+
+builder.Services.AddScoped<IChatAiService, OllamaChatService>();
+
 
 ExcelPackage.License.SetNonCommercialPersonal("Jarel");
 
+
 var app = builder.Build();
 
+// -----------------
+// SEEDING DATABASE
+// -----------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<StayGoContext>();
-        // Aplicar migraciones pendientes
         context.Database.Migrate();
-
-        // Luego ejecutar el seed
         await Seed.SeedAsync(services);
-        await StayGo.Data.Seed.SeedAsync(services);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogError(ex, "❌ Error al inicializar la base de datos.");
     }
 }
 
 // -----------------
-// Pipeline
+// PIPELINE
 // -----------------
 if (app.Environment.IsDevelopment())
 {
@@ -176,19 +177,19 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// IMPORTANTE: Session debe registrarse en la pipeline antes de ejecutar los endpoints.
-// Colocamos UseSession() aquí, después de UseRouting().
 app.UseSession();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+// -----------------
+// RUTAS
+// -----------------
 // RUTA PARA ÁREAS (Admin)
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
+
 
 // =========================================================
 // 4. RUTAS
@@ -203,7 +204,6 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Ruta MVC por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -211,3 +211,12 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+// -----------------
+// CLASE PARA RECAPTCHA
+// -----------------
+public class GoogleReCaptchaSettings
+{
+    public string SiteKey { get; set; } = string.Empty;
+    public string SecretKey { get; set; } = string.Empty;
+}

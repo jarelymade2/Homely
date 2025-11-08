@@ -1,98 +1,61 @@
 @page
-@model StayGo.Areas.Identity.Pages.Account.Manage.IndexModel
+@model IndexModel
 @{
-    ViewData["Title"] = "Manage your account";
-    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Perfil";
+    ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<div class="container py-5">
-    <div class="row">
-        <!-- Sidebar de navegación -->
-        <div class="col-md-3 mb-4">
-            <div class="list-group">
-                <a href="#" class="list-group-item list-group-item-action active">
-                    <i class="bi bi-person"></i> Perfil
-                </a>
-                <a href="@Url.Page("./ChangePassword")" class="list-group-item list-group-item-action">
-                    <i class="bi bi-key"></i> Cambiar contraseña
-                </a>
-                <a href="@Url.Page("./TwoFactorAuthentication")" class="list-group-item list-group-item-action">
-                    <i class="bi bi-shield-check"></i> Autenticación de dos factores
-                </a>
-                <a href="@Url.Page("./PersonalData")" class="list-group-item list-group-item-action">
-                    <i class="bi bi-file-text"></i> Datos personales
-                </a>
+<div class="mb-4">
+    <h4 class="fw-bold">@ViewData["Title"]</h4>
+    <p class="text-muted small mb-0">Gestiona la configuración de tu cuenta.</p>
+</div>
+
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="row">
+    <div class="col-md-8">
+        <form id="profile-form" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            
+            <div class="form-floating mb-3">
+                <input asp-for="Username" class="form-control" placeholder="Nombre de usuario" disabled />
+                <label asp-for="Username" class="form-label">Nombre de usuario</label>
             </div>
-        </div>
 
-        <!-- Contenido principal -->
-        <div class="col-md-9">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Manage your account</h4>
-                    <p class="text-white-50 mb-0">Change your account settings</p>
+            @* 🛑 CAMPOS PERSONALIZADOS *@
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.FirstName" class="form-control" placeholder="Nombre" />
+                        <label asp-for="Input.FirstName" class="form-label"></label>
+                        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    @if (Model.StatusMessage != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle-fill"></i> @Model.StatusMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    <h5 class="mb-4">Profile</h5>
-                    <form method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" value="@Model.Username" disabled />
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="Input!.FirstName" class="form-label">First Name</label>
-                                    <input asp-for="Input!.FirstName" class="form-control" />
-                                    <span asp-validation-for="Input!.FirstName" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="Input!.LastName" class="form-label">Last Name</label>
-                                    <input asp-for="Input!.LastName" class="form-control" />
-                                    <span asp-validation-for="Input!.LastName" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Input!.PhoneNumber" class="form-label">Phone number</label>
-                            <input asp-for="Input!.PhoneNumber" class="form-control" />
-                            <span asp-validation-for="Input!.PhoneNumber" class="text-danger"></span>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Save
-                        </button>
-                    </form>
-
-                    <hr class="my-4" />
-
-                    <!-- Botón de Mis Reservas -->
-                    <div class="mt-4">
-                        <h5 class="mb-3">Mis Reservas</h5>
-                        <p class="text-muted">Ver el historial de todas tus reservas y gestionar tus pagos.</p>
-                        <a asp-area="" asp-controller="Reserva" asp-action="History" class="btn btn-success btn-lg">
-                            <i class="bi bi-calendar-check"></i> Ver mis reservas
-                        </a>
+                <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.LastName" class="form-control" placeholder="Apellido" />
+                        <label asp-for="Input.LastName" class="form-label"></label>
+                        <span asp-validation-for="Input.LastName" class="text-danger"></span>
                     </div>
                 </div>
             </div>
-        </div>
+            
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Número de teléfono" />
+                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <button id="update-profile-button" type="submit" class="btn btn-brand">
+                <i class="bi bi-save me-2"></i>Guardar
+            </button>
+        </form>
     </div>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
 
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
