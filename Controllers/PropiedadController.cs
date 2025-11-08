@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StayGo.Data;
@@ -187,5 +189,84 @@ namespace StayGo.Controllers
 
             return View(prop);
         }
+
+        // POST: /Propiedad/ToggleFavorito - AJAX endpoint para agregar/quitar favoritos
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ToggleFavorito([FromBody] FavoritoRequest request)
+        {
+            if (request?.PropiedadId == Guid.Empty)
+            {
+                return BadRequest(new { success = false, message = "ID de propiedad inválido" });
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { success = false, message = "Debes iniciar sesión" });
+            }
+
+            try
+            {
+                // Verificar que la propiedad existe
+                var propiedad = await _db.Propiedades.FindAsync(request.PropiedadId);
+                if (propiedad == null)
+                {
+                    return NotFound(new { success = false, message = "Propiedad no encontrada" });
+                }
+
+                // Buscar si ya existe el favorito
+                var favorito = await _db.Favoritos
+                    .FirstOrDefaultAsync(f => f.UsuarioId == userId && f.PropiedadId == request.PropiedadId);
+
+                if (favorito != null)
+                {
+                    // Si existe, eliminarlo
+                    _db.Favoritos.Remove(favorito);
+                    await _db.SaveChangesAsync();
+                    return Ok(new { success = true, isFavorite = false, message = "Removido de favoritos" });
+                }
+                else
+                {
+                    // Si no existe, agregarlo
+                    var nuevoFavorito = new Favorito
+                    {
+                        UsuarioId = userId,
+                        PropiedadId = request.PropiedadId,
+                        CreadoEn = DateTime.UtcNow
+                    };
+                    _db.Favoritos.Add(nuevoFavorito);
+                    await _db.SaveChangesAsync();
+                    return Ok(new { success = true, isFavorite = true, message = "Agregado a favoritos" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error al procesar la solicitud", error = ex.Message });
+            }
+        }
+
+        // GET: /Propiedad/IsFavorite/{propiedadId} - Verificar si una propiedad es favorita
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> IsFavorite(Guid propiedadId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { success = false, isFavorite = false });
+            }
+
+            var isFavorite = await _db.Favoritos
+                .AnyAsync(f => f.UsuarioId == userId && f.PropiedadId == propiedadId);
+
+            return Ok(new { success = true, isFavorite });
+        }
+    }
+
+    // Clase auxiliar para recibir el request de favoritos
+    public class FavoritoRequest
+    {
+        public Guid PropiedadId { get; set; }
     }
 }
