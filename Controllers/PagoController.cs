@@ -284,6 +284,143 @@ public class PagoController : Controller
     }
 
     /// <summary>
+    /// Endpoint AJAX consolidado: Crea la reserva e inicia el pago en una sola llamada
+    /// Retorna JSON con la URL de pago para redirigir sin agregar al historial
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ProcesarPagoAjax(Guid propiedadId, Guid? habitacionId, string checkin, string checkout, int huespedes)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            // Obtener la propiedad
+            var propiedad = await _db.Propiedades
+                .Include(p => p.Habitaciones)
+                .FirstOrDefaultAsync(p => p.Id == propiedadId);
+
+            if (propiedad == null)
+            {
+                return Json(new { success = false, message = "Propiedad no encontrada." });
+            }
+
+            // Si es un hotel, verificar que se haya seleccionado una habitación
+            Habitacion? habitacion = null;
+            if (propiedad.Tipo == TipoPropiedad.Hotel)
+            {
+                if (!habitacionId.HasValue)
+                {
+                    return Json(new { success = false, message = "Debes seleccionar una habitación para reservar en un hotel." });
+                }
+
+                habitacion = await _db.Habitaciones
+                    .FirstOrDefaultAsync(h => h.Id == habitacionId.Value && h.PropiedadId == propiedadId);
+
+                if (habitacion == null)
+                {
+                    return Json(new { success = false, message = "Habitación no encontrada." });
+                }
+            }
+
+            // Parsear las fechas
+            if (!DateOnly.TryParse(checkin, out var checkInDate) || !DateOnly.TryParse(checkout, out var checkOutDate))
+            {
+                return Json(new { success = false, message = "Fechas inválidas." });
+            }
+
+            // Verificar que el usuario existe
+            var usuario = await _db.Users.FindAsync(userId);
+            if (usuario == null)
+            {
+                return Json(new { success = false, message = "Usuario no encontrado." });
+            }
+
+            // Calcular el precio total
+            int noches = checkOutDate.DayNumber - checkInDate.DayNumber;
+            decimal precioTotal = 0;
+            if (habitacion != null)
+            {
+                precioTotal = habitacion.PrecioPorNoche * noches;
+            }
+            else if (propiedad.PrecioPorNoche.HasValue)
+            {
+                precioTotal = propiedad.PrecioPorNoche.Value * noches;
+            }
+
+            // Crear la reserva
+            var reserva = new Reserva
+            {
+                Id = Guid.NewGuid(),
+                PropiedadId = propiedadId,
+                HabitacionId = habitacionId,
+                UsuarioId = userId,
+                CheckIn = checkInDate,
+                CheckOut = checkOutDate,
+                Huespedes = huespedes,
+                PrecioTotal = precioTotal,
+                Estado = EstadoReserva.Pendiente
+            };
+
+            _db.Reservas.Add(reserva);
+            await _db.SaveChangesAsync();
+
+            // Crear URLs de retorno
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var urlSuccess = $"{baseUrl}/Pago/Exito?reservaId={reserva.Id}";
+            var urlFailure = $"{baseUrl}/Pago/Fallo?reservaId={reserva.Id}";
+            var urlPending = $"{baseUrl}/Pago/Pendiente?reservaId={reserva.Id}";
+
+            // Crear preferencia de pago en MercadoPago
+            var titulo = $"Reserva en {reserva.Propiedad?.Titulo ?? "StayGo"}";
+            var descripcion = $"Check-in: {reserva.CheckIn:yyyy-MM-dd}, Check-out: {reserva.CheckOut:yyyy-MM-dd}, Huéspedes: {reserva.Huespedes}";
+
+            var urlPago = await _mercadoPago.CrearPreferenciaPagoAsync(
+                reserva.Id,
+                titulo,
+                descripcion,
+                reserva.PrecioTotal,
+                urlSuccess,
+                urlFailure,
+                urlPending
+            );
+
+            if (string.IsNullOrEmpty(urlPago))
+            {
+                return Json(new { success = false, message = "No se pudo iniciar el proceso de pago." });
+            }
+
+            // Crear registro de pago en estado Pendiente
+            var pago = new Pago
+            {
+                Id = Guid.NewGuid(),
+                ReservaId = reserva.Id,
+                Monto = reserva.PrecioTotal,
+                Moneda = "PEN",
+                Metodo = MetodoPago.Tarjeta,
+                Estado = EstadoPago.Pendiente,
+                CreadoEn = DateTime.UtcNow
+            };
+
+            _db.Pagos.Add(pago);
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation($"Pago iniciado exitosamente para reserva {reserva.Id}");
+
+            return Json(new { success = true, paymentUrl = urlPago });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al procesar pago AJAX");
+            return Json(new { success = false, message = "Error al procesar el pago: " + ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Inicia el proceso de pago para una reserva
     /// </summary>
     [HttpGet]
