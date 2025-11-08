@@ -9,6 +9,7 @@ using StayGo.Services;
 using StackExchange.Redis;
 using Microsoft.Extensions.Configuration;
 using StayGo.Services.AI;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,11 @@ var builder = WebApplication.CreateBuilder(args);
 // CONFIGURACIÓN GLOBAL
 // -----------------
 var configuration = builder.Configuration;
+
+
+
+
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -131,6 +137,8 @@ builder.Services.AddScoped<MercadoPagoIntegration>();
 
 builder.Services.AddScoped<IChatAiService, OllamaChatService>();
 
+
+ExcelPackage.License.SetNonCommercialPersonal("Jarel");
 
 
 var app = builder.Build();
