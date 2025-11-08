@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using StayGo.ViewModels;
-using System.Diagnostics;
+
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Http; // Necesario para la Session
-using System.Text.Json; // Necesario para serializar/deserializar JSON
-using StayGo.Data;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;          // Session
+using System.Text.Json;                   // JSON para historial
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;             // para obtener el usuario
+using StayGo.Data;                        // DbContext
+using StayGo.Models;                      // Propiedad, etc.
+using StayGo.Services.ML;                 // tu servicio de ML
 
 namespace StayGo.Controllers
 {
@@ -16,139 +19,182 @@ namespace StayGo.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly StayGoContext _context;
+        private readonly MLRecommendationService _mlService;
         private const string _historialKey = "HistorialUbicacion";
 
-        public HomeController(ILogger<HomeController> logger, StayGoContext context)
+        public HomeController(
+            ILogger<HomeController> logger,
+            StayGoContext context,
+            MLRecommendationService mlService)
         {
             _logger = logger;
             _context = context;
+            _mlService = mlService;
         }
-        
-        // --- MÉTODOS PRIVADOS PARA GESTIONAR LA SESIÓN ---
-        
-        // Carga la lista de ubicaciones guardadas en la sesión
+
+        // =========================
+        //  MÉTODOS DE SESIÓN
+        // =========================
         private List<string> ObtenerHistorial()
         {
             var historialJson = HttpContext.Session.GetString(_historialKey);
             if (string.IsNullOrEmpty(historialJson))
-            {
+
                 return new List<string>();
-            }
-            // Deserializar JSON a List<string>
-            // Usamos un operador de coalescencia de nulos para seguridad
+
             return JsonSerializer.Deserialize<List<string>>(historialJson) ?? new List<string>();
         }
 
-        // Guarda y actualiza la lista en la sesión
+
         private void AgregarAlHistorial(string ubicacion)
         {
-            // La comprobación de nulidad evita la advertencia CS8604
+
             if (string.IsNullOrWhiteSpace(ubicacion)) return;
 
             var historial = ObtenerHistorial();
             string ubicacionNormalizada = ubicacion.Trim();
 
-            // 1. Eliminar si ya existe (para moverla al inicio)
+            // eliminar duplicados (case-insensitive)
             historial.RemoveAll(item => item.Equals(ubicacionNormalizada, StringComparison.OrdinalIgnoreCase));
-            
-            // 2. Insertar la nueva ubicación al inicio
+
+            // insertar al inicio
             historial.Insert(0, ubicacionNormalizada);
 
-            // 3. Limitar a 5 elementos
+            // limitar a 5
             if (historial.Count > 5)
-            {
-                historial.RemoveRange(5, historial.Count - 5);
-            }
 
-            // 4. Guardar la lista actualizada en la sesión
+                historial.RemoveRange(5, historial.Count - 5);
+                
+
             HttpContext.Session.SetString(_historialKey, JsonSerializer.Serialize(historial));
         }
 
-        // --- ACCIONES DEL CONTROLADOR ---
+        // =========================
+        //  ACCIONES
+        // =========================
 
-        public IActionResult Index(
+        // GET: /
+        public async Task<IActionResult> Index(
             string? q,
             DateTime? checkin,
             DateTime? checkout,
             int adults = 1,
             int children = 0)
         {
-            // Pasa los filtros para la persistencia del formulario
+            // 1. Cargar TODAS las propiedades necesarias (pero NO las mandamos como modelo)
+            var todas = await _context.Propiedades
+                .Include(p => p.Direccion)
+                .Include(p => p.Imagenes)
+                .Include(p => p.Resenas)
+                .ToListAsync();
+
+            // 2. Destacadas = mejor rating
+            var destacadas = todas
+                .Where(p => p.Resenas != null && p.Resenas.Any())
+                .Select(p => new
+                {
+                    Prop = p,
+                    Promedio = p.Resenas.Average(r => r.Puntuacion)
+                })
+                .OrderByDescending(x => x.Promedio)
+                .ThenByDescending(x => x.Prop.Resenas.Count)
+                .Take(4)
+                .Select(x => x.Prop)
+                .ToList();
+
+            // 3. Recomendaciones solo si está logueado
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var recomendaciones = new List<Propiedad>();
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                // usa tu servicio de ML
+                recomendaciones = _mlService.RecommendForUser(userId, topN: 6);
+            }
+
+            // 4. Pasar filtros para que el formulario del hero los muestre
             ViewBag.Checkin = checkin;
             ViewBag.Checkout = checkout;
             ViewBag.Adults = adults;
             ViewBag.Children = children;
 
-            // 🛑 Pasa el historial de búsqueda a la vista para el datalist
+            // 5. Historial para el datalist
             ViewBag.HistorialUbicacion = ObtenerHistorial();
 
-            // 🌟 Obtener la propiedad con mejor reseña promedio
-            var propiedadDestacada = _context.Propiedades
-                .Include(p => p.Resenas)
-                .Include(p => p.Imagenes)
-                .Where(p => p.Resenas.Any()) // Solo propiedades con reseñas
-                .Select(p => new
-                {
-                    Propiedad = p,
-                    PromedioResenas = p.Resenas.Average(r => r.Puntuacion)
-                })
-                .OrderByDescending(x => x.PromedioResenas)
-                .ThenByDescending(x => x.Propiedad.Resenas.Count) // Desempate por cantidad de reseñas
-                .FirstOrDefault();
+            // 6. Pasar las listas que la vista va a pintar
+            ViewBag.Destacadas = destacadas;
+            ViewBag.Recomendaciones = recomendaciones;
 
-            ViewBag.PropiedadDestacada = propiedadDestacada?.Propiedad;
-            ViewBag.PromedioDestacada = propiedadDestacada?.PromedioResenas;
-
+            // ❗ Importante: NO mandamos lista como modelo, porque no quieres “todas las propiedades”
             return View();
         }
 
-        // GET: Home/ResultadoBusqueda
-        // Procesa la búsqueda y SIEMPRE regresa al Home/Index con un mensaje.
-        public IActionResult ResultadoBusqueda(
-            string? q, 
-            DateTime? checkin, 
-            DateTime? checkout, 
-            int adults = 1, 
+        // GET: /Home/ResultadoBusqueda
+        // Esta acción SOLO valida, guarda historial y pone TempData. Luego vuelve al Index.
+        [HttpGet]
+        public async Task<IActionResult> ResultadoBusqueda(
+            string? q,
+            DateTime? checkin,
+            DateTime? checkout,
+            int adults = 1,
             int children = 0)
         {
-            // 🛑 LÓGICA DE BÚSQUEDA (Reemplaza esta simulación con tu código de DB) 🛑
-            int totalEstadiasEncontradas = 0; 
-            
-            // Si la ubicación es "piura" (ejemplo de éxito)
-            if (!string.IsNullOrEmpty(q) && q.Equals("piura", StringComparison.OrdinalIgnoreCase))
-            {
-                 totalEstadiasEncontradas = 5; 
-            }
-            // 🛑 FIN DE LÓGICA DE BÚSQUEDA 🛑
+            var query = _context.Propiedades
+                .Include(p => p.Direccion)
+                .Include(p => p.Reservas)
+                .AsQueryable();
 
-            if (totalEstadiasEncontradas > 0)
+            // filtro por texto
+            if (!string.IsNullOrWhiteSpace(q))
             {
-                // Éxito: Guardar la ubicación en el historial
-                AgregarAlHistorial(q ?? string.Empty);
-                
-                TempData["MensajeBusqueda"] = $"¡Éxito! Encontramos {totalEstadiasEncontradas} estadias que coinciden con tu búsqueda.";
+                var qLower = q.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Titulo.ToLower().Contains(qLower) ||
+                    p.Descripcion.ToLower().Contains(qLower) ||
+                    (p.Direccion != null &&
+                        (
+                            p.Direccion.Pais.ToLower().Contains(qLower) ||
+                            p.Direccion.Ciudad.ToLower().Contains(qLower) ||
+                            p.Direccion.Linea1.ToLower().Contains(qLower) ||
+                            (p.Direccion.Linea2 != null && p.Direccion.Linea2.ToLower().Contains(qLower))
+                        )
+                    )
+                );
+            }
+
+            // filtro por capacidad
+            int totalPersonas = adults + children;
+            query = query.Where(p => !p.Capacidad.HasValue || p.Capacidad.Value >= totalPersonas);
+
+            // filtro por fechas
+            if (checkin.HasValue && checkout.HasValue && checkin < checkout)
+            {
+                var ci = DateOnly.FromDateTime(checkin.Value.Date);
+                var co = DateOnly.FromDateTime(checkout.Value.Date);
+
+                query = query.Where(p =>
+                    !p.Reservas.Any(r => r.CheckIn < co && r.CheckOut > ci)
+                );
+            }
+
+            var resultados = await query.CountAsync();
+
+            if (resultados > 0)
+            {
+                if (!string.IsNullOrWhiteSpace(q))
+                    AgregarAlHistorial(q);
+
+                TempData["MensajeBusqueda"] = $"¡Éxito! Encontramos {resultados} estadías que coinciden con tu búsqueda.";
                 TempData["MensajeTipo"] = "alert-success";
             }
             else
             {
-                // Fracaso: No se guarda nada.
-                TempData["MensajeBusqueda"] = "Lo sentimos, no se encontraron estadias que coincidan con tu búsqueda. Intenta con otros filtros.";
+                TempData["MensajeBusqueda"] = "Lo sentimos, no se encontraron estadías que coincidan con tu búsqueda. Intenta con otros filtros.";
                 TempData["MensajeTipo"] = "alert-warning";
             }
 
-            // 🛑 Regresamos SIEMPRE al Home/Index, manteniendo los filtros en el URL.
-            return RedirectToAction("Index", new { q, checkin, checkout, adults, children });
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // volvemos al Index para que tu diseño se vea igual
+            return RedirectToAction(nameof(Index), new { q, checkin, checkout, adults, children });
         }
     }
 }
