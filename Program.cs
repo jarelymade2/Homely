@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
+
 using StayGo.Data;
 using StayGo.Models;
-using StayGo.Models.Enums;
-using StayGo.Models.ValueObjects;
 using StayGo.Integration;
 using StayGo.Services;
-using StackExchange.Redis;
-using StayGo.Services.AI; // Chatbot (IChatAiService, OllamaChatService)
-using Microsoft.AspNetCore.Identity.UI.Services;
+using StayGo.Services.AI;
 using StayGo.Services.Email;
+
+// Alias para evitar ambigüedades si existen clases con el mismo nombre en otros espacios
+using SgEmailOptions = StayGo.Services.Email.EmailSenderOptions;
+using SgEmailSender  = StayGo.Services.Email.EmailSender;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 // -----------------
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.Configure<SendGridOptions>(builder.Configuration.GetSection("SendGrid"));
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 // -----------------
 // Connection string
 // -----------------
@@ -52,7 +54,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 // -----------------
-// Google OAuth (login con Google) — validación para evitar warnings
+// Google OAuth (login con Google) — validación para evitar nulls
 // -----------------
 var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
 var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
@@ -69,8 +71,8 @@ builder.Services
     .AddAuthentication()
     .AddGoogle(o =>
     {
-        o.ClientId = googleClientId;
-        o.ClientSecret = googleClientSecret;
+        o.ClientId = googleClientId!;
+        o.ClientSecret = googleClientSecret!;
         // o.Scope.Add("email");
         // o.Scope.Add("profile");
     });
@@ -95,12 +97,12 @@ if (redisEnabled)
                 configuration.AbortOnConnectFail = false;
                 configuration.ConnectTimeout = 5000; // 5s
                 var connection = ConnectionMultiplexer.Connect(configuration);
-                logger.LogInformation("✅ Redis conectado exitosamente en {Configuration}", redisConfiguration);
+                logger.LogInformation("✅ Redis conectado en {Configuration}", redisConfiguration);
                 return connection;
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria como fallback.");
+                logger.LogWarning(ex, "⚠️ No se pudo conectar a Redis. Usando caché en memoria.");
                 throw;
             }
         });
@@ -154,6 +156,15 @@ builder.Services.AddScoped<MercadoPagoIntegration>();
 // -----------------
 builder.Services.AddScoped<IChatAiService, OllamaChatService>();
 
+// -----------------
+// Email (SendGrid) - Forgot/Reset password
+// -----------------
+builder.Services.Configure<SgEmailOptions>(builder.Configuration.GetSection("SendGrid"));
+builder.Services.AddTransient<IEmailSender, SgEmailSender>();
+
+// (Opcional) Log de verificación rápida
+Console.WriteLine($"SendGrid configured: {!string.IsNullOrWhiteSpace(builder.Configuration["SendGrid:ApiKey"])}");
+
 var app = builder.Build();
 
 // -----------------
@@ -200,7 +211,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 👇 Necesario para controladores con rutas por atributo (p.ej. /api/ChatApi)
+// Controladores por atributo (API del chatbot, etc.)
 app.MapControllers();
 
 // Áreas (Admin)

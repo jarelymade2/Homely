@@ -1,10 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
-using StayGo.Models;
 using StayGo.Data;
-using Microsoft.EntityFrameworkCore.Metadata.Internal; // Asegúrate de que este using esté allí
+using StayGo.Models;
 
 namespace StayGo.Areas.Identity.Pages.Account
 {
@@ -13,12 +13,18 @@ namespace StayGo.Areas.Identity.Pages.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly StayGoContext _context;
+        private readonly ILogger<RegisterModel> _logger;
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, StayGoContext context)
+        public RegisterModel(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            StayGoContext context,
+            ILogger<RegisterModel> logger)
         {
-            _userManager = userManager;
+            _userManager   = userManager;
             _signInManager = signInManager;
-            _context = context;
+            _context       = context;
+            _logger        = logger;
         }
 
         [BindProperty]
@@ -26,63 +32,78 @@ namespace StayGo.Areas.Identity.Pages.Account
 
         public string? ReturnUrl { get; set; }
 
+        // <-- NECESARIO para el botón de Google en la vista
+        public IList<AuthenticationScheme> ExternalLogins { get; set; } = new List<AuthenticationScheme>();
+
         public class InputModel
         {
-            [Required]
-            public string FirstName { get; set; } = "";
-            [Required]
-            public string LastName { get; set; } = "";
-            [Required]
-            [EmailAddress]
+            [Required] public string FirstName { get; set; } = "";
+            [Required] public string LastName  { get; set; } = "";
+
+            [Required, EmailAddress]
             public string Email { get; set; } = "";
-            [Required]
-            [DataType(DataType.Password)]
+
+            [Required, DataType(DataType.Password)]
             public string Password { get; set; } = "";
-            [Required]
-            [DataType(DataType.Password)]
-            [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+
+            [Required, DataType(DataType.Password), Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
             public string ConfirmPassword { get; set; } = "";
         }
 
-        public void OnGet(string? returnUrl = null)
+        public async Task OnGetAsync(string? returnUrl = null)
         {
             ReturnUrl = returnUrl;
+            // Carga proveedores externos (Google)
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            returnUrl ??= Url.Content("~/");
-            if (ModelState.IsValid)
-            {
-                // ... (Tu lógica de registro de usuario aquí)
-                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email, FirstName = Input.FirstName, LastName = Input.LastName };
-                var result = await _userManager.CreateAsync(user, Input.Password);
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+            // Si hay error y se vuelve a mostrar la página, esto debe estar cargado
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-                if (result.Succeeded)
+            if (!ModelState.IsValid)
+                return Page();
+
+            var user = new ApplicationUser
+            {
+                UserName  = Input.Email,
+                Email     = Input.Email,
+                FirstName = Input.FirstName,
+                LastName  = Input.LastName
+            };
+
+            var result = await _userManager.CreateAsync(user, Input.Password);
+
+            if (result.Succeeded)
+            {
+                // Inserta fila vinculada en tu tabla Usuario
+                try
                 {
                     var nuevoUsuario = new Usuario
                     {
-                        Id = Guid.NewGuid(), // PK de tu tabla Usuario
-                        IdentityUserId = user.Id,    // <-- El VÍNCULO CLAVE
-                        Email = user.Email,
-                        EsAdmin = false            // Por defecto, no es admin
+                        Id             = Guid.NewGuid(),
+                        IdentityUserId = user.Id,
+                        Email          = user.Email!,
+                        EsAdmin        = false
                     };
                     _context.Usuarios.Add(nuevoUsuario);
                     await _context.SaveChangesAsync();
-
-
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
                 }
-                foreach (var error in result.Errors)
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    _logger.LogWarning(ex, "No se pudo crear fila en Usuario para {UserId}", user.Id);
                 }
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return LocalRedirect(ReturnUrl!);
             }
 
-            // Si llegamos a este punto, algo falló. Vuelve a mostrar la página con los errores
-            return Page();
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
 
+            return Page();
         }
     }
 }

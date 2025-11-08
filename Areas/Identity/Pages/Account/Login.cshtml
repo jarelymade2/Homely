@@ -5,62 +5,107 @@
     Layout = "/Views/Shared/_Layout.cshtml";
 }
 
+@section Styles{
+<style>
+  /* Contenedor centrado sin card de fondo */
+  .login-wrap {
+      max-width: 520px;
+      margin: 0 auto;
+  }
+  .login-title { color:#fff; }
+  .login-subtitle { color: rgba(255,255,255,.9); }
+
+  /* Cuadros separados para cada campo (como registro) */
+  .login-field {
+      background:#fff;
+      border:1px solid var(--sage-200);
+      border-radius:12px;
+      padding:12px 14px;
+      margin-bottom:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+  }
+  .login-field label{
+      font-size:.85rem;
+      color:#6c757d;
+      margin-bottom:4px;
+      display:block;
+      font-weight:600;
+  }
+  .login-field input.form-control{
+      border:0 !important;
+      outline:0;
+      box-shadow:none !important;
+      padding:0;                 /* el padding lo da el contenedor */
+      background:transparent;
+  }
+
+  /* Texto y enlaces sobre el fondo oscuro del hero */
+  .login-meta, .login-meta a { color:#fff; }
+  .login-meta a:hover { color:#e9efe6; text-decoration:underline; }
+
+  .login-divider {
+      display:flex; align-items:center; gap:.75rem; color:#fff; opacity:.9; margin:12px 0;
+  }
+  .login-divider::before, .login-divider::after {
+      content:""; flex:1; height:1px; background:rgba(255,255,255,.35);
+  }
+</style>
+}
+
 @section Hero {
-    <h3 class="mb-3">Inicia sesión con Homely</h3>
-}
+  <div class="hero">
+    <div class="overlay"></div>
 
-<div class="row">
-    <div class="col-md-6">
-        <section>
-            <form id="account" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="container position-relative py-5">
+      <div class="login-wrap">
 
-                <div class="mb-3">
-                    <label asp-for="Input.Email" class="form-label"></label>
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" />
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
+        <h2 class="text-center mb-1 login-title">Iniciar sesión</h2>
+        <p class="text-center mb-4 login-subtitle">Bienvenido a Homely</p>
 
-                <div class="mb-3">
-                    <label asp-for="Input.Password" class="form-label"></label>
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
+        <form method="post">
+          <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+          <input type="hidden" asp-for="ReturnUrl" />
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" asp-for="Input.RememberMe" />
-                    <label class="form-check-label" asp-for="Input.RememberMe"></label>
-                </div>
+          <!-- Email -->
+          <div class="login-field">
+            <label asp-for="Input.Email"></label>
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+          </div>
 
-                <button id="login-submit" type="submit" class="btn btn-sage">Entrar</button>
-                <input type="hidden" asp-for="ReturnUrl" />
-            </form>
-        </section>
+          <!-- Password -->
+          <div class="login-field">
+            <label asp-for="Input.Password"></label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+          </div>
 
-        <hr class="my-4" />
-
-        <!-- Botones de proveedores externos (usa Model.ExternalLogins) -->
-        <section>
-            <h5 class="mb-3">O inicia sesión con</h5>
-            @await Html.PartialAsync("_ExternalLoginsPartial", Model.ExternalLogins)
-        </section>
-        <p class="mt-2">
+          <div class="d-flex justify-content-between align-items-center mb-3 login-meta">
+            <div class="form-check">
+              <input class="form-check-input" asp-for="Input.RememberMe" />
+              <label class="form-check-label" asp-for="Input.RememberMe"></label>
+            </div>
             <a asp-page="./ForgotPassword">¿Olvidaste tu contraseña?</a>
-        </p>
-    </div>
+          </div>
 
-    <div class="col-md-6">
-        <section class="ms-md-4">
-            <h5>¿No tienes cuenta?</h5>
-            <p>Puedes registrarte para reservar, pagar y dejar reseñas.</p>
-            <a class="btn btn-outline-sage" asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">
-                Crear cuenta
-            </a>
+          <button type="submit" class="btn btn-sage w-100">Entrar</button>
+        </form>
+
+        <div class="login-divider my-3"><span>o</span></div>
+
+        <!-- Proveedores externos (Google) -->
+        <section class="text-center">
+          @await Html.PartialAsync("_ExternalLoginsPartial", Model.ExternalLogins)
         </section>
+
+        <div class="text-center mt-3 login-meta">
+          <span>¿Aún no tienes cuenta?</span>
+          <a class="ms-1" asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Regístrate</a>
+        </div>
+
+      </div>
     </div>
-</div>
-
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+  </div>
 }
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
