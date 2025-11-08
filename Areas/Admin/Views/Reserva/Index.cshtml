@@ -2,403 +2,903 @@
 
 @{
     ViewData["Title"] = "Gestión de Reservas";
-    // Asumo que tienes Bootstrap Icons disponible (bi)
+
+    
 }
 
-<!-- 
-  Usamos 'container-fluid py-4' para que
-  ocupe el 100% del ancho disponible.
--->
-<div class="container-fluid py-4">
 
-    <!-- 
-      Encabezado de página con degradado sutil
-    -->
-    <div class="page-head mb-4" style="
-        background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), 
-                    radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), 
-                    linear-gradient(135deg, var(--sage-50), var(--sage-100));
-        border: 1px solid var(--sage-200);
-        box-shadow: 0 12px 30px rgba(36,48,54,.1);
-        border-radius: var(--radius);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    ">
+<div class="container-fluid py-4">
+    <!-- Header Elegante -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h2 class="mb-0" style="font-weight: 700; color: var(--ink);">@ViewData["Title"]</h2>
-            <p class="mb-0 text-muted">Administra todas las reservas de la plataforma.</p>
+            <h1 class="h3 mb-2" style="color: #1a1a1a; font-weight: 700; font-family: 'Inter', sans-serif;">@ViewData["Title"]</h1>
+            <p class="text-muted mb-0" style="font-family: 'Inter', sans-serif; font-size: 0.95rem;">Administra y supervisa todas las reservas del sistema</p>
         </div>
-        <a asp-action="Crear" class="btn btn-sage" style="background-color: var(--c-blue-text); border-color: var(--c-blue-text);">
-            <i class="bi bi-plus-lg"></i> Crear Nueva Reserva
+        <a asp-action="Crear" class="btn btn-primary-custom d-flex align-items-center gap-2 px-4 py-2">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nueva Reserva</span>
         </a>
     </div>
 
-    <!-- Alertas personalizadas -->
+    <!-- Alertas Refinadas -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success-custom alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert-custom success mb-4">
+            <div class="alert-content">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="alert-close">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger-custom alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert-custom error mb-4">
+            <div class="alert-content">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+            <button type="button" class="alert-close">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
-    <!-- Estadísticas rápidas: con colores variados -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card blue p-3 text-center">
-                <h3 class="stat-card-title mb-1">@Model.Count()</h3>
-                <p class="card-text text-muted mb-0">Total Reservas</p>
+    <!-- Métricas de Alto Impacto -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card primary">
+                <div class="metric-icon">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>@Model.Count()</h3>
+                    <p>Total Reservas</p>
+                    <div class="metric-trend positive">
+                        <i class="bi bi-graph-up"></i>
+                        <span>+12% este mes</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card amber p-3 text-center">
-                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente)</h3>
-                <p class="card-text text-muted mb-0">Pendientes</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card warning">
+                <div class="metric-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente)</h3>
+                    <p>Pendientes</p>
+                    <div class="metric-trend neutral">
+                        <i class="bi bi-dash"></i>
+                        <span>Estable</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card green p-3 text-center">
-                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)</h3>
-                <p class="card-text text-muted mb-0">Confirmadas</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card success">
+                <div class="metric-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)</h3>
+                    <p>Confirmadas</p>
+                    <div class="metric-trend positive">
+                        <i class="bi bi-graph-up"></i>
+                        <span>+8% esta semana</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card grey p-3 text-center">
-                <h3 class="stat-card-title mb-1">@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && r.CheckIn <= DateOnly.FromDateTime(DateTime.Today) && r.CheckOut >= DateOnly.FromDateTime(DateTime.Today))</h3>
-                <p class="card-text text-muted mb-0">En curso</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card info">
+                <div class="metric-icon">
+                    <i class="bi bi-play-circle"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>@Model.Count(r => r.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada && r.CheckIn <= DateOnly.FromDateTime(DateTime.Today) && r.CheckOut >= DateOnly.FromDateTime(DateTime.Today))</h3>
+                    <p>En Curso</p>
+                    <div class="metric-trend positive">
+                        <i class="bi bi-graph-up"></i>
+                        <span>+5% hoy</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Tarjeta principal para la tabla y filtros -->
-    <div class="filter-card border-0" style="
-        background-color: var(--card); /* Fondo blanco para contraste */
-        box-shadow: var(--shadow); /* Sombra para resaltar */
-    ">
-        <!-- Encabezado de tarjeta que combina título y filtros -->
-        <div class="card-header sage-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="
-            background-color: var(--card); /* Fondo blanco */
-            border-bottom: 1px solid var(--sage-100); /* Borde sutil */
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius) var(--radius) 0 0 !important;
-            color: var(--ink); /* Texto negro */
-        ">
-            <h5 class="mb-0" style="color: var(--ink);">Lista de Reservas</h5>
-            <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" id="estadoFilter" style="border-color: var(--sage-200); color: var(--ink);">
-                    <option value="">Todos los estados</option>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Confirmada">Confirmada</option>
-                    <option value="Cancelada">Cancelada</option>
-                    <option value="Rechazada">Rechazada</option>
-                    <option value="Finalizada">Finalizada</option>
-                    <option value="En curso">En curso</option>
-                </select>
-                <select class="form-select form-select-sm" id="tipoFilter" style="border-color: var(--sage-200); color: var(--ink);">
-                    <option value="">Todos los tipos</option>
-                    <option value="Hotel">Hotel</option>
-                    <option value="Casa">Casa</option>
-                    <option value="Departamento">Departamento</option>
-                </select>
-                <select class="form-select form-select-sm" id="mostrarFilter" style="border-color: var(--sage-200); color: var(--ink);">
-                    <option value="todas">Todas las reservas</option>
-                    <option value="hoy">En curso hoy</option>
-                    <option value="futuras">Futuras</option>
-                    <option value="pasadas">Pasadas</option>
-                </select>
+    <!-- Panel Principal de Reservas -->
+    <div class="main-card">
+        <!-- Header del Panel -->
+        <div class="card-header-custom">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-4">
+                <div>
+                    <h2 style="color: #1a1a1a; font-weight: 600; margin-bottom: 0.25rem;">Lista de Reservas</h2>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Gestiona el estado y detalles de todas las reservas</p>
+                </div>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Buscar reservas..." id="searchInput">
+                    </div>
+                    <select class="filter-select" id="estadoFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Confirmada">Confirmada</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Rechazada">Rechazada</option>
+                        <option value="Finalizada">Finalizada</option>
+                        <option value="En curso">En curso</option>
+                    </select>
+                    <select class="filter-select" id="tipoFilter">
+                        <option value="">Todos los tipos</option>
+                        <option value="Hotel">Hotel</option>
+                        <option value="Casa">Casa</option>
+                        <option value="Departamento">Departamento</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="card-body p-0">
-            <div class="table-responsive" style="border-radius: var(--radius); overflow: hidden;">
-                <table class="table table-hover mb-0" id="reservasTable">
-                    <thead>
-                        <tr>
-                            <th>Propiedad / Habitación</th>
-                            <th>Cliente</th>
-                            <th>Fechas</th>
-                            <th>Huéspedes</th>
-                            <th>Precio Total</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
+        <!-- Tabla de Reservas -->
+        <div class="table-container">
+            <table class="modern-table" id="reservasTable">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Propiedad</span>
+                                <i class="bi bi-arrow-down-up"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Cliente</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Fechas</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Huéspedes</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Total</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Estado</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header-content">
+                                <span>Acciones</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var estadoTexto = item.Estado switch
                         {
-                            var estadoTexto = item.Estado switch
-                            {
-                                StayGo.Models.Enums.EstadoReserva.Pendiente => "Pendiente",
-                                StayGo.Models.Enums.EstadoReserva.Confirmada => "Confirmada",
-                                StayGo.Models.Enums.EstadoReserva.Cancelada => "Cancelada",
-                                StayGo.Models.Enums.EstadoReserva.Rechazada => "Rechazada",
-                                StayGo.Models.Enums.EstadoReserva.Finalizada => "Finalizada",
-                                _ => item.Estado.ToString()
-                            };
+                            StayGo.Models.Enums.EstadoReserva.Pendiente => "Pendiente",
+                            StayGo.Models.Enums.EstadoReserva.Confirmada => "Confirmada",
+                            StayGo.Models.Enums.EstadoReserva.Cancelada => "Cancelada",
+                            StayGo.Models.Enums.EstadoReserva.Rechazada => "Rechazada",
+                            StayGo.Models.Enums.EstadoReserva.Finalizada => "Finalizada",
+                            _ => item.Estado.ToString()
+                        };
 
-                            bool enCurso = item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
-                                           item.CheckIn <= DateOnly.FromDateTime(DateTime.Today) &&
-                                           item.CheckOut >= DateOnly.FromDateTime(DateTime.Today);
+                        bool enCurso = item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
+                                       item.CheckIn <= DateOnly.FromDateTime(DateTime.Today) &&
+                                       item.CheckOut >= DateOnly.FromDateTime(DateTime.Today);
+                        
+                        var estadoFinal = enCurso ? "En curso" : estadoTexto;
+
+                        <tr data-estado="@estadoFinal"
+                            data-tipo="@item.Propiedad.Tipo"
+                            data-checkin="@item.CheckIn.ToString("yyyy-MM-dd")"
+                            data-checkout="@item.CheckOut.ToString("yyyy-MM-dd")">
                             
-                            var estadoFinal = enCurso ? "En curso" : estadoTexto;
-
-                            <tr data-estado="@estadoFinal"
-                                data-tipo="@item.Propiedad.Tipo"
-                                data-checkin="@item.CheckIn.ToString("yyyy-MM-dd")"
-                                data-checkout="@item.CheckOut.ToString("yyyy-MM-dd")">
-                                <td>
-                                    <div class="fw-bold" style="color: var(--ink);">@Html.DisplayFor(modelItem => item.Propiedad.Titulo)</div>
-                                    <small class="text-muted">@item.Propiedad.Tipo</small>
-                                    @if (item.Habitacion != null)
-                                    {
-                                        <div class="mt-1">
-                                            <span class="badge badge-muted" style="font-size: 0.7rem;">Hab: @item.Habitacion.Nombre</span>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="mt-1">
-                                            <span class="badge badge-muted" style="font-size: 0.7rem;">Propiedad completa</span>
-                                        </div>
-                                    }
-                                </td>
-                                <td>
-                                    <div style="color: var(--ink);">@Html.DisplayFor(modelItem => item.Usuario.Email)</div>
-                                    <small class="text-muted">@item.Usuario.FirstName @item.Usuario.LastName</small>
-                                </td>
-                                <td>
-                                    <div class="fw-bold" style="color: var(--ink);">@item.CheckIn.ToString("dd/MM/yyyy")</div>
-                                    <div class="text-muted" style="line-height: 1;">al</div>
-                                    <div class="fw-bold" style="color: var(--ink);">@item.CheckOut.ToString("dd/MM/yyyy")</div>
-                                    <small class="text-muted">
-                                        (@((item.CheckOut.DayNumber - item.CheckIn.DayNumber)) noches)
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="badge badge-total" style="font-size: 0.8rem;">@item.Huespedes</span>
-                                </td>
-                                <td>
-                                    <span class="fw-bold" style="color: var(--c-green-text);">@item.PrecioTotal.ToString("C")</span>
-                                </td>
-                                <td>
-                                    @{
-                                        var badgeClass = estadoFinal switch
+                            <!-- Columna Propiedad -->
+                            <td>
+                                <div class="property-info">
+                                    <div class="property-title">@Html.DisplayFor(modelItem => item.Propiedad.Titulo)</div>
+                                    <div class="property-meta">
+                                        <span class="property-type">@item.Propiedad.Tipo</span>
+                                        @if (item.Habitacion != null)
                                         {
-                                            "Pendiente" => "badge-amber",
-                                            "Confirmada" => "badge-activo",
-                                            "En curso" => "badge-total",
-                                            "Cancelada" => "badge-danger",
-                                            "Rechazada" => "badge-danger",
-                                            "Finalizada" => "badge-muted",
-                                            _ => "badge-muted"
-                                        };
-                                    }
-                                    <span class="badge @badgeClass">@estadoFinal</span>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
+                                            <span class="room-badge">@item.Habitacion.Nombre</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="room-badge">Propiedad completa</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Cliente -->
+                            <td>
+                                <div class="client-info">
+                                    <div class="client-name">@item.Usuario.FirstName @item.Usuario.LastName</div>
+                                    <div class="client-email">@item.Usuario.Email</div>
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Fechas -->
+                            <td>
+                                <div class="date-info">
+                                    <div class="date-range">
+                                        <span class="date-from">@item.CheckIn.ToString("dd MMM")</span>
+                                        <i class="bi bi-arrow-right date-arrow"></i>
+                                        <span class="date-to">@item.CheckOut.ToString("dd MMM")</span>
+                                    </div>
+                                    <div class="nights-count">@((item.CheckOut.DayNumber - item.CheckIn.DayNumber)) noches</div>
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Huéspedes -->
+                            <td>
+                                <div class="guests-badge">
+                                    <i class="bi bi-people"></i>
+                                    <span>@item.Huespedes</span>
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Precio -->
+                            <td>
+                                <div class="price-display">
+                                    @item.PrecioTotal.ToString("C")
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Estado -->
+                            <td>
+                                @{
+                                    var statusClass = estadoFinal switch
+                                    {
+                                        "Pendiente" => "status-warning",
+                                        "Confirmada" => "status-success",
+                                        "En curso" => "status-info",
+                                        "Cancelada" => "status-error",
+                                        "Rechazada" => "status-error",
+                                        "Finalizada" => "status-neutral",
+                                        _ => "status-neutral"
+                                    };
+                                }
+                                <div class="status-badge @statusClass">
+                                    <span class="status-dot"></span>
+                                    @estadoFinal
+                                </div>
+                            </td>
+                            
+                            <!-- Columna Acciones -->
+                            <td>
+                                <div class="action-buttons">
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-amber" title="Editar reserva">
                                             <i class="bi bi-pencil-fill"></i>
                                         </a>
-                                        
-                                        @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente ||
-                                             item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)
-                                        {
+                                    
+                                    @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Pendiente ||
+                                         item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada)
+                                    {
                                             <a asp-action="Cancel" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Cancelar reserva">
                                                 <i class="bi bi-x-lg"></i>
                                             </a>
-                                        }
-                                        
-                                        @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
-                                             item.CheckOut < DateOnly.FromDateTime(DateTime.Today))
-                                        {
-                                            <form asp-action="Finalizar" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-outline-success" title="Marcar como finalizada">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                    }
+                                    
+                                    @if (item.Estado == StayGo.Models.Enums.EstadoReserva.Confirmada &&
+                                         item.CheckOut < DateOnly.FromDateTime(DateTime.Today))
+                                    {
+                                        <button class="btn-action btn-complete" title="Marcar como finalizada">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer del Panel -->
+        <div class="card-footer-custom">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="table-info">
+                    <span>Mostrando @Model.Count() reservas</span>
+                </div>
+                <div class="table-pagination">
+                    <button class="pagination-btn disabled">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span class="pagination-text">Página 1 de 1</span>
+                    <button class="pagination-btn disabled">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            
-            // Función de filtro unificada
-            function filtrarTabla() {
-                var estado = $('#estadoFilter').val();
-                var tipo = $('#tipoFilter').val();
-                var mostrar = $('#mostrarFilter').val();
-                
-                var hoy = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+<style>
+    /* Variables de diseño */
+    :root {
+        --primary: #7fa174;
+        --primary-dark: #6d8a63;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --info: #3b82f6;
+        --neutral: #6b7280;
+        --background: #ffffff;
+        --surface: #f8fafc;
+        --border: #e2e8f0;
+        --text-primary: #1a1a1a;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --radius-lg: 16px;
+    }
 
-                $('#reservasTable tbody tr').each(function() {
-                    const tr = $(this);
-                    const trEstado = tr.data('estado');
-                    const trTipo = tr.data('tipo');
-                    const trCheckIn = tr.data('checkin');
-                    const trCheckOut = tr.data('checkout');
+    /* Botón Principal */
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow);
+    }
 
-                    // Match de Estado
-                    const estadoMatch = (estado === "") || (estado === trEstado);
-                    
-                    // Match de Tipo
-                    const tipoMatch = (tipo === "") || (tipo === trTipo);
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+    }
 
-                    // Match de Fecha
-                    let fechaMatch = false;
-                    switch (mostrar) {
-                        case 'hoy': // En curso hoy
-                            fechaMatch = (trCheckIn <= hoy && trCheckOut >= hoy);
-                            break;
-                        case 'futuras': // Check-in es después de hoy
-                            fechaMatch = (trCheckIn > hoy);
-                            break;
-                        case 'pasadas': // Check-out es antes de hoy
-                            fechaMatch = (trCheckOut < hoy);
-                            break;
-                        case 'todas':
-                        default:
-                            fechaMatch = true;
-                            break;
-                    }
+    /* Alertas Elegantes */
+    .alert-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius);
+        border: 1px solid;
+        animation: slideIn 0.3s ease-out;
+    }
 
-                    // Mostrar si todo coincide
-                    if (estadoMatch && tipoMatch && fechaMatch) {
-                        tr.show();
-                    } else {
-                        tr.hide();
-                    }
-                });
-            }
+    .alert-custom.success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
 
-            // Asignar eventos
-            $('#estadoFilter, #tipoFilter, #mostrarFilter').change(filtrarTabla);
+    .alert-custom.error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
 
-            // Auto-ocultar alertas
-            setTimeout(function() {
-                $('.alert').fadeOut('slow');
-            }, 5000);
-        });
-    </script>
+    .alert-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
 
-    <style>
-        /* Nuevos colores para "dar vida" */
-        :root {
-            --c-blue-bg: #eef6ff;    /* Fondo azul claro */
-            --c-blue-text: #2563eb;  /* Texto azul */
-            --c-amber-bg: #fefce8;   /* Fondo ámbar claro */
-            --c-amber-text: #d97706; /* Texto ámbar */
-            --c-green-bg: var(--sage-50);
-            --c-green-text: var(--sage-700);
-            --c-danger-bg: #fef2f2;   /* Fondo rojo claro */
-            --c-danger-text: #dc2626; /* Texto rojo */
-            --c-danger-border: #fecaca;
-        }
+    .alert-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        padding: 0.25rem;
+        border-radius: 4px;
+    }
 
-        /* Estilo Alertas */
-        .alert-success-custom {
-            background-color: var(--c-green-bg);
-            color: var(--c-green-text);
-            border: 1px solid var(--sage-200);
-        }
-        .alert-danger-custom {
-            background-color: var(--c-danger-bg);
-            color: var(--c-danger-text);
-            border: 1px solid var(--c-danger-border);
-        }
+    .alert-close:hover {
+        opacity: 1;
+        background: rgba(0,0,0,0.05);
+    }
 
-        /* Estilo Tarjetas de Estadísticas */
-        .stat-card {
-            background-color: var(--card);
-            box-shadow: 0 6px 15px rgba(36,48,54,.06);
-            border-radius: var(--radius);
-            border: 1px solid var(--sage-100);
-            transition: all 0.2s ease-in-out;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(36,48,54,.1);
-        }
-        .stat-card-title {
-            font-weight: 600;
-            font-size: 1.75rem; /* Números más grandes */
-        }
-        .stat-card.blue {
-            background-color: var(--c-blue-bg);
-            border-color: #dbeafe;
-        }
-        .stat-card.blue .stat-card-title { color: var(--c-blue-text); }
-        .stat-card.green {
-            background-color: var(--c-green-bg);
-            border-color: var(--sage-200);
-        }
-        .stat-card.green .stat-card-title { color: var(--c-green-text); }
-        .stat-card.amber {
-            background-color: var(--c-amber-bg);
-            border-color: #fef3c7;
-        }
-        .stat-card.amber .stat-card-title { color: var(--c-amber-text); }
-        .stat-card.grey {
-             background-color: #f8f9fa; /* Un gris neutro */
-             border-color: #e9ecef;
-        }
-        .stat-card.grey .stat-card-title { color: var(--muted); }
+    /* Tarjetas de Métricas */
+    .metric-card {
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
 
-        /* Nuevos colores para badges */
-        .badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.4em 0.7em;
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, currentColor, transparent);
+        opacity: 0.6;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .metric-card.primary { color: var(--primary); }
+    .metric-card.success { color: var(--success); }
+    .metric-card.warning { color: var(--warning); }
+    .metric-card.info { color: var(--info); }
+
+    .metric-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: currentColor;
+        opacity: 0.1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .metric-content h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+
+    .metric-content p {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .metric-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .metric-trend.positive { color: var(--success); }
+    .metric-trend.neutral { color: var(--neutral); }
+
+    /* Panel Principal */
+    .main-card {
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    .card-footer-custom {
+        padding: 1.25rem 2rem;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    /* Búsqueda y Filtros */
+    .search-box {
+        position: relative;
+        min-width: 280px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--background);
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(127, 161, 116, 0.1);
+    }
+
+    .filter-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--background);
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        min-width: 140px;
+        transition: all 0.2s;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(127, 161, 116, 0.1);
+    }
+
+    /* Tabla Moderna */
+    .table-container {
+        overflow: hidden;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modern-table thead {
+        background: var(--surface);
+    }
+
+    .modern-table th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table-header-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modern-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        transition: background-color 0.2s;
+    }
+
+    .modern-table tbody tr:hover {
+        background: var(--surface);
+    }
+
+    .modern-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Componentes de la Tabla */
+    .property-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .property-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .property-type {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .room-badge {
+        background: var(--surface);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .client-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.125rem;
+    }
+
+    .client-email {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .date-range {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .date-from, .date-to {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .date-arrow {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .nights-count {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .guests-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--surface);
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .price-display {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    /* Estados */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-warning {
+        background: #fefce8;
+        border-color: #fef08a;
+        color: #d97706;
+    }
+    .status-warning .status-dot { background: #d97706; }
+
+    .status-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+    .status-success .status-dot { background: #166534; }
+
+    .status-info {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+    .status-info .status-dot { background: #1d4ed8; }
+
+    .status-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+    .status-error .status-dot { background: #dc2626; }
+
+    .status-neutral {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #64748b;
+    }
+    .status-neutral .status-dot { background: #64748b; }
+
+    /* Botones de Acción */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-edit:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-cancel:hover {
+        border-color: var(--error);
+        color: var(--error);
+    }
+
+    .btn-complete:hover {
+        border-color: var(--success);
+        color: var(--success);
+    }
+
+    /* Paginación */
+    .table-info {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .table-pagination {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .pagination-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .pagination-btn:not(.disabled):hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-text {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* Animaciones */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
         }
-        .badge-total { background-color: var(--c-blue-text); color: white; } /* Azul */
-        .badge-activo { background-color: var(--c-green-text); color: white; } /* Verde */
-        .badge-amber { background-color: var(--c-amber-text); color: white; } /* Ámbar */
-        .badge-danger { background-color: var(--c-danger-text); color: white; } /* Rojo */
-        .badge-admin { background-color: var(--ink); color: white; } /* Negro */
-        .badge-muted { background-color: var(--muted); color: white; } /* Gris */
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container-fluid {
+            padding: 1rem;
+        }
         
-        /* Botones de colores */
-        .btn-outline-amber {
-            --bs-btn-color: var(--c-amber-text);
-            --bs-btn-border-color: var(--c-amber-text);
-            --bs-btn-hover-bg: var(--c-amber-text);
-            --bs-btn-hover-border-color: var(--c-amber-text);
-            --bs-btn-hover-color: #fff;
+        .card-header-custom,
+        .card-footer-custom {
+            padding: 1rem;
+        }
+        
+        .modern-table th,
+        .modern-table td {
+            padding: 0.75rem 1rem;
+        }
+        
+        .search-box {
+            min-width: 100%;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Funcionalidad de filtrado (mantenida igual)
+        const searchInput = document.getElementById('searchInput');
+        const estadoFilter = document.getElementById('estadoFilter');
+        const tipoFilter = document.getElementById('tipoFilter');
+        const tableRows = document.querySelectorAll('#reservasTable tbody tr');
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const estadoValue = estadoFilter.value;
+            const tipoValue = tipoFilter.value;
+
+            tableRows.forEach(row => {
+                const property = row.cells[0].textContent.toLowerCase();
+                const client = row.cells[1].textContent.toLowerCase();
+                const estado = row.getAttribute('data-estado');
+                const tipo = row.getAttribute('data-tipo');
+
+                const matchesSearch = property.includes(searchTerm) || client.includes(searchTerm);
+                const matchesEstado = estadoValue === '' || estado === estadoValue;
+                const matchesTipo = tipoValue === '' || tipo === tipoValue;
+
+                row.style.display = matchesSearch && matchesEstado && matchesTipo ? '' : 'none';
+            });
         }
 
-        /* Estilo para el hover de la tabla */
-        #reservasTable tbody tr:hover {
-            background-color: var(--sage-50) !important;
-        }
+        searchInput.addEventListener('input', filterTable);
+        estadoFilter.addEventListener('change', filterTable);
+        tipoFilter.addEventListener('change', filterTable);
 
-        /* Encabezado de la tabla neutral */
-        .table thead th {
-            background: #f8f9fa !important; /* Gris muy claro, no verde */
-            color: var(--ink) !important; /* Texto negro */
-            border-bottom: 1px solid #e9ecef !important;
-            text-transform: uppercase;
-            font-size: .8rem;
-            letter-spacing: .02em;
-        }
-    </style>
-}
+        // Auto-ocultar alertas
+        setTimeout(() => {
+            document.querySelectorAll('.alert-custom').forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Cerrar alertas manualmente
+        document.querySelectorAll('.alert-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const alert = this.closest('.alert-custom');
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        });
+    });
+</script>

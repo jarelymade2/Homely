@@ -12,10 +12,9 @@
                 <p class="mb-0 text-muted" style="font-family: 'Inter', sans-serif; font-weight: 400;">Gestiona y responde a los mensajes de contacto de los usuarios</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="badge-type px-3 py-2" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                <span class="badge bg-light text-dark border px-3 py-2" style="font-family: 'Inter', sans-serif; font-weight: 500;">
                     <i class="bi bi-envelope me-2"></i>Total: @ViewBag.TotalMensajes
                 </span>
-
             </div>
         </div>
     </div>
@@ -25,11 +24,11 @@
         <!-- Estado vacío mejorado -->
         <div class="empty text-center py-5">
             <div class="mb-4">
-                <i class="bi bi-envelope-open" style="font-size: 4rem; color: var(--sage-300);"></i>
+                <i class="bi bi-envelope-open" style="font-size: 4rem; color: #6c757d;"></i>
             </div>
-            <h4 style="color: var(--sage-600); margin-bottom: 1rem; font-family: 'Inter', sans-serif; font-weight: 600;">No hay mensajes de contacto</h4>
+            <h4 style="color: #495057; margin-bottom: 1rem; font-family: 'Inter', sans-serif; font-weight: 600;">No hay mensajes de contacto</h4>
             <p class="text-muted mb-4" style="font-family: 'Inter', sans-serif; font-weight: 400; line-height: 1.6;">Los mensajes de contacto aparecerán aquí cuando los usuarios se pongan en contacto contigo.</p>
-            <a href="/" class="btn btn-outline-sage" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+            <a href="/" class="btn btn-outline-secondary" style="font-family: 'Inter', sans-serif; font-weight: 500;">
                 <i class="bi bi-arrow-left me-2"></i>Volver al inicio
             </a>
         </div>
@@ -40,7 +39,7 @@
         <div class="filter-card border-0">
             <div class="card-body p-0">
                 <!-- Header de la tabla -->
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom" style="border-color: var(--sage-200) !important;">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
                     <div class="d-flex align-items-center gap-3">
                         <div class="input-group" style="max-width: 300px;">
                             <span class="input-group-text bg-transparent border-end-0">
@@ -64,26 +63,26 @@
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
-                            <tr style="background: linear-gradient(0deg, var(--sage-50), var(--sage-50)) !important;">
-                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--sage-200); font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; color: #243a36;">
                                     <div class="d-flex align-items-center gap-2">
                                         <span>Fecha</span>
                                         <i class="bi bi-arrow-down-up text-muted" style="font-size: 0.8rem;"></i>
                                     </div>
                                 </th>
-                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--sage-200); font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Contacto</th>
-                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--sage-200); font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Mensaje</th>
-                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--sage-200); text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Estado</th>
-                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--sage-200); text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Acciones</th>
+                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; color: #243a36;">Contacto</th>
+                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; color: #243a36;">Mensaje</th>
+                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; color: #243a36;">Estado</th>
+                                <th style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; color: #243a36;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var mensaje in Model)
                             {
-                                <tr style="border-bottom: 1px solid var(--sage-100); transition: all 0.2s ease;">
+                                <tr style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease;">
                                     <td style="padding: 1.25rem 1.5rem; vertical-align: middle; font-family: 'Inter', sans-serif;">
                                         <div class="d-flex flex-column">
-                                            <span class="fw-semibold" style="color: var(--sage-800); font-weight: 500;">
+                                            <span class="fw-semibold" style="color: #243a36; font-weight: 500;">
                                                 @mensaje.FechaLocal.ToString("dd/MM/yyyy")
                                             </span>
                                             <small class="text-muted" style="font-weight: 400;">@mensaje.FechaLocal.ToString("HH:mm")</small>
@@ -91,15 +90,15 @@
                                     </td>
                                     <td style="padding: 1.25rem 1.5rem; vertical-align: middle; font-family: 'Inter', sans-serif;">
                                         <div class="d-flex flex-column">
-                                            <span class="fw-semibold" style="color: var(--sage-800); font-weight: 500;">@mensaje.Nombre</span>
+                                            <span class="fw-semibold" style="color: #243a36; font-weight: 500;">@mensaje.Nombre</span>
                                             <div class="d-flex align-items-center gap-2 mt-1">
                                                 <a href="mailto:@mensaje.Email" class="text-decoration-none d-flex align-items-center gap-1" 
-                                                   style="color: var(--sage-600); font-size: 0.875rem; font-weight: 400;">
+                                                   style="color: #6c757d; font-size: 0.875rem; font-weight: 400;">
                                                     <i class="bi bi-envelope"></i>@mensaje.Email
                                                 </a>
                                                 @if (!string.IsNullOrEmpty(mensaje.IdentityUserId))
                                                 {
-                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1" 
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1" 
                                                           style="font-size: 0.7rem; border-radius: 6px; font-family: 'Inter', sans-serif; font-weight: 500;">
                                                         <i class="bi bi-check-circle me-1"></i>Registrado
                                                     </span>
@@ -109,7 +108,7 @@
                                     </td>
                                     <td style="padding: 1.25rem 1.5rem; vertical-align: middle;">
                                         <div class="message-preview">
-                                            <p class="mb-0" style="color: var(--sage-700); line-height: 1.5; font-family: 'Inter', sans-serif; font-weight: 400;">
+                                            <p class="mb-0" style="color: #243a36; line-height: 1.5; font-family: 'Inter', sans-serif; font-weight: 400;">
                                                 @if (mensaje.Mensaje.Length > 120)
                                                 {
                                                     @mensaje.Mensaje.Substring(0, 120)<text>...</text>
@@ -130,7 +129,7 @@
                                     <td style="padding: 1.25rem 1.5rem; vertical-align: middle; text-align: center;">
                                         <div class="d-flex justify-content-center gap-2">
                                             <a asp-action="Detalles" asp-route-id="@mensaje.Id" 
-                                               class="btn btn-outline-sage d-flex align-items-center gap-2 px-3 py-2"
+                                               class="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2"
                                                style="border-radius: 8px; transition: all 0.2s ease; font-family: 'Inter', sans-serif; font-weight: 500;">
                                                 <i class="bi bi-eye"></i>
                                                 <span>Ver</span>
@@ -154,15 +153,15 @@
                 </div>
 
                 <!-- Footer de la tabla -->
-                <div class="d-flex justify-content-between align-items-center p-4 border-top" style="border-color: var(--sage-200) !important;">
+                <div class="d-flex justify-content-between align-items-center p-4 border-top">
                     <div class="text-muted small" style="font-family: 'Inter', sans-serif; font-weight: 400;">
                         <i class="bi bi-clock me-1"></i>Actualizado hace unos momentos
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <span class="text-muted small" style="font-family: 'Inter', sans-serif; font-weight: 400;">Mostrando 1-@Model.Count() de @Model.Count()</span>
                         <div class="btn-group">
-                            <button class="btn btn-outline-sage btn-sm disabled" style="font-family: 'Inter', sans-serif; font-weight: 500;">Anterior</button>
-                            <button class="btn btn-outline-sage btn-sm disabled" style="font-family: 'Inter', sans-serif; font-weight: 500;">Siguiente</button>
+                            <button class="btn btn-outline-secondary btn-sm disabled" style="font-family: 'Inter', sans-serif; font-weight: 500;">Anterior</button>
+                            <button class="btn btn-outline-secondary btn-sm disabled" style="font-family: 'Inter', sans-serif; font-weight: 500;">Siguiente</button>
                         </div>
                     </div>
                 </div>
@@ -179,25 +178,24 @@
     }
 
     .table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(127, 161, 116, 0.03), transparent);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(36, 48, 54, 0.06);
+        background: rgba(0, 0, 0, 0.02);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-outline-sage:hover,
+    .btn-outline-primary:hover,
     .btn-outline-danger:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .input-group:focus-within {
-        box-shadow: 0 0 0 3px rgba(127, 161, 116, 0.1);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         border-radius: 8px;
     }
 
     .form-select:focus {
-        border-color: var(--sage-500);
-        box-shadow: 0 0 0 3px rgba(127, 161, 116, 0.1);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
     }
 
     /* Mejoras tipográficas para mejor legibilidad */
@@ -233,6 +231,19 @@
     .lead, p {
         letter-spacing: -0.01em;
     }
+
+    .filter-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .badge-type {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        color: #495057;
+    }
 </style>
 
 <script>
@@ -250,7 +261,7 @@
                 const name = row.cells[1].textContent.toLowerCase();
                 const email = row.cells[1].textContent.toLowerCase();
                 const message = row.cells[2].textContent.toLowerCase();
-                const isRegistered = row.querySelector('.badge.bg-success') !== null;
+                const isRegistered = row.querySelector('.badge.bg-primary') !== null;
 
                 const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm) || message.includes(searchTerm);
                 const matchesFilter = filterValue === 'all' || 
