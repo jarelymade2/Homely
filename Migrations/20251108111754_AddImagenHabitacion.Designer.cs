@@ -11,8 +11,8 @@ using StayGo.Data;
 namespace StayGo.Migrations
 {
     [DbContext(typeof(StayGoContext))]
-    [Migration("20251025181044_PropiedadSearchHistory")]
-    partial class PropiedadSearchHistory
+    [Migration("20251108111754_AddImagenHabitacion")]
+    partial class AddImagenHabitacion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -367,6 +367,29 @@ namespace StayGo.Migrations
                     b.HasIndex("PropiedadId");
 
                     b.ToTable("Habitaciones");
+                });
+
+            modelBuilder.Entity("StayGo.Models.ImagenHabitacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EsPrincipal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("HabitacionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HabitacionId");
+
+                    b.ToTable("ImagenesHabitacion");
                 });
 
             modelBuilder.Entity("StayGo.Models.ImagenPropiedad", b =>
@@ -743,6 +766,17 @@ namespace StayGo.Migrations
                     b.Navigation("Propiedad");
                 });
 
+            modelBuilder.Entity("StayGo.Models.ImagenHabitacion", b =>
+                {
+                    b.HasOne("StayGo.Models.Habitacion", "Habitacion")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("HabitacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Habitacion");
+                });
+
             modelBuilder.Entity("StayGo.Models.ImagenPropiedad", b =>
                 {
                     b.HasOne("StayGo.Models.Propiedad", "Propiedad")
@@ -909,6 +943,8 @@ namespace StayGo.Migrations
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>
                 {
                     b.Navigation("Disponibilidades");
+
+                    b.Navigation("Imagenes");
 
                     b.Navigation("Reservas");
                 });

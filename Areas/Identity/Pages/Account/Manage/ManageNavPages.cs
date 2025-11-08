@@ -13,6 +13,7 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
         public static string TwoFactorAuthentication => "TwoFactorAuthentication";
         public static string PersonalData => "PersonalData";
         public static string ExternalLogins => "ExternalLogins";
+        public static string Favoritos => "Favoritos";
 
         // Métodos auxiliares que resuelven las advertencias de nulabilidad (CS8603)
         public static string? IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
@@ -21,6 +22,7 @@ namespace StayGo.Areas.Identity.Pages.Account.Manage
         public static string? TwoFactorAuthenticationNavClass(ViewContext viewContext) => PageNavClass(viewContext, TwoFactorAuthentication);
         public static string? PersonalDataNavClass(ViewContext viewContext) => PageNavClass(viewContext, PersonalData);
         public static string? ExternalLoginsNavClass(ViewContext viewContext) => PageNavClass(viewContext, ExternalLogins);
+        public static string? FavoritosNavClass(ViewContext viewContext) => PageNavClass(viewContext, Favoritos);
 
         // Lógica principal
         public static string? PageNavClass(ViewContext viewContext, string page)

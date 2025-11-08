@@ -1,5 +1,7 @@
 @page
+@using Microsoft.Extensions.Options
 @model StayGo.Areas.Identity.Pages.Account.RegisterModel
+@inject IOptions<GoogleReCaptchaSettings> ReCaptchaConfig
 
 @{
     ViewData["Title"] = "Regístrate";
@@ -9,31 +11,36 @@
 @section Hero {
     <section class="hero">
         <div class="overlay">
+<<<<<<< HEAD
             <div class="container d-flex align-items-center justify-content-center h-100">
                 <div class="form-container" style="max-width:520px;">
                     <h2 class="text-white">Regístrate</h2>
 
                     <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="needs-validation" novalidate>
                         <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+=======
+            <div class="form-container">
+                <h2>Regístrate</h2>
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
 
-                        <div class="mb-3">
-                            <label asp-for="Input.FirstName" class="form-label text-white">Nombre</label>
-                            <input asp-for="Input.FirstName" class="form-control" required />
-                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
-                        </div>
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-4 p-3 rounded" role="alert" style="background-color: #fee; border: 1px solid #fcc;"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="Input.LastName" class="form-label text-white">Apellido</label>
-                            <input asp-for="Input.LastName" class="form-control" required />
-                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
-                        </div>
+                    <!-- Nombre -->
+                    <div class="mb-4">
+                        <label asp-for="Input.FirstName" class="form-label">Nombre</label>
+                        <input asp-for="Input.FirstName" class="form-control" required />
+                        <span asp-validation-for="Input.FirstName" class="text-danger small d-block mt-1"></span>
+                    </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Input.Email" class="form-label text-white">Correo electrónico</label>
-                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" required />
-                            <span asp-validation-for="Input.Email" class="text-danger"></span>
-                        </div>
+                    <!-- Apellido -->
+                    <div class="mb-4">
+                        <label asp-for="Input.LastName" class="form-label">Apellido</label>
+                        <input asp-for="Input.LastName" class="form-control" required />
+                        <span asp-validation-for="Input.LastName" class="text-danger small d-block mt-1"></span>
+                    </div>
 
+<<<<<<< HEAD
                         <div class="mb-3">
                             <label asp-for="Input.Password" class="form-label text-white">Contraseña</label>
                             <input asp-for="Input.Password" type="password" class="form-control" autocomplete="new-password" aria-required="true" required />
@@ -69,6 +76,45 @@
                         <a class="ms-1" asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Inicia sesión</a>
                     </div>
                 </div>
+=======
+                    <!-- Correo electrónico -->
+                    <div class="mb-4">
+                        <label asp-for="Input.Email" class="form-label">Correo electrónico</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="nombre@ejemplo.com" required />
+                        <span asp-validation-for="Input.Email" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="mb-4">
+                        <label asp-for="Input.Password" class="form-label">Contraseña</label>
+                        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="new-password" required />
+                        <span asp-validation-for="Input.Password" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Confirmar contraseña -->
+                    <div class="mb-4">
+                        <label asp-for="Input.ConfirmPassword" class="form-label">Confirma la contraseña</label>
+                        <input asp-for="Input.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" required />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- ✅ reCAPTCHA -->
+                    <div class="mb-4 text-center">
+                        <div class="g-recaptcha" data-sitekey="@ReCaptchaConfig.Value.SiteKey"></div>
+                        <input type="hidden" asp-for="Recaptcha" id="Recaptcha" />
+                        <span class="text-danger small d-block mt-2" asp-validation-for="Recaptcha"></span>
+                    </div>
+
+                    <!-- Botón de registro -->
+                    <button id="registerSubmit" type="submit" class="btn btn-brand fw-semibold">
+                        <i class="bi bi-person-plus-fill me-2"></i> Regístrate
+                    </button>
+
+                    <p class="text-center text-muted mt-3">
+                        ¿Ya tienes cuenta? <a asp-area="Identity" asp-page="/Account/Login" class="text-decoration-none fw-semibold">Inicia sesión</a>
+                    </p>
+                </form>
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
             </div>
         </div>
     </section>
@@ -76,4 +122,24 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+<<<<<<< HEAD
+=======
+
+    <!-- ✅ Script de Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <script>
+        // Asignar token de reCAPTCHA al campo oculto antes de enviar el formulario
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            var token = grecaptcha.getResponse();
+            document.getElementById('Recaptcha').value = token;
+
+            // Opcional: prevenir envío si no completó reCAPTCHA
+            if (!token) {
+                e.preventDefault();
+                alert('Debes completar el reCAPTCHA.');
+            }
+        });
+    </script>
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
 }

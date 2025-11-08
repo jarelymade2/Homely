@@ -47,9 +47,23 @@
     </li>
     
     <li class="nav-item">
-        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" 
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)"
            id="personal-data" asp-page="./PersonalData">
             <i class="bi bi-file-earmark-person-fill me-2"></i>Datos personales
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.FavoritosNavClass(ViewContext)"
+           id="favoritos" asp-page="./Favoritos">
+            <i class="bi bi-heart-fill me-2"></i>Mis Favoritos
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link"
+           id="reservas" asp-area="" asp-controller="Reserva" asp-action="History">
+            <i class="bi bi-journal-check me-2"></i>Mis Reservas
         </a>
     </li>
 </ul>

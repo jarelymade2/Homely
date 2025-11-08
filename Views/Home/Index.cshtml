@@ -1,219 +1,728 @@
-﻿@* Views/Home/Index.cshtml - CÓDIGO FINAL *@
+﻿@model List<StayGo.Models.Propiedad>
 @using System.Globalization
 
 @{
     ViewData["Title"] = "Encuentra tu próxima estadía";
 
-    // Recupera los filtros y el historial
+
     var checkin = (DateTime?)ViewBag.Checkin;
     var checkout = (DateTime?)ViewBag.Checkout;
     var adults = (int)(ViewBag.Adults ?? 1);
     var children = (int)(ViewBag.Children ?? 0);
 
-    // 🛑 Historial de Búsqueda
+
     List<string> historialBusqueda = ViewBag.HistorialUbicacion ?? new List<string>();
 
-    // Recuperamos el tipo de alerta (para color del mensaje)
-    var mensajeTipo = TempData["MensajeTipo"] ?? "alert-info";
 
-    // 🌟 Propiedad Destacada
+    var mensajeTipo = TempData["MensajeTipo"] ?? "alert-info";
+   var destacadas = ViewBag.Destacadas as List<StayGo.Models.Propiedad> ?? new();
+    var recomendaciones = ViewBag.Recomendaciones as List<StayGo.Models.Propiedad> ?? new();
     var propiedadDestacada = ViewBag.PropiedadDestacada as StayGo.Models.Propiedad;
     var promedioDestacada = (double?)ViewBag.PromedioDestacada;
     var pe = new CultureInfo("es-PE");
 }
 
-@section Hero{
-    <section class="hero">
-        <div class="overlay">
-            <div class="container">
-                
-                @* Bloque para mostrar el mensaje de éxito o fracaso *@
-                @if (TempData["MensajeBusqueda"] != null)
-                {
-                    <div class="row justify-content-center mb-4">
-                        <div class="col-12 col-lg-8">
-                            <div class="alert @mensajeTipo alert-dismissible fade show" role="alert">
-                                @TempData["MensajeBusqueda"]
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+@section Styles {
+    <style>
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(36, 48, 54, 0.7), rgba(36, 48, 54, 0.8)), 
+                        url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding-top: 90px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--sage-100);
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .search-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr auto;
+            gap: 15px;
+        }
+
+        .search-card .form-label {
+            font-size: .85rem;
+            color: var(--sage-100);
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-card .form-control {
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: var(--transition);
+            font-weight: 400;
+        }
+
+        .search-card .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-card .form-control:focus {
+            border-color: var(--sage-500);
+            box-shadow: 0 0 0 0.25rem rgba(127, 161, 116, 0.25);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        /* Brand Button */
+        .btn-brand {
+            background: linear-gradient(135deg, var(--sage-500), var(--sage-700));
+            color: var(--accent);
+            border-radius: 12px;
+            padding: 14px 24px;
+            border: none;
+            transition: var(--transition);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-brand::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-brand:hover::before {
+            left: 100%;
+        }
+
+        .btn-brand:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(127, 161, 116, 0.4);
+            color: var(--accent);
+        }
+
+        /* Quick Search Badges */
+        .quick-search {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .badge-luxury {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--sage-100);
+            border: 1px solid rgba(127, 161, 116, 0.3);
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(5px);
+        }
+
+        .badge-luxury:hover {
+            background: var(--sage-500);
+            color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(127, 161, 116, 0.3);
+        }
+
+        /* Luxury Card Stay */
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.8rem;
+            color: var(--ink);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .section-title h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 3px;
+            background: var(--sage-500);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            color: var(--sage-600);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+        .card-luxury {
+            border: none;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+            background: var(--surface);
+            transition: var(--transition);
+            height: 100%;
+            position: relative;
+        }
+
+        .card-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 100%);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1;
+        }
+
+        .card-luxury:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+        }
+
+        .card-luxury:hover::before {
+            opacity: 1;
+        }
+
+        .card-luxury img {
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            height: 240px;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .card-luxury:hover img {
+            transform: scale(1.05);
+        }
+
+        .card-luxury .card-body {
+            padding: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-luxury .card-body h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--ink);
+        }
+
+        .card-luxury .rating {
+            color: var(--sage-500);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-luxury .location {
+            color: var(--sage-600);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-luxury .location i {
+            margin-right: 5px;
+        }
+
+        .card-luxury .price {
+            font-weight: 700;
+            color: var(--ink);
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .card-luxury .price span {
+            color: var(--sage-600);
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .btn-luxury {
+            background: transparent;
+            color: var(--sage-500);
+            border: 1px solid var(--sage-500);
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-luxury:hover {
+            background: var(--sage-500);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(127, 161, 116, 0.3);
+        }
+
+        /* Tipo Badge */
+        .tipo-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(36, 48, 54, 0.8);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            z-index: 3;
+        }
+
+        /* Alertas */
+        .alert-luxury {
+            border-radius: 15px;
+            border: none;
+            box-shadow: var(--shadow-light);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .search-grid {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 3.8rem;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .search-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 3.2rem;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero {
+                min-height: auto;
+                padding: 120px 0 60px;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+}
+
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content fade-in-up">
+            <!-- Alertas -->
+            <div id="alertContainer"></div>
+
+            @if (TempData["MensajeBusqueda"] != null)
+            {
+                <div class="row justify-content-center mb-4">
+                    <div class="col-12 col-lg-8">
+                        <div class="alert @mensajeTipo alert-luxury alert-dismissible fade show" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-2" style="font-size: 1.2rem;"></i>
+                                <div>@Html.Raw(TempData["MensajeBusqueda"])</div>
                             </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     </div>
-                }
+                </div>
+            }
 
-                <div class="row gy-4 align-items-end">
-                    <div class="col-12 col-lg-6 text-white">
-                        <h1 class="fw-bold display-5 mb-3">Encuentra tu próxima estadía</h1>
-                        <p class="lead mb-4">Explora alojamientos únicos cerca de ti o en cualquier parte del mundo.</p>
+            <h1>Encuentra Tu Refugio Perfecto</h1>
+            <p>Descubre propiedades exclusivas en los destinos más deseados del mundo. Donde el lujo se encuentra con la comodidad.</p>
+
+            <form asp-controller="Home" asp-action="ResultadoBusqueda" method="get" class="search-card">
+                <div class="search-grid">
+                    <div>
+                        <label class="form-label">Ubicación</label>
+                        <input
+                            name="q"
+                            class="form-control"
+                            placeholder="¿A dónde vas?"
+                            list="search-history-list"
+                            id="locationInput"
+                        />
+                        <datalist id="search-history-list">
+                            @foreach (var item in historialBusqueda)
+                            {
+                                <option value="@item"></option>
+                            }
+                        </datalist>
                     </div>
-                    <div class="col-12">
-                        @* 🛑 FORMULARIO CORREGIDO: Apunta a Home/ResultadoBusqueda *@
-                        <form asp-controller="Home" asp-action="ResultadoBusqueda" method="get" class="search-card">
-                            <div class="search-grid">
-                                
-                                @* 1. CAMPO DE UBICACIÓN (con historial) *@
-                                <div>
-                                    <label class="form-label">Ubicación</label>
-                                    <input 
-                                        name="q" 
-                                        class="form-control" 
-                                        placeholder="¿A dónde vas?" 
-                                        list="search-history-list"
-                                    />
-                                    
-                                    @* DATALIST CON HISTORIAL *@
-                                    <datalist id="search-history-list">
-                                        @foreach (var item in historialBusqueda)
-                                        {
-                                            <option value="@item"></option>
-                                        }
-                                    </datalist>
-                                </div>
-                                
-                                @* 2. LLEGADA (Persistencia) *@
-                                <div>
-                                    <label class="form-label">Llegada</label>
-                                    <input 
-                                        type="date" 
-                                        name="checkin" 
-                                        class="form-control" 
-                                        value="@(checkin?.ToString("yyyy-MM-dd"))"
-                                    />
-                                </div>
-                                
-                                @* 3. SALIDA (Persistencia) *@
-                                <div>
-                                    <label class="form-label">Salida</label>
-                                    <input 
-                                        type="date" 
-                                        name="checkout" 
-                                        class="form-control"
-                                        value="@(checkout?.ToString("yyyy-MM-dd"))"
-                                    />
-                                </div>
-                                
-                                @* 4. ADULTOS (Persistencia) *@
-                                <div>
-                                    <label class="form-label">Adultos</label>
-                                    <input 
-                                        type="number" 
-                                        min="1" 
-                                        name="adults" 
-                                        class="form-control" 
-                                        value="@adults"
-                                    />
-                                </div>
-                                
-                                @* 5. NIÑOS (Persistencia) *@
-                                <div>
-                                    <label class="form-label">Niños</label>
-                                    <input 
-                                        type="number" 
-                                        min="0" 
-                                        name="children" 
-                                        class="form-control"
-                                        value="@children"
-                                    />
-                                </div>
-                                
-                                @* 6. BOTÓN BUSCAR *@
-                                <div class="d-grid">
-                                    <label class="form-label invisible">Buscar</label>
-                                    <button class="btn btn-brand w-100" type="submit">Buscar</button>
-                                </div>
-                            </div>
-                        </form>
+
+                    <div>
+                        <label class="form-label">Llegada</label>
+                        <input
+                            type="date"
+                            name="checkin"
+                            class="form-control"
+                            id="checkinInput"
+                            value="@(checkin?.ToString("yyyy-MM-dd"))" />
+                    </div>
+
+                    <div>
+                        <label class="form-label">Salida</label>
+                        <input
+                            type="date"
+                            name="checkout"
+                            class="form-control"
+                            id="checkoutInput"
+                            value="@(checkout?.ToString("yyyy-MM-dd"))" />
+                    </div>
+
+                    <div>
+                        <label class="form-label">Adultos</label>
+                        <input
+                            type="number"
+                            min="1"
+                            name="adults"
+                            class="form-control"
+                            value="@adults"
+                            id="adultsInput" />
+                    </div>
+
+                    <div>
+                        <label class="form-label">Niños</label>
+                        <input
+                            type="number"
+                            min="0"
+                            name="children"
+                            class="form-control"
+                            value="@children"
+                            id="childrenInput" />
+                    </div>
+
+                    <div class="d-grid">
+                        <label class="form-label invisible">Buscar</label>
+                        <button class="btn btn-brand" type="submit">
+                            <i class="bi bi-search me-2"></i>Buscar
+                        </button>
                     </div>
                 </div>
+            </form>
 
-                <div class="mt-4 d-flex flex-wrap gap-2">
-                    <span class="badge-soft">Cerca de mí</span>
-                    <span class="badge-soft">Playas</span>
-                    <span class="badge-soft">Pet friendly</span>
-                    <span class="badge-soft">Ofertas de última hora</span>
+            <div class="quick-search">
+                <span class="badge-luxury" onclick="quickSearch('Playas')">Playas</span>
+                <span class="badge-luxury" onclick="quickSearch('Montaña')">Montaña</span>
+                <span class="badge-luxury" onclick="quickSearch('Ciudad')">Ciudad</span>
+                <span class="badge-luxury" onclick="quickSearch('Pet friendly')">Pet friendly</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<main class="container py-5">
+    <!-- DESTACADAS -->
+    <section class="py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h4 m-0">🌟 Destacadas</h2>
+            <a asp-controller="Propiedad" asp-action="Index" class="link-dark">Ver todo</a>
+        </div>
+
+        <div class="row g-4">
+            @if (destacadas.Any())
+            {
+                @foreach (var p in destacadas)
+                {
+                    var imagenPrincipal = p.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
+                                          ?? "https://placehold.co/600x400?text=Sin+imagen";
+                    var ubicacion = string.Join(", ",
+                        new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    var capacidad = p.Capacidad.HasValue ? $"{p.Capacidad} huéspedes" : "Ver detalles";
+                    var precio = p.PrecioPorNoche.HasValue
+                        ? p.PrecioPorNoche.Value.ToString("C", pe)
+                        : "Desde habitaciones";
+                    var cantidadResenas = p.Resenas?.Count ?? 0;
+                    var promedioCalificacion = p.Resenas?.Any() == true
+                        ? p.Resenas.Average(r => r.Puntuacion)
+                        : 0;
+
+                    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@p.Id" class="text-decoration-none">
+                            <div class="card-luxury h-100">
+                                <div class="position-relative">
+                                    <img src="@imagenPrincipal" class="card-img-top" alt="@p.Titulo" />
+                                    <div class="tipo-badge">
+                                        @p.Tipo
+                                    </div>
+                                    @if (cantidadResenas > 0)
+                                    {
+                                        <div class="position-absolute top-0 end-0 m-2">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                                @promedioCalificacion.ToString("F1")
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="h6 fw-semibold mb-1">@p.Titulo</h3>
+                                    <p class="location mb-2">
+                                        <i class="bi bi-geo-alt-fill"></i> @ubicacion · @capacidad
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="price fw-bold">@precio</span>
+                                            @if (p.PrecioPorNoche.HasValue)
+                                            {
+                                                <span class="text-muted small">/ noche</span>
+                                            }
+                                        </div>
+                                        @if (cantidadResenas > 0)
+                                        {
+                                            <span class="badge bg-success-subtle text-success-emphasis">
+                                                @cantidadResenas @(cantidadResenas == 1 ? "reseña" : "reseñas")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-info">No hay propiedades destacadas aún.</div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- RECOMENDACIONES PARA TI (solo logueado y si hay) -->
+    @if (User?.Identity?.IsAuthenticated ?? false)
+    {
+        <section class="py-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 m-0">✨ Recomendaciones para ti</h2>
+            </div>
+
+            @if (recomendaciones.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var p in recomendaciones)
+                    {
+                        var imagenPrincipal = p.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
+                                              ?? "https://placehold.co/600x400?text=Sin+imagen";
+                        var ubicacion = string.Join(", ",
+                            new[] { p.Direccion?.Ciudad, p.Direccion?.Pais }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        var capacidad = p.Capacidad.HasValue ? $"{p.Capacidad} huéspedes" : "Ver detalles";
+                        var precio = p.PrecioPorNoche.HasValue
+                            ? p.PrecioPorNoche.Value.ToString("C", pe)
+                            : "Desde habitaciones";
+
+                        var cantidadResenas = p.Resenas?.Count ?? 0;
+                        var promedioCalificacion = p.Resenas?.Any() == true
+                            ? p.Resenas.Average(r => r.Puntuacion)
+                            : 0;
+
+                        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                            <div class="card-luxury">
+                                <div class="position-relative">
+                                    <img src="@imagenPrincipal" class="card-img-top" alt="@p.Titulo" />
+                                    <div class="tipo-badge">
+                                        @p.Tipo
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    @if (cantidadResenas > 0)
+                                    {
+                                        <div class="rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= Math.Floor(promedioCalificacion))
+                                                {
+                                                    <i class="bi bi-star-fill"></i>
+                                                }
+                                                else if (i == Math.Ceiling(promedioCalificacion) && promedioCalificacion % 1 >= 0.5)
+                                                {
+                                                    <i class="bi bi-star-half"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-star"></i>
+                                                }
+                                            }
+                                            <span class="ms-1">@promedioCalificacion.ToString("F1")</span>
+                                        </div>
+                                    }
+                                    <h3>@p.Titulo</h3>
+                                    <p class="location">
+                                        <i class="bi bi-geo-alt"></i>@ubicacion · @capacidad
+                                    </p>
+                                    <span class="price">@precio @if (p.PrecioPorNoche.HasValue){<span>/ noche</span>}</span>
+                                    <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@p.Id" class="btn btn-luxury">
+                                        Ver Detalles
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Aún no podemos recomendarte propiedades. Reserva o deja reseñas para que el sistema aprenda de ti 🫶
+                </div>
+            }
+        </section>
+    }
+
+    <!-- Experiencias (lo tuyo) -->
+    <section class="py-5">
+        <div class="section-title">
+            <h2>Experiencias Únicas</h2>
+            <p>Más que un lugar para quedarse, ofrecemos experiencias que transforman tu viaje en recuerdos inolvidables.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card-luxury text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-star" style="font-size: 2.5rem; color: var(--sage-500);"></i>
+                    </div>
+                    <h4>Servicio Personalizado</h4>
+                    <p class="text-muted">Concierge disponible 24/7 para atender todas tus necesidades durante tu estadía.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-luxury text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-egg-fried" style="font-size: 2.5rem; color: var(--sage-500);"></i>
+                    </div>
+                    <h4>Gastronomía Exclusiva</h4>
+                    <p class="text-muted">Chefs privados y experiencias culinarias personalizadas según tus preferencias.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-luxury text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-geo" style="font-size: 2.5rem; color: var(--sage-500);"></i>
+                    </div>
+                    <h4>Guías y Actividades</h4>
+                    <p class="text-muted">Tours privados y actividades exclusivas para descubrir cada destino de manera única.</p>
                 </div>
             </div>
         </div>
     </section>
-} 
+</main>
 
-<section class="py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h4 m-0">🌟 Destacado - Mejor Valorado</h2>
-        <a asp-controller="Propiedad" asp-action="Index" class="link-dark">Ver todo</a>
-    </div>
-
-    <div class="row g-4">
-        @if (propiedadDestacada != null)
-        {
-            var imagenPrincipal = propiedadDestacada.Imagenes?.OrderByDescending(i => i.EsPrincipal).FirstOrDefault()?.Url
-                                  ?? "https://placehold.co/600x400?text=Sin+imagen";
-            var ubicacion = string.Join(", ",
-                new[] { propiedadDestacada.Direccion?.Ciudad, propiedadDestacada.Direccion?.Pais }
-                .Where(s => !string.IsNullOrWhiteSpace(s)));
-            var capacidad = propiedadDestacada.Capacidad.HasValue
-                ? $"{propiedadDestacada.Capacidad} huéspedes"
-                : "Ver detalles";
-            var precio = propiedadDestacada.PrecioPorNoche.HasValue
-                ? propiedadDestacada.PrecioPorNoche.Value.ToString("C", pe)
-                : "Desde habitaciones";
-            var cantidadResenas = propiedadDestacada.Resenas?.Count ?? 0;
-
-            <div class="col-12 col-sm-6 col-lg-4">
-                <a asp-controller="Propiedad" asp-action="Details" asp-route-id="@propiedadDestacada.Id" class="text-decoration-none">
-                    <div class="card card-stay h-100 shadow-sm">
-                        <div class="position-relative">
-                            <img src="@imagenPrincipal" class="card-img-top" alt="@propiedadDestacada.Titulo" style="height: 250px; object-fit: cover;" />
-                            <div class="position-absolute top-0 end-0 m-2">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> @promedioDestacada?.ToString("F1")
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h3 class="h6 fw-semibold mb-1">@propiedadDestacada.Titulo</h3>
-                            </div>
-                            <p class="text-muted small mb-2">
-                                <i class="bi bi-geo-alt-fill"></i> @ubicacion
-                                @if (propiedadDestacada.Capacidad.HasValue)
-                                {
-                                    <span> · @capacidad</span>
-                                }
-                            </p>
-                            <p class="text-muted small mb-2">
-                                <i class="bi bi-chat-left-text-fill"></i> @cantidadResenas @(cantidadResenas == 1 ? "reseña" : "reseñas")
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="price fw-bold">@precio</span>
-                                    @if (propiedadDestacada.PrecioPorNoche.HasValue)
-                                    {
-                                        <span class="text-muted small">/ noche</span>
-                                    }
-                                </div>
-                                <span class="badge bg-success">
-                                    <i class="bi bi-trophy-fill"></i> Top Rated
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        }
-        else
-        {
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> No hay propiedades con reseñas aún.
-                    <a asp-controller="Propiedad" asp-action="Index" class="alert-link">Ver todas las propiedades</a>
-                </div>
-            </div>
-        }
-    </div>
-</section>
-
-@section Scripts{
+@section Scripts {
     <script>
-        
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const formatDate = (date) => date.toISOString().split('T')[0];
+
+            const checkinInput = document.getElementById('checkinInput');
+            const checkoutInput = document.getElementById('checkoutInput');
+
+            if (checkinInput && !checkinInput.value) {
+                checkinInput.min = formatDate(today);
+                checkinInput.value = formatDate(today);
+            }
+
+            if (checkoutInput && !checkoutInput.value) {
+                checkoutInput.min = formatDate(tomorrow);
+                checkoutInput.value = formatDate(tomorrow);
+            }
+
+            document.getElementById('checkinInput')?.addEventListener('change', function () {
+                const checkin = new Date(this.value);
+                const checkoutInput = document.getElementById('checkoutInput');
+                const checkout = new Date(checkoutInput.value);
+
+                if (checkin >= checkout) {
+                    const nextDay = new Date(checkin);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkoutInput.value = nextDay.toISOString().split('T')[0];
+                }
+
+                checkoutInput.min = this.value;
+            });
+        });
+
+        function quickSearch(type) {
+            document.getElementById('locationInput').value = type;
+        }
     </script>
 }

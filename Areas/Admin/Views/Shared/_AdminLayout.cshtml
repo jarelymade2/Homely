@@ -14,81 +14,464 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
-        :root{
-            /* Sage palette */
-            --sage-50:#f5f7f4; --sage-100:#e9efe6; --sage-200:#dce6d7; --sage-300:#c9d7c2;
-            --sage-400:#a3b18a; --sage-500:#7fa174; --sage-600:#5e8a63; --sage-700:#3f6b4f;
-            --sage-800:#2f5b45; --sage-900:#26453a;
-            --ink:#243036; --muted:#6c757d; --card:#ffffff;
-            --shadow: 0 10px 25px rgba(36,48,54,.08);
-            --radius: 16px;
-            --ring: rgba(63,107,79,.35);
-        }
-        html,body{height:100%; background:var(--sage-50); color:var(--ink);}
-        body{overflow-x:hidden;}
-
-        /* Topbar */
-        .topbar{
-            height:64px; background:#fff; border-bottom:1px solid #e9ecef;
-            display:flex; align-items:center; gap:.75rem; padding:0 16px; position:sticky; top:0; z-index:1031;
-        }
-        .brand{display:flex; align-items:center; gap:.5rem; font-weight:700; letter-spacing:.2px; color:var(--sage-800);}
-        .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--sage-400),var(--sage-700));display:grid;place-items:center;color:#fff;box-shadow:var(--shadow);}
-        .btn-burger{border:1px solid #e5e7eb; background:#fff; transition:all .2s;}
-        .btn-burger:hover{background:var(--sage-100); border-color:var(--sage-200);}
-
-        /* Sidebar */
-        .sidebar{
-            position:fixed; inset:0 auto 0 0; width:268px;
-            background:linear-gradient(180deg, var(--sage-900), #1b2a23 60%, var(--sage-800));
-            color:#dfe7e3; transform:translateX(-100%); transition:transform .28s ease; z-index:1040;
-            box-shadow: 6px 0 24px rgba(0,0,0,.18);
-        }
-        .sidebar.open{ transform:translateX(0);}
-        .side-head{height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; border-bottom:1px solid rgba(255,255,255,.06);}
-        .side-title{display:flex; align-items:center; gap:.6rem; font-weight:700; color:#e9f3ef;}
-        .side-title .logo{width:32px;height:32px;border-radius:9px; display:grid; place-items:center; color:#fff;background:linear-gradient(135deg,var(--sage-400),var(--sage-700));}
-        .side-close{background:transparent; border:none; color:#cfe3d9; font-size:20px; padding:6px 10px; border-radius:10px;}
-        .side-close:hover{background:rgba(255,255,255,.08);}
-        .nav-admin{padding:10px;}
-        .nav-admin a{display:flex; align-items:center; gap:.75rem; padding:12px 14px; border-radius:12px; color:#cfe3d9; text-decoration:none; font-weight:500; border:1px solid transparent;}
-        .nav-admin a .bi{font-size:1.05rem; opacity:.9;}
-        .nav-admin a:hover{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.07);}
-        .nav-admin a.active{ background:linear-gradient(90deg, rgba(163,177,138,.25), rgba(63,107,79,.25)); color:#fff; border-color:rgba(255,255,255,.14);}
-
-        /* Scrim (mobile) */
-        .scrim{position:fixed; inset:0; background:rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .25s; z-index:1035;}
-        .scrim.show{opacity:1; pointer-events:auto;}
-
-        /* Content */
-        .content{ 
-          margin-left:0; 
-          transition:margin-left .28s ease; 
-          padding:20px;}
-
-     @@media (min-width: 992px) {
-        .sidebar { transform: translateX(0); }
-        .content { margin-left: 268px; }
-        .scrim { display: none; }
-        .btn-burger { display: none; }
+    :root{
+        /* Sage palette - Ajustado para coincidir con el inicio */
+        --sage-50:#f5f7f4; --sage-100:#e9efe6; --sage-200:#dce6d7; --sage-300:#c9d7c2;
+        --sage-400:#a3b18a; --sage-500:#7fa174; --sage-600:#5e8a63; --sage-700:#3f6b4f;
+        --sage-800:#2f5b45; --sage-900:#26453a;
+        --ink:#243036; --muted:#6c757d; --card:#ffffff;
+        --shadow: 0 10px 25px rgba(36,48,54,.08);
+        --radius: 16px;
+        --ring: rgba(63,107,79,.35);
+        --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        
+        /* Variables adicionales para coincidir con el inicio */
+        --bg: var(--sage-50);
+        --brand: #e9f3ef;
+        --accent: #fff;
+        --surface: #ffffff;
+        --shadow-light: 0 10px 25px rgba(0, 0, 0, 0.05);
     }
+    html,body{
+        height:100%; 
+        background:var(--bg); 
+        color:var(--ink);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.7;
+        font-weight: 400;
     }
 
-        /* Helpful shared components for pages */
-        .page-head{border-radius:18px; padding:16px 18px; margin-bottom:14px; background: radial-gradient(900px 300px at -10% -50%, var(--sage-200), transparent 45%), radial-gradient(900px 300px at 110% -50%, rgba(63,107,79,.12), transparent 55%), #fff; border:1px solid #edf1ee; box-shadow:0 10px 24px rgba(36,48,54,.06);}
-        .btn-sage{--bs-btn-bg: var(--sage-600); --bs-btn-border-color: var(--sage-600); --bs-btn-hover-bg: var(--sage-700); --bs-btn-hover-border-color: var(--sage-700);}
-        .btn-outline-sage{--bs-btn-color: var(--sage-700); --bs-btn-border-color: var(--sage-300); --bs-btn-hover-bg: var(--sage-100); --bs-btn-hover-border-color: var(--sage-500);}
-        .filter-card{border-radius:16px; border:1px solid #edf1ee; background:#fff; box-shadow:0 8px 20px rgba(36,48,54,.05);}
-        .table thead th{background:linear-gradient(0deg,var(--sage-100),var(--sage-100)) !important; color:#2d3a34; border-bottom:1px solid #e6eee8; text-transform:uppercase; font-size:.8rem; letter-spacing:.02em;}
-        .thumb{width:96px; height:64px; object-fit:cover; border-radius:10px; border:1px solid #edf1ee;}
-        .badge-type{background: #eef5ef; color: var(--sage-700); border:1px solid #d9e7da;}
-        .empty{border:1px dashed #dfe6df; background: var(--sage-50); border-radius:16px; padding:24px;}
+    h1, h2, h3, h4, h5, h6, .brand {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, san;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    /* Topbar - CON PADDING CORRECTO Y COLOR COMO EL INICIO */
+    .topbar{
+        height:70px; 
+        background: rgba(36, 48, 54, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(127, 161, 116, 0.2);
+        display:flex; 
+        align-items:center; 
+        padding: 0 20px; 
+        position:sticky; 
+        top:0; 
+        z-index:1031;
+        transition: var(--transition);
+    }
+    .brand{
+        display:flex; 
+        align-items:center; 
+        gap:.75rem; 
+        font-weight:700; 
+        letter-spacing:1px; 
+        color: var(--sage-500);
+        text-decoration: none;
+        transition: var(--transition);
+        font-size: 1.5rem;
+    }
+    .brand:hover {
+        color: var(--sage-400);
+    }
+    .brand .logo{
+        width:42px;
+        height:42px;
+        border-radius:12px;
+        background:linear-gradient(135deg, var(--sage-500), var(--sage-700));
+        display:grid;
+        place-items:center;
+        color:#fff;
+        box-shadow: 0 4px 12px rgba(127, 161, 116, 0.3);
+        transition: var(--transition);
+    }
+    .brand:hover .logo {
+        transform: rotate(5deg) scale(1.05);
+    }
+    .btn-burger{
+        border: 1px solid rgba(127, 161, 116, 0.3); 
+        background: transparent; 
+        border-radius:10px;
+        padding: 8px 12px;
+        transition:var(--transition);
+        color: var(--sage-500);
+        font-size: 1.25rem;
+    }
+    .btn-burger:hover{
+        background:rgba(127, 161, 116, 0.1); 
+        border-color: var(--sage-500);
+        transform: translateY(-1px);
+        color: var(--sage-400);
+    }
+
+    /* Sidebar - CON COLOR COMO EL INICIO */
+    .sidebar{
+        position:fixed; 
+        inset:0 auto 0 0; 
+        width:280px;
+        background: rgba(36, 48, 54, 0.98);
+        backdrop-filter: blur(10px);
+        color:#dfe7e3; 
+        transform:translateX(-100%); 
+        transition:transform .3s ease; 
+        z-index:1040;
+        box-shadow: 6px 0 24px rgba(0,0,0,.25);
+        border-right: 1px solid rgba(127, 161, 116, 0.2);
+    }
+    .sidebar.open{ transform:translateX(0);}
+    .side-head{
+        height:70px; 
+        display:flex; 
+        align-items:center; 
+        justify-content:space-between; 
+        padding:0 20px; 
+        border-bottom:1px solid rgba(127, 161, 116, 0.2);
+    }
+    .side-title{
+        display:flex; 
+        align-items:center; 
+        gap:.75rem; 
+        font-weight:700; 
+        color: var(--sage-500);
+        font-family: 'Inter', sans-serif  };
+    }
+    .side-title .logo{
+        width:36px;
+        height:36px;
+        border-radius:10px; 
+        display:grid; 
+        place-items:center; 
+        color:#fff;
+        background:linear-gradient(135deg, var(--sage-500), var(--sage-700));
+        box-shadow: 0 4px 12px rgba(127, 161, 116, 0.3);
+    }
+    .side-close{
+        background:transparent; 
+        border:none; 
+        color: var(--sage-500); 
+        font-size:20px; 
+        padding:6px 12px; 
+        border-radius:10px;
+        transition: var(--transition);
+    }
+    .side-close:hover{
+        background:rgba(127, 161, 116, 0.1);
+        transform: translateX(-2px);
+        color: var(--sage-400);
+    }
+    .nav-admin{
+        padding: 20px;
+    }
+    .nav-admin a{
+        display:flex; 
+        align-items:center; 
+        gap:.75rem; 
+        padding:14px 16px; 
+        border-radius:12px; 
+        color: var(--brand);
+        text-decoration:none; 
+        font-weight:500; 
+        border:1px solid transparent;
+        margin-bottom: 8px;
+        transition: var(--transition);
+    }
+    .nav-admin a .bi{
+        font-size:1.1rem; 
+        opacity:.9;
+        width: 20px;
+        text-align: center;
+    }
+    .nav-admin a:hover{ 
+        background:rgba(127, 161, 116, 0.1); 
+        border-color:rgba(127, 161, 116, 0.2);
+        transform: translateX(5px);
+        color: var(--sage-500);
+    }
+    .nav-admin a.active{ 
+        background:linear-gradient(90deg, rgba(127, 161, 116, 0.2), rgba(63, 107, 79, 0.25)); 
+        color: var(--sage-500); 
+        border-color:rgba(127, 161, 116, 0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+
+    /* Botones con estilo del inicio */
+    .btn-sage{
+        background: var(--sage-600);
+        border: 1px solid var(--sage-600);
+        color: white;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    .btn-sage:hover{
+        background: var(--sage-700);
+        border-color: var(--sage-700);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    .btn-outline-sage{
+        background: transparent;
+        border: 1px solid var(--sage-300);
+        color: var(--sage-700);
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    .btn-outline-sage:hover{
+        background: var(--sage-100);
+        border-color: var(--sage-500);
+        color: var(--sage-800);
+        transform: translateY(-2px);
+    }
+
+/* Resto del CSS mantiene la misma estructura pero con los colores actualizados... */
+        .filter-card{
+            border-radius:16px; 
+            border:1px solid #edf1ee; 
+            background:#fff; 
+            box-shadow:0 8px 20px rgba(36,48,54,.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table thead th{
+            background:linear-gradient(0deg,var(--sage-100),var(--sage-100)) !important; 
+            color:#2d3a34; 
+            border-bottom:1px solid #e6eee8; 
+            text-transform:uppercase; 
+            font-size:.8rem; 
+            letter-spacing:.02em;
+            padding: 16px 12px;
+        }
+        .table tbody td {
+            padding: 14px 12px;
+            vertical-align: middle;
+        }
+        .thumb{
+            width:96px; 
+            height:64px; 
+            object-fit:cover; 
+            border-radius:10px; 
+            border:1px solid #edf1ee;
+        }
+        .badge-type{
+            background: #eef5ef; 
+            color: var(--sage-700); 
+            border:1px solid #d9e7da;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .empty{
+            border:1px dashed #dfe6df; 
+            background: var(--sage-50); 
+            border-radius:16px; 
+            padding:40px 24px;
+            text-align: center;
+            color: var(--sage-600);
+        }
 
         /* Focus ring */
-        a.btn, button, .btn-burger, .side-close{outline:none;}
-        a.btn:focus-visible, button:focus-visible, .btn-burger:focus-visible, .side-close:focus-visible, .nav-admin a:focus-visible{
-            box-shadow: 0 0 0 4px var(--ring);
+        a.btn, button, .btn-burger, .side-close{
+            outline:none;
+            border: none;
         }
+        a.btn:focus-visible, button:focus-visible, .btn-burger:focus-visible, .side-close:focus-visible, .nav-admin a:focus-visible{
+            box-shadow: 0 0 0 4px var(--ring) !important;
+        }
+/* Quitar outlines azules no deseados */
+        .dropdown-item:focus,
+        .dropdown-item:focus-visible,
+        .btn:focus,
+        .btn:focus-visible,
+        .nav-admin a:focus,
+        .nav-admin a:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Estilo personalizado para focus */
+        .dropdown-item:focus-visible,
+        .btn:focus-visible {
+            box-shadow: 0 0 0 3px var(--ring) !important;
+            border-radius: 8px;
+        }
+
+        /* Desktop styles */
+        @@media (min-width: 992px) {
+            .sidebar { 
+                transform: translateX(0); 
+            }
+            .content { 
+                margin-left: 280px; 
+                padding: 30px 25px;
+            }
+            .scrim { 
+                display: none; 
+            }
+            .btn-burger { 
+                display: none; 
+            }
+            .topbar {
+                padding: 0 25px;
+            }
+        }
+
+        /* Mobile styles */
+        @@media (max-width: 991px) {
+            .topbar {
+                padding: 0 15px;
+                height: 64px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .nav-admin {
+                padding: 15px;
+            }
+            .side-head {
+                padding: 0 15px;
+                height: 64px;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .topbar {
+                padding: 0 12px;
+            }
+            .content {
+                padding: 15px 12px;
+            }
+            .page-head {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        }
+   /* Chat flotante para Admin */
+#sg-chat-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    background: var(--sage-600);
+    color: #fff;
+    border: none;
+    display: grid;
+    place-items: center;
+    font-size: 1.3rem;
+    box-shadow: 0 15px 30px rgba(0,0,0,.15);
+    z-index: 1500;
+    cursor: pointer;
+    transition: transform .2s;
+}
+#sg-chat-btn:hover {
+    transform: translateY(-3px);
+}
+#sg-chat-box {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 320px;
+    max-height: 460px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.15);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1500;
+}
+#sg-chat-header {
+    background: var(--sage-700);
+    color: #fff;
+    padding: .8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+#sg-chat-messages {
+    padding: .75rem;
+    flex: 1;
+    overflow-y: auto;
+    background: #f5f7f4;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+.sg-msg-bot, .sg-msg-user {
+    padding: .4rem .6rem;
+    margin-bottom: .35rem;
+    border-radius: 10px;
+    font-size: .85rem;
+    line-height: 1.35;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+.sg-msg-bot {
+    background: #fff;
+    border: 1px solid rgba(38,69,58,.06);
+}
+.sg-msg-user {
+    background: var(--sage-500);
+    color: #fff;
+    margin-left: auto;
+    max-width: 90%;
+}
+#sg-chat-input {
+    display: flex;
+    gap: .4rem;
+    padding: .5rem .7rem .7rem;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+#sg-chat-text {
+    flex: 1;
+    border: 1px solid #e3e7e4;
+    border-radius: 999px;
+    padding: .45rem .6rem;
+    outline: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+}
+#sg-chat-send {
+    background: var(--sage-600);
+    border: none;
+    border-radius: 999px;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#sg-chat-send:hover {
+    background: var(--sage-700);
+}
+
+/* Ajustes responsive para el chat en móviles */
+@@media (max-width: 768px) {
+    #sg-chat-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+    #sg-chat-box {
+        bottom: 80px;
+        right: 20px;
+        width: calc(100vw - 40px);
+        max-width: 320px;
+    }
+}
     </style>
 
     @RenderSection("Styles", required: false)
@@ -98,24 +481,43 @@
     <aside id="sidebar" class="sidebar" aria-label="Menú de administración">
         <div class="side-head">
             <div class="side-title">
-                <div class="logo"><i class="bi bi-leaf"></i></div>
+                <div class="logo"><i class="bi bi-house-heart"></i></div>
                 <span>StayGo • Admin</span>
             </div>
             <button id="btnClose" class="side-close" aria-label="Cerrar menú"><i class="bi bi-arrow-left"></i></button>
         </div>
         <nav class="nav-admin">
-            <a asp-area="Admin" asp-controller="Admin" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index"><i class="bi bi-house-door"></i> Propiedades</a>
-            <a asp-area="Admin" asp-controller="Reserva" asp-action="Index"><i class="bi bi-calendar-check"></i> Reservas</a>
-            <a asp-area="Admin" asp-controller="Usuario" asp-action="Index"><i class="bi bi-people"></i> Usuarios</a>
-            <a asp-area="Admin" asp-controller="Reporte" asp-action="Index"><i class="bi bi-graph-up"></i> Reportes</a>
-            <a asp-action="Index" asp-controller="Contacto"asp-action="Index"><i class="bi bi-envelope"></i> Mensajes de Contacto</a>
-            <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post" class="mt-3">
+            <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a asp-area="Admin" asp-controller="Propiedad" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Propiedad" ? "active" : "")">
+                <i class="bi bi-house-door"></i> Propiedades
+            </a>
+            <a asp-area="Admin" asp-controller="Reserva" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reserva" ? "active" : "")">
+                <i class="bi bi-calendar-check"></i> Reservas
+            </a>
+            <a asp-area="Admin" asp-controller="Usuario" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Usuario" ? "active" : "")">
+                <i class="bi bi-people"></i> Usuarios
+            </a>
+            <a asp-area="Admin" asp-controller="Reporte" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reporte" ? "active" : "")">
+                <i class="bi bi-graph-up"></i> Reportes
+            </a>
+            <a asp-area="Admin" asp-controller="Contacto" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Contacto" ? "active" : "")">
+                <i class="bi bi-envelope"></i> Mensajes de Contacto
+            </a>
+            
+            <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="mt-3 px-3">
                 @Html.AntiForgeryToken()
                 <button type="submit" 
-                        class="w-100 btn btn-link text-start" 
-                        style="color:#cfe3d9;font-weight:500;text-decoration:none;">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                        class="nav-admin-logout d-flex align-items-center gap-3 w-100 py-3 px-3 border-0 bg-transparent"
+                        style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="bg-danger bg-opacity-10 p-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-box-arrow-right text-danger"></i>
+                    </div>
+                    <div class="flex-grow-1 text-start">
+                        <div class="fw-semibold text-white">Cerrar sesión</div>
+                        <small style="color: rgba(255,255,255,0.6)">Salir de tu cuenta</small>
+                    </div>
                 </button>
             </form>
 
@@ -127,14 +529,39 @@
 
     <!-- Top bar -->
     <header class="topbar">
-        <button id="btnMenu" class="btn btn-burger"><i class="bi bi-list"></i></button>
-        <div class="brand">
-            <div class="logo"><i class="bi bi-leaf"></i></div>
+        <button id="btnMenu" class="btn btn-burger" aria-label="Abrir menú">
+            <i class="bi bi-list"></i>
+        </button>
+        <a class="brand" asp-area="Admin" asp-controller="Admin" asp-action="Index">
+            <div class="logo"><i class="bi bi-house-heart"></i></div>
             <span>StayGo Admin</span>
-        </div>
-        <div class="ms-auto d-flex align-items-center gap-2">
-            @* Aquí podrías renderizar el usuario logueado *@
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-3">
             <span class="text-muted small d-none d-md-inline">@User?.Identity?.Name</span>
+            <div class="dropdown">
+                <button class="btn btn-outline-sage btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/">Ir al Sitio Principal</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline w-100">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" 
+                                class="dropdown-item d-flex align-items-center gap-3 w-100 py-2 px-3 border-0"
+                                style="border-radius: 8px; transition: all 0.3s ease;">
+                            <div class="bg-danger bg-opacity-10 p-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <i class="bi bi-box-arrow-right text-danger" style="font-size: 0.9rem;"></i>
+                            </div>
+                            <div class="flex-grow-1 text-start">
+                                <span class="fw-semibold text-danger">Cerrar sesión</span>
+                            </div>
+                        </button>
+                    </form>
+                </li>
+                </ul>
+            </div>
         </div>
     </header>
 
@@ -145,12 +572,132 @@
         </div>
     </main>
 
-    
-<!-- Agrega estos scripts justo antes del cierre del body -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Chat Bot -->
+    <button id="sg-chat-btn" aria-label="Abrir chat con asistente">
+        <i class="bi bi-chat-dots-fill"></i>
+    </button>
+
+    <div id="sg-chat-box" aria-label="Chat asistente StayGo">
+        <div id="sg-chat-header">
+            <span>Asistente StayGo Admin</span>
+            <button type="button" style="background:none;border:none;color:#fff;font-size:1rem;" id="sg-chat-close">&times;</button>
+        </div>
+        <div id="sg-chat-messages">
+            <div class="sg-msg-bot">
+                ¡Hola! 👋 Soy el asistente de StayGo Admin. ¿En qué puedo ayudarte con la gestión del sistema?
+            </div>
+        </div>
+        <div id="sg-chat-input">
+            <input id="sg-chat-text" type="text" placeholder="Escribe tu pregunta..." autocomplete="off" />
+            <button id="sg-chat-send"><i class="bi bi-send-fill"></i></button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const scrim = document.getElementById('scrim');
+            const btnMenu = document.getElementById('btnMenu');
+            const btnClose = document.getElementById('btnClose');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                scrim.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                scrim.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            btnMenu.addEventListener('click', openSidebar);
+            btnClose.addEventListener('click', closeSidebar);
+            scrim.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking on a nav link (mobile)
+            document.querySelectorAll('.nav-admin a').forEach(link => {
+                link.addEventListener('click', closeSidebar);
+            });
+
+            // Close sidebar with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSidebar();
+                }
+            });
+
+            // Chat Bot functionality
+            const chatBtn = document.getElementById('sg-chat-btn');
+            const chatBox = document.getElementById('sg-chat-box');
+            const chatClose = document.getElementById('sg-chat-close');
+            const chatMessages = document.getElementById('sg-chat-messages');
+            const chatInput = document.getElementById('sg-chat-text');
+            const chatSend = document.getElementById('sg-chat-send');
+
+            function toggleChat(show) {
+                chatBox.style.display = show ? 'flex' : (chatBox.style.display === 'flex' ? 'none' : 'flex');
+            }
+
+            chatBtn.addEventListener('click', () => toggleChat(true));
+            chatClose.addEventListener('click', () => toggleChat(false));
+
+            function appendMessage(text, cls) {
+                const div = document.createElement('div');
+                div.className = cls;
+                div.textContent = text;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            async function sendMessage() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+
+                appendMessage(text, 'sg-msg-user');
+                chatInput.value = '';
+
+                const loading = document.createElement('div');
+                loading.className = 'sg-msg-bot';
+                loading.textContent = 'Escribiendo...';
+                chatMessages.appendChild(loading);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    const res = await fetch('/api/ChatApi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text })
+                    });
+
+                    const data = await res.json();
+                    loading.remove();
+                    appendMessage(data.reply || 'No pude responder ahora 😅', 'sg-msg-bot');
+                } catch (err) {
+                    loading.remove();
+                    appendMessage('Ocurrió un error hablando con el asistente.', 'sg-msg-bot');
+                }
+            }
+
+            chatSend.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Close chat with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && chatBox.style.display === 'flex') {
+                    toggleChat(false);
+                }
+            });
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
 

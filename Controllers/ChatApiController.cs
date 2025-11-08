@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using StayGo.Services.AI;
+<<<<<<< HEAD
+=======
+using System.Threading.Tasks;
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
 
 namespace StayGo.Controllers
 {
@@ -7,9 +11,18 @@ namespace StayGo.Controllers
     [Route("api/[controller]")]
     public class ChatApiController : ControllerBase
     {
+<<<<<<< HEAD
         private readonly IChatAiService _chat;
 
         public ChatApiController(IChatAiService chat) => _chat = chat;
+=======
+        private readonly IChatAiService _chatService;
+
+        public ChatApiController(IChatAiService chatService)
+        {
+            _chatService = chatService;
+        }
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
 
         public class ChatRequest
         {
@@ -17,6 +30,7 @@ namespace StayGo.Controllers
         }
 
         [HttpPost]
+<<<<<<< HEAD
         public async Task<IActionResult> Post([FromBody] ChatRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Message))
@@ -38,6 +52,15 @@ namespace StayGo.Controllers
                 HttpContext.Session.SetString("UserRole", role);
 
             var reply = await _chat.GetReplyAsync(msg, role);
+=======
+        public async Task<IActionResult> Post([FromBody] ChatRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Message))
+                return BadRequest("Mensaje vacío");
+
+            var reply = await _chatService.GetReplyAsync(request.Message);
+
+>>>>>>> 2833e7d27de18370600e88d248c29b43aa20f952
             return Ok(new { reply });
         }
     }

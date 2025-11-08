@@ -69,7 +69,8 @@ public async Task<IActionResult> Detalles(Guid id)
     var prop = await _db.Propiedades
         .Include(p => p.Direccion)
         .Include(p => p.Imagenes)
-        .Include(p => p.Habitaciones)  
+        .Include(p => p.Habitaciones)
+            .ThenInclude(h => h.Imagenes)
         .AsNoTracking()
         .FirstOrDefaultAsync(p => p.Id == id);
 

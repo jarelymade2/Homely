@@ -366,6 +366,29 @@ namespace StayGo.Migrations
                     b.ToTable("Habitaciones");
                 });
 
+            modelBuilder.Entity("StayGo.Models.ImagenHabitacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EsPrincipal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("HabitacionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HabitacionId");
+
+                    b.ToTable("ImagenesHabitacion");
+                });
+
             modelBuilder.Entity("StayGo.Models.ImagenPropiedad", b =>
                 {
                     b.Property<Guid>("Id")
@@ -740,6 +763,17 @@ namespace StayGo.Migrations
                     b.Navigation("Propiedad");
                 });
 
+            modelBuilder.Entity("StayGo.Models.ImagenHabitacion", b =>
+                {
+                    b.HasOne("StayGo.Models.Habitacion", "Habitacion")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("HabitacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Habitacion");
+                });
+
             modelBuilder.Entity("StayGo.Models.ImagenPropiedad", b =>
                 {
                     b.HasOne("StayGo.Models.Propiedad", "Propiedad")
@@ -906,6 +940,8 @@ namespace StayGo.Migrations
             modelBuilder.Entity("StayGo.Models.Habitacion", b =>
                 {
                     b.Navigation("Disponibilidades");
+
+                    b.Navigation("Imagenes");
 
                     b.Navigation("Reservas");
                 });

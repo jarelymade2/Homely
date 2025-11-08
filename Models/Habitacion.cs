@@ -6,7 +6,7 @@ public class Habitacion
 {
     public Guid Id { get; set; }
     public Guid PropiedadId { get; set; }
-    [ValidateNever]  
+    [ValidateNever]
     public Propiedad? Propiedad { get; set; } = null!;
     public string Nombre { get; set; } = ""; // ej: "Doble 201"
     public int Capacidad { get; set; }
@@ -17,4 +17,5 @@ public class Habitacion
 
     public ICollection<Disponibilidad> Disponibilidades { get; set; } = new List<Disponibilidad>();
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+    public ICollection<ImagenHabitacion> Imagenes { get; set; } = new List<ImagenHabitacion>();
 }
