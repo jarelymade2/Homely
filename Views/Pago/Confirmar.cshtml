@@ -740,8 +740,11 @@
                 formData.append('checkout', '@checkOut.ToString("yyyy-MM-dd")');
                 formData.append('huespedes', '@huespedes');
 
-                // Realizar llamada AJAX
-                const response = await fetch('@Url.Action("ProcesarPagoAjax", "Pago")', {
+                // Realizar llamada AJAX con URL absoluta
+                const baseUrl = window.location.origin;
+                const actionUrl = baseUrl + '@Url.Action("ProcesarPagoAjax", "Pago")';
+
+                const response = await fetch(actionUrl, {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': token
