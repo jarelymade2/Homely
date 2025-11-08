@@ -147,6 +147,9 @@ using (var scope = app.Services.CreateScope())
 
         await Seed.SeedAsync(services);
         await StayGo.Data.Seed.SeedAsync(services);
+
+        var ml = services.GetRequiredService<MLRecommendationService>();
+        ml.TrainModel();
     }
     catch (Exception ex)
     {

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.ML;
 using StayGo.Data;
 using StayGo.Models;
 using StayGo.Services.ML.DataStructures;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace StayGo.Services.ML
@@ -11,38 +13,42 @@ namespace StayGo.Services.ML
     public class MLRecommendationService
     {
         private readonly StayGoContext _context;
-        private readonly string _modelPath = "MLModels/propiedadModel.zip";
-        private readonly MLContext _mlContext;
 
-        public MLRecommendationService(StayGoContext context)
+        private readonly MLContext _mlContext;
+        private readonly string _modelPath;
+
+        
+        public MLRecommendationService(StayGoContext context, IWebHostEnvironment env)
         {
             _context = context;
             _mlContext = new MLContext();
+
+            
+            _modelPath = Path.Combine(env.ContentRootPath, "MLModels", "propiedadModel.zip");
         }
 
         // Entrena el modelo de recomendación
         public void TrainModel()
         {
-            // 1️⃣ Cargar datos desde las reseñas (usuario - propiedad - puntuación)
-            var reseñas = _context.Resenas
-                .Where(r => r.Puntuacion != null)
+            // Cargar datos desde las reseñas (usuario - propiedad - puntuación)
+            var resenas = _context.Resenas
                 .Select(r => new PropiedadRating
                 {
-                    userId = r.UsuarioId.ToString(),
-                    propiedadId = r.PropiedadId.ToString(),
+                    userId = r.UsuarioId,                   // string (de Identity)
+                    propiedadId = r.PropiedadId.ToString(), // Guid -> string
                     Label = (float)r.Puntuacion
                 })
                 .ToList();
 
-            if (!reseñas.Any())
+            if (!resenas.Any())
             {
                 Console.WriteLine("⚠️ No hay reseñas suficientes para entrenar el modelo.");
                 return;
             }
 
-            var data = _mlContext.Data.LoadFromEnumerable(reseñas);
+            var data = _mlContext.Data.LoadFromEnumerable(resenas);
 
-            // 2️⃣ Configurar las opciones del algoritmo de factorización matricial
+            // Configurar las opciones del algoritmo de factorización matricial
             var options = new Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options
             {
                 MatrixColumnIndexColumnName = "userIdEncoded",
@@ -52,63 +58,102 @@ namespace StayGo.Services.ML
                 ApproximationRank = 100
             };
 
-            // 3️⃣ Crear el pipeline de entrenamiento
+            // Crear el pipeline de entrenamiento
             var pipeline = _mlContext.Transforms.Conversion
                     .MapValueToKey("userIdEncoded", nameof(PropiedadRating.userId))
                 .Append(_mlContext.Transforms.Conversion
                     .MapValueToKey("propiedadIdEncoded", nameof(PropiedadRating.propiedadId)))
                 .Append(_mlContext.Recommendation().Trainers.MatrixFactorization(options));
 
-            // 4️⃣ Entrenar el modelo
+            // Entrenar el modelo
             var model = pipeline.Fit(data);
 
-            // 5️⃣ Guardar modelo entrenado
+            // Guardar modelo entrenado
+            var dir = Path.GetDirectoryName(_modelPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             _mlContext.Model.Save(model, data.Schema, _modelPath);
 
-            Console.WriteLine("✅ Modelo de recomendaciones entrenado y guardado correctamente.");
+            Console.WriteLine("✅ Modelo de recomendaciones entrenado y guardado correctamente. Ruta: " + _modelPath);
         }
 
-        // Genera recomendaciones para un usuario
-        public List<Propiedad> RecommendForUser(Guid userId, int topN = 5)
+        public List<Propiedad> RecommendForUser(string userId, int topN = 5)
         {
-            if (!_context.Resenas.Any())
-            {
-                Console.WriteLine("⚠️ No hay reseñas en la base de datos para generar recomendaciones.");
+            // 1) sin propiedades => nada que hacer
+            if (!_context.Propiedades.Any())
                 return new List<Propiedad>();
+                
+
+            // 2) si no hay reseñas o no hay modelo, devolvemos algo para no dejar vacío
+            if (!_context.Resenas.Any() || !File.Exists(_modelPath))
+            {
+                return _context.Propiedades.Take(topN).ToList();
             }
 
-            // 1️⃣ Cargar el modelo entrenado
-            if (!System.IO.File.Exists(_modelPath))
-            {
-                Console.WriteLine("⚠️ El modelo no existe. Entrénalo primero ejecutando TrainModel().");
-                return new List<Propiedad>();
-            }
-
+            // 3) cargar modelo
             var model = _mlContext.Model.Load(_modelPath, out var schema);
             var predictionEngine = _mlContext.Model.CreatePredictionEngine<PropiedadRating, PropiedadRatingPrediction>(model);
 
-            // 2️⃣ Obtener todas las propiedades disponibles
-            var propiedades = _context.Propiedades.ToList();
-            var predictions = new List<(Propiedad propiedad, float score)>();
+            // propiedades que el modelo conoce (las que tienen reseñas)
+            var propIdsEntrenadas = _context.Resenas
+                .Select(r => r.PropiedadId)
+                .Distinct()
+                .ToHashSet();
 
-            // 3️⃣ Calcular puntuación predicha para cada propiedad
-            foreach (var p in propiedades)
+            // propiedades que ESTE usuario ya calificó
+            var propIdsUsuario = _context.Resenas
+                .Where(r => r.UsuarioId == userId)
+                .Select(r => r.PropiedadId)
+                .ToHashSet();
+
+            // candidatos = conocidas por el modelo y NO calificadas por este usuario
+            var candidatos = _context.Propiedades
+                .Where(p => propIdsEntrenadas.Contains(p.Id) && !propIdsUsuario.Contains(p.Id))
+                .ToList();
+
+            // si no hay candidatos (porque el user ya calificó todo lo entrenado), devolvemos algo
+            if (!candidatos.Any())
             {
-                var prediction = predictionEngine.Predict(new PropiedadRating
+                return _context.Propiedades
+                    .Where(p => !propIdsUsuario.Contains(p.Id))
+                    .Take(topN)
+                    .ToList();
+            }
+
+            var predictions = new List<(Propiedad prop, float score)>();
+
+            foreach (var p in candidatos)
+            {
+                var pred = predictionEngine.Predict(new PropiedadRating
                 {
-                    userId = userId.ToString(),
+                    userId = userId,
                     propiedadId = p.Id.ToString()
                 });
 
-                predictions.Add((p, prediction.Score));
+                // solo agregamos si no es NaN
+                if (!float.IsNaN(pred.Score))
+                {
+                    predictions.Add((p, pred.Score));
+                }
             }
 
-            // 4️⃣ Devolver las propiedades con mejor puntuación
+
+            if (!predictions.Any())
+            {
+                // al menos devolvemos las propiedades que el modelo sí conoce y el user no ha calificado
+                return candidatos.Take(topN).ToList();
+            }
+
+            
             return predictions
-                .OrderByDescending(p => p.score)
+                .OrderByDescending(x => x.score)
                 .Take(topN)
-                .Select(p => p.propiedad)
+                .Select(x => x.prop)
                 .ToList();
         }
+
     }
 }
